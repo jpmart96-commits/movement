@@ -13,7 +13,7 @@
 <body>
 
 <!-- Auth screen — shown when not logged in -->
-<div id="auth-screen" style="display:none;min-height:100dvh;align-items:center;justify-content:center;padding:1.5rem;background:var(--bg)">
+<div id="auth-screen" style="display:flex;min-height:100dvh;align-items:center;justify-content:center;padding:1.5rem;background:var(--bg)">
   <div style="width:100%;max-width:360px">
     <div style="font-size:24px;font-weight:600;margin-bottom:.25rem">Movement</div>
     <div style="font-size:14px;color:var(--text2);margin-bottom:2rem">Sign in to sync across devices</div>
@@ -1253,7 +1253,7 @@ function closeExerciseModal(){ document.getElementById('ex-modal-backdrop').styl
 // ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   onDurChange(90);
-  boot(); // auth check → pull data → App.init() → renderHome()
+  boot().catch(e => { console.error('Boot error:', e); AuthUI.show(); });
 });
 setInterval(() => {
   if(App.screen==='session'&&LiveSession.getSession()){
