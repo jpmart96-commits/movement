@@ -625,9 +625,15 @@ function renderGoals() {
     const last = History.getGoalLastPracticed(g.id);
     const pct  = ms && ms.total > 1 ? Math.round((ms.idx / (ms.total-1)) * 100) : 0;
     const age  = last ? Utils.daysSince(last) : null;
-    const cfg  = Utils.getThemeConfig('strength-a'); // just for priority color
     const pColors = { 1:'#C0392B', 2:'#E67E22', 3:'#7F8C8D' };
+    // Resolve image: custom goal field, or built-in override, YouTube thumb, or nothing
+    const gov = (DB.get('goal_overrides') || {})[g.id] || {};
+    const rawLink  = g.goalLink  || gov.goalLink  || '';
+    const rawImage = g.goalImage || gov.goalImage || '';
+    const imgSrc   = rawImage || Overrides.thumbFromYouTube(rawLink) || '';
+    const vidLink  = rawLink;
     return `<div class="card goal-card">
+      ${imgSrc ? `<div class="goal-img-wrap">${vidLink ? `<a href="${vidLink}" target="_blank" rel="noopener">` : ''}<img class="goal-img" src="${imgSrc}" alt="${g.name}" loading="lazy" onerror="this.parentElement.style.display='none'">${vidLink ? `</a>` : ''}</div>` : ''}
       <div class="goal-card-header">
         <div>
           <div class="goal-name">${g.name}</div>
@@ -681,6 +687,7 @@ function openGoalModal(id) {
   }).filter(Boolean);
 
   const isBuiltIn = isEdit && !g?.isCustom;
+  const govOv = (DB.get('goal_overrides') || {})[id] || {};
 
   document.getElementById('goal-modal-content').innerHTML = `
     <div class="modal-title">${isEdit ? (isBuiltIn?'Manage goal':'Edit goal') : 'New goal'}</div>
@@ -707,6 +714,14 @@ function openGoalModal(id) {
     <div class="field-label" style="margin-top:.75rem">Notes</div>
     <textarea class="text-input" id="gm-notes" rows="2" placeholder="Coaching notes…">${escAttr(g?.notes)}</textarea>
 
+    <div class="field-label" style="margin-top:.75rem">Video link <span class="opt">YouTube — thumbnail auto-generated</span></div>
+    <input type="url" class="text-input" id="gm-link" value="${escAttr(g?.goalLink||govOv?.goalLink||'')}" placeholder="https://youtube.com/watch?v=..." oninput="previewGoalMedia()">
+
+    <div class="field-label" style="margin-top:.5rem">Image URL <span class="opt">overrides thumbnail</span></div>
+    <input type="url" class="text-input" id="gm-img" value="${escAttr(g?.goalImage||govOv?.goalImage||'')}" placeholder="https://...image.jpg" oninput="previewGoalMedia()">
+
+    <div id="gm-media-preview" style="margin:.5rem 0"></div>
+
     <div class="field-label" style="margin-top:.75rem">Milestones <span class="opt">in order</span></div>
     <div id="gm-milestones">${milestones.map((ms,i)=>msRow(ms,i)).join('')}</div>
     <button class="btn-ghost" style="margin-top:.375rem;padding:.5rem" onclick="addMsRow()">+ Add milestone</button>
@@ -724,7 +739,24 @@ function openGoalModal(id) {
     </div>`;
 
   renderFeedChips();
+  // Show preview for any existing media
+  previewGoalMedia();
   document.getElementById('goal-modal-backdrop').style.display = 'flex';
+}
+
+function previewGoalMedia() {
+  const wrap = document.getElementById('gm-media-preview'); if (!wrap) return;
+  const link = document.getElementById('gm-link')?.value || '';
+  const img  = document.getElementById('gm-img')?.value  || '';
+  // Custom image URL takes priority; else YouTube thumbnail; else nothing
+  const src  = img || Overrides.thumbFromYouTube(link) || '';
+  wrap.innerHTML = '';
+  if (src) {
+    const el = document.createElement('img');
+    el.src = src; el.className = 'ex-thumb-preview';
+    el.onerror = () => wrap.style.display = 'none';
+    wrap.appendChild(el);
+  }
 }
 
 function msRow(text, i) {
@@ -802,25 +834,26 @@ document.addEventListener('click', e => {
 function saveGoal(existingId) {
   const name = document.getElementById('gm-name')?.value?.trim();
   if (!name) return alert('Name is required.');
-  const category  = document.getElementById('gm-cat')?.value?.trim() || 'General';
-  const priority  = parseInt(document.getElementById('gm-priority')?.value) || 2;
-  const notes     = document.getElementById('gm-notes')?.value?.trim() || '';
-  const milestones = [...document.querySelectorAll('.ms-input')].map(i=>i.value.trim()).filter(Boolean);
+  const category     = document.getElementById('gm-cat')?.value?.trim() || 'General';
+  const priority     = parseInt(document.getElementById('gm-priority')?.value) || 2;
+  const notes        = document.getElementById('gm-notes')?.value?.trim() || '';
+  const goalLink     = document.getElementById('gm-link')?.value?.trim() || '';
+  const goalImage    = document.getElementById('gm-img')?.value?.trim() || '';
+  const milestones   = [...document.querySelectorAll('.ms-input')].map(i=>i.value.trim()).filter(Boolean);
   const feedExercises = _gmFeedExercises.map(e=>e.id);
 
   if (existingId) {
     const g = Custom.getAllGoals().find(x => x.id === existingId);
     if (g?.isCustom) {
-      Custom.updateGoal(existingId, { name, category, priority, notes, milestones, feedExercises });
+      Custom.updateGoal(existingId, { name, category, priority, notes, goalLink, goalImage, milestones, feedExercises });
     } else {
-      // Built-in: store overrides
       const ov = DB.get('goal_milestone_overrides') || {};
       ov[existingId] = milestones; DB.set('goal_milestone_overrides', ov);
       const gov = DB.get('goal_overrides') || {};
-      gov[existingId] = { category, priority, notes, feedExercises }; DB.set('goal_overrides', gov);
+      gov[existingId] = { category, priority, notes, goalLink, goalImage, feedExercises }; DB.set('goal_overrides', gov);
     }
   } else {
-    Custom.addGoal({ name, category, priority, notes, milestones, feedExercises });
+    Custom.addGoal({ name, category, priority, notes, goalLink, goalImage, milestones, feedExercises });
   }
   closeGoalModal(); renderGoals();
 }
