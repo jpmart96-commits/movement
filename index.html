@@ -5,12 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Practice Brain">
-<title>Practice Brain</title>
+<meta name="apple-mobile-web-app-title" content="Movement">
+<title>Movement</title>
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+<!-- Auth screen — shown when not logged in -->
+<div id="auth-screen" style="display:none;min-height:100dvh;align-items:center;justify-content:center;padding:1.5rem;background:var(--bg)">
+  <div style="width:100%;max-width:360px">
+    <div style="font-size:24px;font-weight:600;margin-bottom:.25rem">Movement</div>
+    <div style="font-size:14px;color:var(--text2);margin-bottom:2rem">Sign in to sync across devices</div>
+    <div id="auth-mode" data-mode="signin"></div>
+    <div style="margin-bottom:.75rem">
+      <div class="field-label">Email</div>
+      <input type="email" id="auth-email" class="text-input" placeholder="you@email.com" autocomplete="email">
+    </div>
+    <div style="margin-bottom:1rem">
+      <div class="field-label">Password</div>
+      <input type="password" id="auth-password" class="text-input" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')authSubmit()">
+    </div>
+    <div id="auth-error" style="display:none;font-size:13px;color:var(--danger);margin-bottom:.75rem;padding:.5rem .75rem;background:#fff0f0;border-radius:var(--radius-sm)"></div>
+    <button id="auth-btn" class="btn-primary" onclick="authSubmit()">Sign in</button>
+    <button id="auth-toggle" class="btn-ghost" onclick="toggleAuthMode()" style="margin-top:.5rem">Don't have an account? Sign up</button>
+  </div>
+</div>
+
+<!-- App root — hidden until auth passes -->
+<div id="app-root" style="display:none">
 
 <!-- NAV: Home / Generate / Session(hidden) / Goals / Log / Settings -->
 <nav id="nav">
@@ -37,7 +61,7 @@
 <!-- ═══ HOME ═══════════════════════════════════════════════════ -->
 <main id="screen-home" class="screen active">
   <header class="screen-header">
-    <h1 class="logo">Practice Brain</h1>
+    <h1 class="logo">Movement</h1>
     <div class="week-toggle" onclick="toggleWeek()">
       <span id="week-label">Week 1</span>
       <svg viewBox="0 0 24 24" width="14"><path d="M7 16l-4-4 4-4M17 8l4 4-4 4"/></svg>
@@ -263,6 +287,9 @@
         <label class="btn-ghost" style="cursor:pointer">Import backup JSON ↑
           <input type="file" accept=".json" style="display:none" onchange="importData(this)">
         </label>
+        <button class="btn-ghost" style="color:var(--danger);margin-top:.5rem" onclick="signOut()">Sign out</button>
+          <input type="file" accept=".json" style="display:none" onchange="importData(this)">
+        </label>
       </div>
     </div>
   </div>
@@ -282,6 +309,7 @@
 <script src="data/library.js"></script>
 <script src="js/app.js"></script>
 <script src="js/custom.js"></script>
+<script src="js/sync.js"></script>
 <script src="js/overrides.js"></script>
 <script>
 
@@ -1224,7 +1252,8 @@ function closeExerciseModal(){ document.getElementById('ex-modal-backdrop').styl
 // INIT
 // ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  App.init(); onDurChange(90); renderHome();
+  onDurChange(90);
+  boot(); // auth check → pull data → App.init() → renderHome()
 });
 setInterval(() => {
   if(App.screen==='session'&&LiveSession.getSession()){
@@ -1232,6 +1261,9 @@ setInterval(() => {
   }
 }, 60000);
 </script>
+
+</div><!-- end app-root -->
+
 <!-- Exercise edit modal -->
 <div class="modal-backdrop" id="ex-edit-backdrop" style="display:none" onclick="closeExEdit()">
   <div class="modal modal-tall" onclick="event.stopPropagation()">
