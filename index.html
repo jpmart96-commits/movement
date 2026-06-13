@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Practice Brain">
+<title>Practice Brain</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NAV BAR
+════════════════════════════════════════════════════════════ -->
+<nav id="nav">
+  <button class="nav-btn active" data-screen="home"     onclick="navTo('home')"    aria-label="Home">
+    <svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>
+    <span>Home</span>
+  </button>
+  <button class="nav-btn" data-screen="generate" onclick="navTo('generate')" aria-label="Generate">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    <span>Generate</span>
+  </button>
+  <button class="nav-btn session-nav" data-screen="session" onclick="navTo('session')" aria-label="Session" style="display:none">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+    <span>Session</span>
+  </button>
+  <button class="nav-btn" data-screen="history" onclick="navTo('history')" aria-label="History">
+    <svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg>
+    <span>History</span>
+  </button>
+  <button class="nav-btn" data-screen="settings" onclick="navTo('settings')" aria-label="Settings">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span>Settings</span>
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: HOME
+════════════════════════════════════════════════════════════ -->
+<main id="screen-home" class="screen active">
+  <header class="screen-header">
+    <h1 class="logo">Practice Brain</h1>
+    <div class="week-toggle" onclick="toggleWeek()">
+      <span id="week-label">Week 1</span>
+      <svg viewBox="0 0 24 24" width="14"><path d="M7 16l-4-4 4-4M17 8l4 4-4 4"/></svg>
+    </div>
+  </header>
+
+  <!-- Today suggestion -->
+  <section class="card today-card" id="today-card">
+    <div class="today-day" id="today-day">Monday</div>
+    <div class="today-theme" id="today-theme">Strength A</div>
+    <div class="today-sub" id="today-sub">Squat · Bench · Pull-up · Skill block</div>
+    <button class="btn-primary" onclick="startToday()">Start today's session ↗</button>
+  </section>
+
+  <!-- Active session banner (shown if session in progress) -->
+  <section class="card active-session-banner" id="active-banner" style="display:none">
+    <div class="banner-label">Session in progress</div>
+    <div class="banner-info" id="banner-info"></div>
+    <button class="btn-primary" onclick="navTo('session')">Continue →</button>
+  </section>
+
+  <!-- Goal flags -->
+  <section id="goal-flags"></section>
+
+  <!-- Quick stats -->
+  <section class="card stats-card" id="home-stats">
+    <div class="stat-row">
+      <div class="stat-item">
+        <div class="stat-val" id="stat-sessions">—</div>
+        <div class="stat-lbl">Sessions</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="stat-streak">—</div>
+        <div class="stat-lbl">Day streak</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="stat-last">—</div>
+        <div class="stat-lbl">Last session</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Recent sessions -->
+  <section>
+    <div class="section-label">Recent</div>
+    <div id="home-recent"></div>
+  </section>
+</main>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: GENERATE
+════════════════════════════════════════════════════════════ -->
+<main id="screen-generate" class="screen">
+
+  <!-- Step 1: Check-in -->
+  <div id="gen-checkin" class="gen-step active">
+    <div class="section-label">Check-in</div>
+
+    <div class="card">
+      <div class="field-label">Sleep quality</div>
+      <div class="pip-row" id="sleep-pips">
+        <button class="pip" data-val="1" onclick="setPip('sleep',1)" aria-label="Sleep 1"></button>
+        <button class="pip" data-val="2" onclick="setPip('sleep',2)" aria-label="Sleep 2"></button>
+        <button class="pip" data-val="3" onclick="setPip('sleep',3)" aria-label="Sleep 3"></button>
+        <button class="pip" data-val="4" onclick="setPip('sleep',4)" aria-label="Sleep 4"></button>
+        <button class="pip" data-val="5" onclick="setPip('sleep',5)" aria-label="Sleep 5"></button>
+      </div>
+      <div class="pip-label" id="sleep-label">tap to rate</div>
+    </div>
+
+    <div class="card">
+      <div class="field-label">Energy right now</div>
+      <div class="pip-row" id="energy-pips">
+        <button class="pip" data-val="1" onclick="setPip('energy',1)" aria-label="Energy 1"></button>
+        <button class="pip" data-val="2" onclick="setPip('energy',2)" aria-label="Energy 2"></button>
+        <button class="pip" data-val="3" onclick="setPip('energy',3)" aria-label="Energy 3"></button>
+        <button class="pip" data-val="4" onclick="setPip('energy',4)" aria-label="Energy 4"></button>
+        <button class="pip" data-val="5" onclick="setPip('energy',5)" aria-label="Energy 5"></button>
+      </div>
+      <div class="pip-label" id="energy-label">tap to rate</div>
+    </div>
+
+    <div class="card">
+      <div class="field-label">Pain or soreness</div>
+      <input type="text" id="pain-input" class="text-input" placeholder="e.g. left shoulder, none">
+    </div>
+
+    <div class="card">
+      <div class="field-label">Time available</div>
+      <div class="dur-display-row">
+        <span class="dur-val" id="dur-val">90</span>
+        <span class="dur-unit">min</span>
+        <span class="dur-tier" id="dur-tier">medium session</span>
+      </div>
+      <input type="range" min="20" max="240" value="90" step="5"
+             id="dur-slider" class="slider" oninput="onDurChange(+this.value)">
+      <div class="dur-axis"><span>20m</span><span>1h</span><span>2h</span><span>3h</span><span>4h</span></div>
+      <div class="tier-bar" id="tier-bar"></div>
+      <div class="tier-legend" id="tier-legend"></div>
+    </div>
+
+    <div class="card">
+      <div class="field-label">Focus today <span class="opt">optional</span></div>
+      <input type="text" id="focus-input" class="text-input" placeholder="e.g. handstand, rings, anything">
+    </div>
+
+    <button class="btn-primary" onclick="genNextStep()">Pick day theme ↗</button>
+  </div>
+
+  <!-- Step 2: Theme -->
+  <div id="gen-theme" class="gen-step">
+    <button class="back-btn" onclick="genBack()">← back</button>
+    <div class="section-label">Day theme</div>
+    <div class="warn-box" id="gen-warn" style="display:none"></div>
+    <div id="theme-list"></div>
+    <button class="btn-primary" id="gen-go-btn" onclick="buildAndStart()" disabled>Build session ↗</button>
+  </div>
+</main>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: LIVE SESSION
+════════════════════════════════════════════════════════════ -->
+<main id="screen-session" class="screen">
+
+  <!-- Session header -->
+  <div class="session-header" id="session-header">
+    <div class="sh-left">
+      <div class="sh-theme" id="sh-theme">Strength A</div>
+      <div class="sh-meta" id="sh-meta">90 min · Tier 3</div>
+    </div>
+    <div class="sh-right">
+      <div class="sh-progress" id="sh-progress">0 / 0</div>
+      <div class="sh-elapsed" id="sh-elapsed">0m</div>
+    </div>
+  </div>
+
+  <!-- Rest timer overlay -->
+  <div class="rest-overlay" id="rest-overlay" style="display:none">
+    <div class="rest-label">Rest</div>
+    <div class="rest-time" id="rest-time">3:00</div>
+    <div class="rest-controls">
+      <button class="rest-adj" onclick="adjustRest(-15)">−15s</button>
+      <button class="rest-skip" onclick="skipRest()">Skip</button>
+      <button class="rest-adj" onclick="adjustRest(+15)">+15s</button>
+    </div>
+  </div>
+
+  <!-- Session blocks -->
+  <div id="session-blocks"></div>
+
+  <!-- Session note + finish -->
+  <div class="card finish-card">
+    <div class="field-label">Session note</div>
+    <textarea id="session-note" class="text-input" rows="3" placeholder="How did it go?"></textarea>
+    <button class="btn-primary" onclick="finishSession()">Complete session ✓</button>
+    <button class="btn-ghost" onclick="discardSession()">Discard</button>
+  </div>
+</main>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: HISTORY
+════════════════════════════════════════════════════════════ -->
+<main id="screen-history" class="screen">
+  <div class="section-label" style="margin-bottom:1rem">History</div>
+
+  <!-- Goals progress -->
+  <div class="section-label">Goals</div>
+  <div id="goals-list"></div>
+
+  <!-- Past sessions -->
+  <div class="section-label" style="margin-top:1.5rem">Sessions</div>
+  <div id="history-list"></div>
+
+  <!-- Session detail modal -->
+  <div class="modal-backdrop" id="session-modal-backdrop" style="display:none" onclick="closeSessionModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeSessionModal()">✕</button>
+      <div id="session-modal-content"></div>
+    </div>
+  </div>
+</main>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCREEN: SETTINGS
+════════════════════════════════════════════════════════════ -->
+<main id="screen-settings" class="screen">
+  <div class="section-label">Settings</div>
+
+  <!-- Rest timer defaults -->
+  <div class="card">
+    <div class="field-label">Rest timers (seconds)</div>
+    <div class="setting-row">
+      <span>Heavy strength</span>
+      <input type="number" class="num-input" id="rest-heavy" min="0" max="600" step="15" onchange="saveSetting('defaultRestHeavy',+this.value)">
+    </div>
+    <div class="setting-row">
+      <span>Accessories</span>
+      <input type="number" class="num-input" id="rest-acc" min="0" max="600" step="15" onchange="saveSetting('defaultRestAcc',+this.value)">
+    </div>
+    <div class="setting-row">
+      <span>Skill work</span>
+      <input type="number" class="num-input" id="rest-skill" min="0" max="600" step="15" onchange="saveSetting('defaultRestSkill',+this.value)">
+    </div>
+    <div class="setting-row">
+      <span>Prehab</span>
+      <input type="number" class="num-input" id="rest-prehab" min="0" max="600" step="15" onchange="saveSetting('defaultRestPrehab',+this.value)">
+    </div>
+    <div class="setting-row">
+      <span>Power / plyo</span>
+      <input type="number" class="num-input" id="rest-power" min="0" max="600" step="15" onchange="saveSetting('defaultRestPower',+this.value)">
+    </div>
+  </div>
+
+  <!-- Equipment -->
+  <div class="card">
+    <div class="field-label">Equipment I have</div>
+    <div id="equipment-list"></div>
+  </div>
+
+  <!-- Exercise states -->
+  <div class="card">
+    <div class="field-label">Exercise library</div>
+    <div class="field-sub">Set active / not yet / excluded per exercise</div>
+    <div id="exercise-state-list"></div>
+  </div>
+
+  <!-- Data -->
+  <div class="card">
+    <div class="field-label">Data</div>
+    <button class="btn-ghost" onclick="Utils.exportToFile()">Export backup JSON ↓</button>
+    <label class="btn-ghost" style="cursor:pointer">
+      Import backup JSON ↑
+      <input type="file" accept=".json" style="display:none" onchange="importData(this)">
+    </label>
+  </div>
+</main>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════ -->
+<script src="data/library.js"></script>
+<script src="js/app.js"></script>
+<script>
+
+// ─────────────────────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────────────────────
+
+function navTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + screen)?.classList.add('active');
+  document.querySelector(`.nav-btn[data-screen="${screen}"]`)?.classList.add('active');
+  App.screen = screen;
+  if (screen === 'home')     renderHome();
+  if (screen === 'history')  renderHistory();
+  if (screen === 'settings') renderSettings();
+  if (screen === 'session')  renderSessionScreen();
+}
+
+// ─────────────────────────────────────────────────────────────
+// HOME SCREEN
+// ─────────────────────────────────────────────────────────────
+
+function renderHome() {
+  const profile = App.profile;
+  const today = Utils.getTodayTheme(profile);
+  const cfg   = Utils.getThemeConfig(today.theme);
+  const days  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  document.getElementById('week-label').textContent = 'Week ' + profile.currentWeek;
+  document.getElementById('today-day').textContent  = days[new Date().getDay()];
+  document.getElementById('today-theme').textContent = cfg.label;
+  document.getElementById('today-theme').style.color = cfg.color;
+
+  const subMap = {
+    'strength-a':  'Squat · Bench · Pull-up · Skill block',
+    'plio-b':      'Deadlift · OHP · Plyometrics · Skill block',
+    'z2-movement': 'Zone 2 · Ground flow · Object manipulation',
+    'intense':     'Sprints · Power · Intervals',
+    'z2-flex':     'Zone 2 · Splits · Pancake · Bridge',
+    'rest':        'Walk · Stretch · Somatic',
+  };
+  document.getElementById('today-sub').textContent = subMap[today.theme] || '';
+
+  // Active session banner
+  const banner = document.getElementById('active-banner');
+  if (App.session && LiveSession.getSession()) {
+    banner.style.display = 'block';
+    const prog = LiveSession.getProgress();
+    document.getElementById('banner-info').textContent =
+      `${prog.done}/${prog.total} done · ${prog.elapsed}m elapsed`;
+    document.querySelector('.session-nav').style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+
+  // Stats
+  const index = History.getIndex(100);
+  document.getElementById('stat-sessions').textContent = index.length;
+  document.getElementById('stat-last').textContent =
+    index[0] ? Utils.daysSince(index[0].date) + 'd ago' : '—';
+
+  // Streak
+  let streak = 0;
+  const today0 = new Date(); today0.setHours(0,0,0,0);
+  const sorted = [...index].sort((a,b) => new Date(b.date) - new Date(a.date));
+  let check = today0.getTime();
+  for (const s of sorted) {
+    const d = new Date(s.date); d.setHours(0,0,0,0);
+    if (d.getTime() === check || d.getTime() === check - 86400000) {
+      streak++;
+      check = d.getTime() - 86400000;
+    } else break;
+  }
+  document.getElementById('stat-streak').textContent = streak;
+
+  // Goal flags (stale goals)
+  const flags = document.getElementById('goal-flags');
+  const stale = History.getStaledGoals(7).filter(g => {
+    const pg = GOALS.find(x => x.id === g.id);
+    return pg && pg.priority <= 2;
+  }).slice(0, 3);
+
+  flags.innerHTML = stale.length ? `
+    <div class="section-label">Needs attention</div>
+    ${stale.map(g => {
+      const pg = GOALS.find(x => x.id === g.id);
+      const ms = Profile.getGoalMilestone(profile, g.id);
+      const last = History.getGoalLastPracticed(g.id);
+      return `<div class="card flag-card">
+        <div class="flag-name">${pg.name}</div>
+        <div class="flag-ms">${ms?.current || '—'}</div>
+        ${last ? `<div class="flag-age">${Utils.daysSince(last)}d ago</div>` : '<div class="flag-age">never logged</div>'}
+      </div>`;
+    }).join('')}
+  ` : '';
+
+  // Recent sessions
+  const recent = document.getElementById('home-recent');
+  const rList  = History.getIndex(5);
+  recent.innerHTML = rList.length
+    ? rList.map(s => sessionRow(s)).join('')
+    : '<div class="empty-state">No sessions yet. Hit Generate to start.</div>';
+}
+
+function sessionRow(s) {
+  const cfg = Utils.getThemeConfig(s.theme);
+  return `<div class="card session-row" onclick="openSessionModal('${s.id}')">
+    <div class="sr-dot" style="background:${cfg.color}"></div>
+    <div class="sr-body">
+      <div class="sr-theme">${cfg.label}</div>
+      <div class="sr-date">${Utils.formatDate(s.date)}</div>
+    </div>
+    <div class="sr-dur">${s.duration}m</div>
+  </div>`;
+}
+
+function toggleWeek() {
+  Profile.toggleWeek(App.profile);
+  renderHome();
+}
+
+function startToday() {
+  const today = Utils.getTodayTheme(App.profile);
+  App.checkin.theme = today.theme;
+  genSelectTheme(today.theme);
+  buildAndStart();
+}
+
+// ─────────────────────────────────────────────────────────────
+// GENERATE SCREEN
+// ─────────────────────────────────────────────────────────────
+
+const SLEEP_LABELS  = ['','terrible','poor','okay','good','excellent'];
+const ENERGY_LABELS = ['','very low','low','moderate','good','high'];
+const TIER_LABELS   = {1:'quick session',2:'medium session',3:'full session',4:'long session'};
+const TIER_COLORS   = {
+  lightBlock:'#1D9E75', objManip:'#7F77DD', meditate:'#7F77DD',
+  warmup:'#378ADD', skill:'#185FA5', main:'#D85A30', cooldown:'#5F5E5A'
+};
+
+let _selectedTheme = null;
+
+function setPip(type, val) {
+  App.checkin[type] = val;
+  document.querySelectorAll(`#${type}-pips .pip`).forEach(p => {
+    p.classList.toggle('on', +p.dataset.val <= val);
+  });
+  const lbl = type === 'sleep' ? SLEEP_LABELS : ENERGY_LABELS;
+  document.getElementById(`${type}-label`).textContent = lbl[val] || '';
+}
+
+function onDurChange(v) {
+  App.checkin.duration = v;
+  document.getElementById('dur-val').textContent  = v;
+  const t = Generator.getTier(v);
+  document.getElementById('dur-tier').textContent = TIER_LABELS[t];
+  renderTierBar(v);
+}
+
+function renderTierBar(dur) {
+  const blocks = Generator.getBlockDurations(dur);
+  const total  = Object.values(blocks).reduce((a,b)=>a+b,0) || 1;
+  const bar    = document.getElementById('tier-bar');
+  const legend = document.getElementById('tier-legend');
+  const labels = {
+    lightBlock:'Light block', objManip:'Object manip',
+    meditate:'Meditate', warmup:'Warm-up',
+    skill:'Skill', main:'Main', cooldown:'Cool-down'
+  };
+  bar.innerHTML    = '';
+  legend.innerHTML = '';
+  Object.entries(blocks).forEach(([k,v]) => {
+    if (!v) return;
+    const seg = document.createElement('div');
+    seg.className = 'tier-seg';
+    seg.style.cssText = `flex:${v};background:${TIER_COLORS[k]||'#ccc'}`;
+    seg.title = `${labels[k]||k}: ${v}m`;
+    bar.appendChild(seg);
+    legend.insertAdjacentHTML('beforeend',
+      `<div class="tier-item"><div class="tier-dot" style="background:${TIER_COLORS[k]}"></div>${labels[k]||k} ${v}m</div>`);
+  });
+}
+
+function genNextStep() {
+  App.checkin.pain  = document.getElementById('pain-input').value;
+  App.checkin.focus = document.getElementById('focus-input').value;
+
+  const low = (App.checkin.sleep > 0 && App.checkin.sleep < 3) ||
+              (App.checkin.energy > 0 && App.checkin.energy < 3);
+  const warn = document.getElementById('gen-warn');
+  const msgs = [];
+  if (App.checkin.sleep > 0 && App.checkin.sleep < 3)  msgs.push('Sleep < 3 — no heavy skill or strength today.');
+  if (App.checkin.energy > 0 && App.checkin.energy < 3) msgs.push('Energy < 3 — reduce volume 30%, no PRs.');
+  warn.style.display = msgs.length ? 'block' : 'none';
+  warn.textContent   = msgs.join(' ');
+
+  // Build theme list
+  const THEMES = [
+    { id:'strength-a',  label:'Strength A',      sub:'Squat · Bench · Pull-up · Accessories',   weeks:'Wk1: Mon/Wed · Wk2: Fri' },
+    { id:'plio-b',      label:'Plio B',           sub:'Deadlift · OHP · Row · Plyometrics',      weeks:'Wk1: Fri · Wk2: Mon/Wed' },
+    { id:'z2-movement', label:'Z2 + Movement',    sub:'Zone 2 · Object manip · Ground flow',     weeks:'Tue both weeks' },
+    { id:'intense',     label:'Intense',          sub:'Sprints · Intervals · Power',             weeks:'Wed both weeks' },
+    { id:'z2-flex',     label:'Z2 + Flexibility', sub:'Zone 2 · Splits · Long stretch',          weeks:'Thu both weeks' },
+    { id:'rest',        label:'Rest + Recovery',  sub:'Walk · Hike · Somatic · Stretch',         weeks:'Weekend' },
+  ];
+
+  const list = document.getElementById('theme-list');
+  list.innerHTML = '';
+  _selectedTheme = null;
+  document.getElementById('gen-go-btn').disabled = true;
+
+  THEMES.forEach(t => {
+    const cfg      = Utils.getThemeConfig(t.id);
+    const disabled = low && ['intense','strength-a','plio-b'].includes(t.id);
+    const btn      = document.createElement('button');
+    btn.className  = 'theme-btn';
+    btn.dataset.id = t.id;
+    if (disabled) btn.classList.add('dimmed');
+    btn.innerHTML  = `
+      <div class="theme-dot" style="background:${cfg.color}"></div>
+      <div class="theme-body">
+        <div class="theme-label">${t.label}${disabled?' <span class="warn-tag">not recommended</span>':''}</div>
+        <div class="theme-sub">${t.sub}</div>
+        <div class="theme-weeks">${t.weeks}</div>
+      </div>`;
+    btn.onclick = () => genSelectTheme(t.id);
+    list.appendChild(btn);
+  });
+
+  document.getElementById('gen-checkin').classList.remove('active');
+  document.getElementById('gen-theme').classList.add('active');
+}
+
+function genSelectTheme(id) {
+  _selectedTheme = id;
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector(`.theme-btn[data-id="${id}"]`)?.classList.add('selected');
+  document.getElementById('gen-go-btn').disabled = false;
+}
+
+function genBack() {
+  document.getElementById('gen-theme').classList.remove('active');
+  document.getElementById('gen-checkin').classList.add('active');
+}
+
+function buildAndStart() {
+  if (!_selectedTheme && !App.checkin.theme) return;
+  const theme = _selectedTheme || App.checkin.theme;
+
+  const session = Generator.generate({
+    theme,
+    duration: App.checkin.duration,
+    sleep:    App.checkin.sleep,
+    energy:   App.checkin.energy,
+    pain:     App.checkin.pain,
+    focus:    App.checkin.focus,
+    profile:  App.profile,
+  });
+
+  LiveSession.start(session, (s) => {
+    App.session = s;
+    if (App.screen === 'session') renderSessionScreen();
+  });
+  App.session = session;
+
+  document.querySelector('.session-nav').style.display = 'flex';
+  navTo('session');
+}
+
+// ─────────────────────────────────────────────────────────────
+// LIVE SESSION SCREEN
+// ─────────────────────────────────────────────────────────────
+
+function renderSessionScreen() {
+  const session = LiveSession.getSession();
+  if (!session) {
+    document.getElementById('session-blocks').innerHTML =
+      '<div class="empty-state" style="margin:2rem 1rem">No active session. Go to Generate.</div>';
+    return;
+  }
+
+  const cfg = Utils.getThemeConfig(session.theme);
+  document.getElementById('sh-theme').textContent = cfg.label;
+  document.getElementById('sh-theme').style.color  = cfg.color;
+  document.getElementById('sh-meta').textContent   =
+    `${session.duration}m · Tier ${session.tier} · Sleep ${session.sleep||'—'}/5 · Energy ${session.energy||'—'}/5`;
+
+  const prog = LiveSession.getProgress();
+  document.getElementById('sh-progress').textContent = `${prog.done}/${prog.total}`;
+  document.getElementById('sh-elapsed').textContent  = prog.elapsed + 'm';
+
+  const container = document.getElementById('session-blocks');
+  container.innerHTML = '';
+
+  session.blocks.forEach((block, bIdx) => {
+    const blockEl = document.createElement('div');
+    blockEl.className  = 'block-wrap';
+    blockEl.id         = `block-${bIdx}`;
+
+    const doneCount = block.exercises.filter(e => e.completed || e.skipped).length;
+    const allDone   = doneCount === block.exercises.length;
+
+    blockEl.innerHTML = `
+      <div class="block-header ${allDone?'block-done':''}" onclick="toggleBlock(${bIdx})">
+        <div class="bh-left">
+          <div class="bh-dot" style="background:${block.color}"></div>
+          <div>
+            <div class="bh-title">${block.label}</div>
+            ${block.duration ? `<div class="bh-dur">~${block.duration} min</div>` : ''}
+          </div>
+        </div>
+        <div class="bh-right">
+          <span class="bh-count">${doneCount}/${block.exercises.length}</span>
+          <svg class="bh-chevron" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
+        </div>
+      </div>
+      <div class="block-body" id="block-body-${bIdx}">
+        ${block.note ? `<div class="block-note">${block.note}</div>` : ''}
+        <div class="ex-list" id="ex-list-${bIdx}"></div>
+      </div>`;
+
+    container.appendChild(blockEl);
+
+    const exList = document.getElementById(`ex-list-${bIdx}`);
+    block.exercises.forEach((ex, eIdx) => {
+      exList.appendChild(buildExerciseEl(ex, bIdx, eIdx));
+    });
+  });
+}
+
+function buildExerciseEl(ex, bIdx, eIdx) {
+  const wrap = document.createElement('div');
+  wrap.className = `ex-wrap ${ex.completed?'ex-done':''} ${ex.skipped?'ex-skipped':''}`;
+  wrap.id = `ex-${bIdx}-${eIdx}`;
+
+  const lastLog = ex.lastLog;
+  const placeholder = lastLog
+    ? (lastLog.lastWeight ? `${lastLog.lastWeight}kg × ${lastLog.lastReps||'?'}` : lastLog.lastDuration ? Utils.formatMMSS(lastLog.lastDuration) : null)
+    : null;
+
+  let logHtml = '';
+
+  if (ex.logType === 'weight+reps') {
+    const sets = ex.sets || [];
+    logHtml = `
+      <div class="sets-list" id="sets-${bIdx}-${eIdx}">
+        ${sets.map((s,si) => setRow(s, si)).join('')}
+      </div>
+      <div class="add-set-row">
+        <input type="number" class="num-in" id="w-${bIdx}-${eIdx}" placeholder="${lastLog?.lastWeight||'kg'}" min="0" step="2.5">
+        <span class="mul">×</span>
+        <input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" min="0" step="1">
+        <button class="log-btn" onclick="logSet(${bIdx},${eIdx})">Log</button>
+      </div>
+      ${ex.progressionSuggestion ? `<div class="prog-hint">⬆ ${ex.progressionSuggestion}</div>` : ''}
+    `;
+  } else if (ex.logType === 'hold') {
+    const dur = ex.sets?.[0]?.duration;
+    logHtml = `
+      <div class="hold-row">
+        ${dur ? `<span class="hold-result">${Utils.formatMMSS(dur)}</span>` : ''}
+        <button class="sw-btn" id="sw-${bIdx}-${eIdx}" onclick="toggleStopwatch(${bIdx},${eIdx})">▶ Start</button>
+        ${placeholder ? `<span class="last-hint">last: ${placeholder}</span>` : ''}
+      </div>
+    `;
+  } else if (ex.logType === 'reps') {
+    const sets = ex.sets || [];
+    logHtml = `
+      <div class="sets-list" id="sets-${bIdx}-${eIdx}">
+        ${sets.map((s,si) => setRow(s, si)).join('')}
+      </div>
+      <div class="add-set-row">
+        <input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" min="0" step="1">
+        <button class="log-btn" onclick="logReps(${bIdx},${eIdx})">Log</button>
+      </div>
+    `;
+  } else if (ex.logType === 'cardio') {
+    const c = ex.cardioLog;
+    logHtml = `
+      <div class="cardio-row ${c?'cardio-done':''}">
+        ${c ? `<div class="cardio-result">${Utils.formatDuration(c.duration)} ${c.appleFitnessLink?'· <a href="'+c.appleFitnessLink+'" target="_blank">Apple Fitness ↗</a>':''}</div>` : `
+          <div class="cardio-inputs">
+            <input type="number" class="num-in sm" id="cd-m-${bIdx}-${eIdx}" placeholder="min" min="0">
+            <span>:</span>
+            <input type="number" class="num-in sm" id="cd-s-${bIdx}-${eIdx}" placeholder="ss" min="0" max="59">
+            <input type="text" class="text-in-sm" id="cd-link-${bIdx}-${eIdx}" placeholder="Apple Fitness link">
+            <button class="log-btn" onclick="logCardio(${bIdx},${eIdx})">Log</button>
+          </div>`}
+      </div>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="ex-header">
+      <div class="ex-check ${ex.completed?'checked':''} ${ex.skipped?'skipped':''}"
+           onclick="toggleExerciseDone(${bIdx},${eIdx})" role="checkbox" aria-checked="${ex.completed}">
+        ${ex.completed ? '✓' : ex.skipped ? '–' : ''}
+      </div>
+      <div class="ex-info">
+        <div class="ex-name">
+          ${ex.link
+            ? `<a href="${ex.link}" target="_blank" rel="noopener">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`
+            : ex.name}
+        </div>
+        ${ex.notes ? `<div class="ex-notes">${ex.notes}</div>` : ''}
+      </div>
+      <button class="ex-skip-btn" onclick="skipExercise(${bIdx},${eIdx})" aria-label="Skip">−</button>
+    </div>
+    ${logHtml ? `<div class="ex-log">${logHtml}</div>` : ''}
+    <div class="ex-note-row">
+      <input type="text" class="note-in" placeholder="note…" id="note-${bIdx}-${eIdx}"
+             onblur="saveExNote(${bIdx},${eIdx},this.value)" value="${ex.sessionNote||''}">
+    </div>
+  `;
+
+  return wrap;
+}
+
+function setRow(s, idx) {
+  return `<div class="set-row ${s.completed?'':'set-skipped'}">
+    <span class="set-num">${idx+1}</span>
+    ${s.weight ? `<span class="set-weight">${s.weight}kg</span>` : ''}
+    ${s.reps   ? `<span class="set-reps">× ${s.reps}</span>` : ''}
+    ${s.duration ? `<span class="set-reps">${Utils.formatMMSS(s.duration)}</span>` : ''}
+  </div>`;
+}
+
+// Stopwatch state per exercise
+const _stopwatches = {};
+let _swActive = null;
+
+function toggleStopwatch(bIdx, eIdx) {
+  const key = `${bIdx}-${eIdx}`;
+  const btn = document.getElementById(`sw-${bIdx}-${eIdx}`);
+
+  if (_swActive && _swActive !== key) {
+    // Stop previous
+    stopStopwatchFor(_swActive);
+  }
+
+  if (_stopwatches[key]?.running) {
+    // Stop
+    const elapsed = Timer.stopStopwatch();
+    _stopwatches[key] = { running: false, elapsed };
+    btn.textContent = `▶ ${Utils.formatMMSS(elapsed)}`;
+    // Save hold duration
+    const result = LiveSession.logSet({ duration: elapsed, completed: true });
+    refreshExercise(bIdx, eIdx);
+    if (result?.startRest) showRest(bIdx, eIdx, elapsed);
+    _swActive = null;
+  } else {
+    // Start
+    _stopwatches[key] = { running: true, elapsed: 0 };
+    _swActive = key;
+    btn.textContent = '⏹ 0:00';
+    Timer.startStopwatch((s) => {
+      if (btn) btn.textContent = `⏹ ${Timer.format(s)}`;
+    });
+  }
+}
+
+function stopStopwatchFor(key) {
+  const elapsed = Timer.stopStopwatch();
+  _stopwatches[key] = { running: false, elapsed };
+  const [b,e] = key.split('-');
+  const btn = document.getElementById(`sw-${b}-${e}`);
+  if (btn) btn.textContent = `▶ ${Utils.formatMMSS(elapsed)}`;
+}
+
+function logSet(bIdx, eIdx) {
+  const w = parseFloat(document.getElementById(`w-${bIdx}-${eIdx}`)?.value) || null;
+  const r = parseInt(document.getElementById(`r-${bIdx}-${eIdx}`)?.value)   || null;
+  const result = LiveSession.logSet({ weight: w, reps: r, completed: true });
+  refreshExercise(bIdx, eIdx);
+  if (result?.startRest) {
+    const ex = LiveSession.getSession().blocks[bIdx].exercises[eIdx];
+    showRest(bIdx, eIdx, ex.restSeconds);
+  }
+  // Clear inputs
+  const wi = document.getElementById(`w-${bIdx}-${eIdx}`);
+  const ri = document.getElementById(`r-${bIdx}-${eIdx}`);
+  if (wi) wi.value = '';
+  if (ri) ri.value = '';
+}
+
+function logReps(bIdx, eIdx) {
+  const r = parseInt(document.getElementById(`r-${bIdx}-${eIdx}`)?.value) || null;
+  const result = LiveSession.logSet({ reps: r, completed: true });
+  refreshExercise(bIdx, eIdx);
+  if (result?.startRest) {
+    const ex = LiveSession.getSession().blocks[bIdx].exercises[eIdx];
+    showRest(bIdx, eIdx, ex.restSeconds);
+  }
+  const ri = document.getElementById(`r-${bIdx}-${eIdx}`);
+  if (ri) ri.value = '';
+}
+
+function logCardio(bIdx, eIdx) {
+  const m    = parseInt(document.getElementById(`cd-m-${bIdx}-${eIdx}`)?.value) || 0;
+  const s    = parseInt(document.getElementById(`cd-s-${bIdx}-${eIdx}`)?.value) || 0;
+  const link = document.getElementById(`cd-link-${bIdx}-${eIdx}`)?.value || '';
+  LiveSession.logCardio({ durationMin: m, durationSec: s, appleFitnessLink: link });
+  refreshExercise(bIdx, eIdx);
+}
+
+function toggleExerciseDone(bIdx, eIdx) {
+  const session = LiveSession.getSession();
+  const ex = session?.blocks[bIdx]?.exercises[eIdx];
+  if (!ex) return;
+  if (ex.completed) {
+    ex.completed = false;
+  } else {
+    LiveSession.markExerciseDone(bIdx, eIdx);
+  }
+  refreshBlock(bIdx);
+}
+
+function skipExercise(bIdx, eIdx) {
+  LiveSession.skipExercise(bIdx, eIdx);
+  refreshBlock(bIdx);
+}
+
+function saveExNote(bIdx, eIdx, val) {
+  LiveSession.addExerciseNote(bIdx, eIdx, val);
+}
+
+function toggleBlock(bIdx) {
+  const body = document.getElementById(`block-body-${bIdx}`);
+  body.classList.toggle('collapsed');
+}
+
+function refreshExercise(bIdx, eIdx) {
+  const session = LiveSession.getSession();
+  const ex = session?.blocks[bIdx]?.exercises[eIdx];
+  if (!ex) return;
+  const old = document.getElementById(`ex-${bIdx}-${eIdx}`);
+  if (old) old.replaceWith(buildExerciseEl(ex, bIdx, eIdx));
+}
+
+function refreshBlock(bIdx) {
+  const session = LiveSession.getSession();
+  const block = session?.blocks[bIdx];
+  if (!block) return;
+  // Refresh header counts
+  const doneCount = block.exercises.filter(e => e.completed || e.skipped).length;
+  const allDone   = doneCount === block.exercises.length;
+  const header = document.querySelector(`#block-${bIdx} .block-header`);
+  if (header) {
+    header.classList.toggle('block-done', allDone);
+    const cnt = header.querySelector('.bh-count');
+    if (cnt) cnt.textContent = `${doneCount}/${block.exercises.length}`;
+  }
+  // Refresh each exercise
+  block.exercises.forEach((ex, eIdx) => refreshExercise(bIdx, eIdx));
+  // Update header progress
+  const prog = LiveSession.getProgress();
+  document.getElementById('sh-progress').textContent = `${prog.done}/${prog.total}`;
+}
+
+// Rest timer
+let _restTimeout = null;
+
+function showRest(bIdx, eIdx, seconds) {
+  if (!seconds) return;
+  const overlay = document.getElementById('rest-overlay');
+  overlay.style.display = 'flex';
+  Timer.startCountdown(seconds,
+    (s) => { document.getElementById('rest-time').textContent = Timer.format(s); },
+    () => { hideRest(); }
+  );
+}
+
+function hideRest() {
+  document.getElementById('rest-overlay').style.display = 'none';
+  Timer.stopCountdown();
+}
+
+function skipRest() { hideRest(); }
+
+function adjustRest(delta) {
+  Timer.adjustCountdown(delta);
+}
+
+function finishSession() {
+  const note = document.getElementById('session-note').value;
+  LiveSession.setSessionNote(note);
+  const id = LiveSession.complete();
+  if (id) {
+    document.querySelector('.session-nav').style.display = 'none';
+    App.session = null;
+    navTo('home');
+  }
+}
+
+function discardSession() {
+  if (!confirm('Discard session? Nothing will be saved.')) return;
+  LiveSession.discard();
+  App.session = null;
+  document.querySelector('.session-nav').style.display = 'none';
+  navTo('home');
+}
+
+// ─────────────────────────────────────────────────────────────
+// HISTORY SCREEN
+// ─────────────────────────────────────────────────────────────
+
+function renderHistory() {
+  // Goals
+  const goalsList = document.getElementById('goals-list');
+  goalsList.innerHTML = GOALS.map(g => {
+    const ms   = Profile.getGoalMilestone(App.profile, g.id);
+    const last = History.getGoalLastPracticed(g.id);
+    const pct  = ms ? Math.round((ms.idx / (GOALS.find(x=>x.id===g.id).milestones.length-1))*100) : 0;
+    const age  = last ? Utils.daysSince(last) : null;
+    return `
+      <div class="card goal-card">
+        <div class="goal-row">
+          <div class="goal-name">${g.name}</div>
+          <div class="goal-age">${age !== null ? age+'d ago' : 'never'}</div>
+        </div>
+        <div class="goal-ms-current">${ms?.current || '—'}</div>
+        ${ms?.next ? `<div class="goal-ms-next">→ ${ms.next}</div>` : '<div class="goal-ms-next complete">Complete ✓</div>'}
+        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div class="goal-actions">
+          <button class="btn-xs" onclick="advanceGoal('${g.id}')">Advance milestone</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Sessions
+  const list  = document.getElementById('history-list');
+  const index = History.getIndex(50);
+  list.innerHTML = index.length
+    ? index.map(s => sessionRow(s)).join('')
+    : '<div class="empty-state">No sessions logged yet.</div>';
+}
+
+function advanceGoal(id) {
+  Profile.advanceGoalMilestone(App.profile, id);
+  renderHistory();
+}
+
+function openSessionModal(id) {
+  const session = History.getSession(id);
+  if (!session) return;
+
+  const cfg = Utils.getThemeConfig(session.theme);
+  let html = `
+    <div class="modal-theme" style="color:${cfg.color}">${cfg.label}</div>
+    <div class="modal-date">${Utils.formatDate(session.date)} · ${session.duration}m</div>
+    ${session.notes ? `<div class="modal-note">${session.notes}</div>` : ''}
+    <div class="modal-blocks">
+  `;
+
+  session.blocks?.forEach(block => {
+    const logged = block.exercises?.filter(e => e.sets?.length || e.completed || e.cardioLog);
+    if (!logged?.length) return;
+    html += `<div class="modal-block-label" style="color:${block.color}">${block.label}</div>`;
+    logged.forEach(ex => {
+      html += `<div class="modal-ex">
+        <div class="modal-ex-name">${ex.name}</div>`;
+      if (ex.sets?.length) {
+        html += ex.sets.map(s =>
+          `<div class="modal-set">
+            ${s.weight ? `${s.weight}kg` : ''}
+            ${s.reps   ? `× ${s.reps}` : ''}
+            ${s.duration ? Utils.formatMMSS(s.duration) : ''}
+          </div>`
+        ).join('');
+      }
+      if (ex.cardioLog) {
+        html += `<div class="modal-set">${Utils.formatDuration(ex.cardioLog.duration)}</div>`;
+      }
+      html += `</div>`;
+    });
+  });
+
+  html += `</div>
+    <button class="btn-ghost" style="margin-top:1rem;color:#c00" onclick="deleteSession('${id}')">Delete session</button>`;
+
+  document.getElementById('session-modal-content').innerHTML = html;
+  document.getElementById('session-modal-backdrop').style.display = 'flex';
+}
+
+function closeSessionModal() {
+  document.getElementById('session-modal-backdrop').style.display = 'none';
+}
+
+function deleteSession(id) {
+  if (!confirm('Delete this session?')) return;
+  History.deleteSession(id);
+  closeSessionModal();
+  renderHistory();
+}
+
+// ─────────────────────────────────────────────────────────────
+// SETTINGS SCREEN
+// ─────────────────────────────────────────────────────────────
+
+function renderSettings() {
+  const s = App.profile.settings;
+  document.getElementById('rest-heavy').value  = s.defaultRestHeavy;
+  document.getElementById('rest-acc').value    = s.defaultRestAcc;
+  document.getElementById('rest-skill').value  = s.defaultRestSkill;
+  document.getElementById('rest-prehab').value = s.defaultRestPrehab;
+  document.getElementById('rest-power').value  = s.defaultRestPower;
+
+  // Equipment
+  const eqList = document.getElementById('equipment-list');
+  eqList.innerHTML = EQUIPMENT.map(e => `
+    <label class="setting-row toggle-row">
+      <span>${e.name}</span>
+      <input type="checkbox" ${App.profile.equipment[e.id] ? 'checked' : ''}
+             onchange="saveEquipment('${e.id}',this.checked)">
+    </label>`).join('');
+
+  // Exercise states — group by category
+  const exList = document.getElementById('exercise-state-list');
+  const cats   = [...new Set(LIBRARY.map(e => e.category))];
+  exList.innerHTML = cats.map(cat => {
+    const exes = LIBRARY.filter(e => e.category === cat);
+    return `
+      <div class="ex-cat-label">${cat}</div>
+      ${exes.map(ex => {
+        const state = Profile.getExerciseState(App.profile, ex.id);
+        return `<div class="ex-state-row">
+          <span class="ex-state-name">${ex.name}</span>
+          <select class="state-select" onchange="saveExerciseState('${ex.id}',this.value)">
+            <option value="active"   ${state==='active'  ?'selected':''}>Active</option>
+            <option value="notyet"   ${state==='notyet'  ?'selected':''}>Not yet</option>
+            <option value="excluded" ${state==='excluded'?'selected':''}>Excluded</option>
+          </select>
+        </div>`;
+      }).join('')}`;
+  }).join('');
+}
+
+function saveSetting(key, val) {
+  App.profile.settings[key] = val;
+  Profile.save(App.profile);
+}
+
+function saveEquipment(id, val) {
+  App.profile.equipment[id] = val;
+  Profile.save(App.profile);
+}
+
+function saveExerciseState(id, val) {
+  Profile.setExerciseState(App.profile, id, val);
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  Utils.importFromFile(file).then(() => {
+    App.profile = Profile.load();
+    alert('Import successful. Reload the app.');
+  }).catch(() => alert('Import failed — check the file format.'));
+}
+
+// ─────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  App.init();
+  onDurChange(90);
+  renderHome();
+});
+
+// Update elapsed timer every minute while session is active
+setInterval(() => {
+  if (App.screen === 'session' && LiveSession.getSession()) {
+    const prog = LiveSession.getProgress();
+    document.getElementById('sh-elapsed').textContent = prog.elapsed + 'm';
+  }
+}, 60000);
+
+</script>
+</body>
+</html>
