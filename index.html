@@ -12,20 +12,36 @@
 </head>
 <body>
 
+<!-- NAV: Home / Generate / Session(hidden) / Goals / Log / Settings -->
 <nav id="nav">
-  <button class="nav-btn active" data-screen="home"     onclick="navTo('home')"    ><svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg><span>Home</span></button>
-  <button class="nav-btn"        data-screen="generate" onclick="navTo('generate')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg><span>Generate</span></button>
-  <button class="nav-btn session-nav" data-screen="session" onclick="navTo('session')" style="display:none"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span>Session</span></button>
-  <button class="nav-btn"        data-screen="goals"    onclick="navTo('goals')"   ><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>Goals</span></button>
-  <button class="nav-btn"        data-screen="log"      onclick="navTo('log')"     ><svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Log</span></button>
-  <button class="nav-btn"        data-screen="settings" onclick="navTo('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Settings</span></button>
+  <button class="nav-btn active" data-screen="home" onclick="navTo('home')" aria-label="Home">
+    <svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg><span>Home</span>
+  </button>
+  <button class="nav-btn" data-screen="generate" onclick="navTo('generate')" aria-label="Generate">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg><span>Generate</span>
+  </button>
+  <button class="nav-btn session-nav" data-screen="session" onclick="navTo('session')" style="display:none" aria-label="Session">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span>Session</span>
+  </button>
+  <button class="nav-btn" data-screen="goals" onclick="navTo('goals')" aria-label="Goals">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>Goals</span>
+  </button>
+  <button class="nav-btn" data-screen="log" onclick="navTo('log')" aria-label="Log">
+    <svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Log</span>
+  </button>
+  <button class="nav-btn" data-screen="settings" onclick="navTo('settings')" aria-label="Settings">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Settings</span>
+  </button>
 </nav>
 
-<!-- HOME -->
+<!-- ═══ HOME ═══════════════════════════════════════════════════ -->
 <main id="screen-home" class="screen active">
   <header class="screen-header">
     <h1 class="logo">Practice Brain</h1>
-    <div class="week-toggle" onclick="toggleWeek()"><span id="week-label">Week 1</span><svg viewBox="0 0 24 24" width="14"><path d="M7 16l-4-4 4-4M17 8l4 4-4 4"/></svg></div>
+    <div class="week-toggle" onclick="toggleWeek()">
+      <span id="week-label">Week 1</span>
+      <svg viewBox="0 0 24 24" width="14"><path d="M7 16l-4-4 4-4M17 8l4 4-4 4"/></svg>
+    </div>
   </header>
   <section class="card today-card">
     <div class="today-day" id="today-day">Monday</div>
@@ -50,21 +66,29 @@
   <div id="home-recent"></div>
 </main>
 
-<!-- GENERATE -->
+<!-- ═══ GENERATE ════════════════════════════════════════════════ -->
 <main id="screen-generate" class="screen">
   <div id="gen-checkin" class="gen-step active">
     <div class="section-label">Check-in</div>
     <div class="card">
       <div class="field-label">Sleep quality</div>
       <div class="pip-row" id="sleep-pips">
-        <button class="pip" data-val="1" onclick="setPip('sleep',1)"></button><button class="pip" data-val="2" onclick="setPip('sleep',2)"></button><button class="pip" data-val="3" onclick="setPip('sleep',3)"></button><button class="pip" data-val="4" onclick="setPip('sleep',4)"></button><button class="pip" data-val="5" onclick="setPip('sleep',5)"></button>
+        <button class="pip" data-val="1" onclick="setPip('sleep',1)"></button>
+        <button class="pip" data-val="2" onclick="setPip('sleep',2)"></button>
+        <button class="pip" data-val="3" onclick="setPip('sleep',3)"></button>
+        <button class="pip" data-val="4" onclick="setPip('sleep',4)"></button>
+        <button class="pip" data-val="5" onclick="setPip('sleep',5)"></button>
       </div>
       <div class="pip-label" id="sleep-label">tap to rate</div>
     </div>
     <div class="card">
       <div class="field-label">Energy right now</div>
       <div class="pip-row" id="energy-pips">
-        <button class="pip" data-val="1" onclick="setPip('energy',1)"></button><button class="pip" data-val="2" onclick="setPip('energy',2)"></button><button class="pip" data-val="3" onclick="setPip('energy',3)"></button><button class="pip" data-val="4" onclick="setPip('energy',4)"></button><button class="pip" data-val="5" onclick="setPip('energy',5)"></button>
+        <button class="pip" data-val="1" onclick="setPip('energy',1)"></button>
+        <button class="pip" data-val="2" onclick="setPip('energy',2)"></button>
+        <button class="pip" data-val="3" onclick="setPip('energy',3)"></button>
+        <button class="pip" data-val="4" onclick="setPip('energy',4)"></button>
+        <button class="pip" data-val="5" onclick="setPip('energy',5)"></button>
       </div>
       <div class="pip-label" id="energy-label">tap to rate</div>
     </div>
@@ -75,7 +99,9 @@
     <div class="card">
       <div class="field-label">Time available</div>
       <div class="dur-display-row">
-        <span class="dur-val" id="dur-val">90</span><span class="dur-unit">min</span><span class="dur-tier" id="dur-tier">medium session</span>
+        <span class="dur-val" id="dur-val">90</span>
+        <span class="dur-unit">min</span>
+        <span class="dur-tier" id="dur-tier">medium session</span>
       </div>
       <input type="range" min="20" max="240" value="90" step="5" id="dur-slider" class="slider" oninput="onDurChange(+this.value)">
       <div class="dur-axis"><span>20m</span><span>1h</span><span>2h</span><span>3h</span><span>4h</span></div>
@@ -97,11 +123,17 @@
   </div>
 </main>
 
-<!-- SESSION -->
+<!-- ═══ SESSION ══════════════════════════════════════════════════ -->
 <main id="screen-session" class="screen">
   <div class="session-header">
-    <div class="sh-left"><div class="sh-theme" id="sh-theme">—</div><div class="sh-meta" id="sh-meta"></div></div>
-    <div class="sh-right"><div class="sh-progress" id="sh-progress">0/0</div><div class="sh-elapsed" id="sh-elapsed">0m</div></div>
+    <div class="sh-left">
+      <div class="sh-theme" id="sh-theme">—</div>
+      <div class="sh-meta" id="sh-meta"></div>
+    </div>
+    <div class="sh-right">
+      <div class="sh-progress" id="sh-progress">0/0</div>
+      <div class="sh-elapsed" id="sh-elapsed">0m</div>
+    </div>
   </div>
   <div class="rest-overlay" id="rest-overlay" style="display:none">
     <div class="rest-label">Rest</div>
@@ -121,19 +153,24 @@
   </div>
 </main>
 
-<!-- GOALS -->
+<!-- ═══ GOALS ════════════════════════════════════════════════════ -->
 <main id="screen-goals" class="screen">
   <header class="screen-header">
     <h2 class="screen-title">Goals</h2>
     <button class="btn-header" onclick="openGoalModal()">+ New goal</button>
   </header>
-  <div class="filter-tabs">
-    <button class="filter-tab active" data-priority="all" onclick="setGoalFilter('all')">All</button>
+
+  <!-- Priority filter tabs -->
+  <div class="filter-tabs" id="goal-filter-tabs">
+    <button class="filter-tab active" data-priority="all"  onclick="setGoalFilter('all')">All</button>
     <button class="filter-tab" data-priority="1" onclick="setGoalFilter('1')">High</button>
     <button class="filter-tab" data-priority="2" onclick="setGoalFilter('2')">Medium</button>
     <button class="filter-tab" data-priority="3" onclick="setGoalFilter('3')">Low</button>
   </div>
+
   <div id="goals-list"></div>
+
+  <!-- Goal modal -->
   <div class="modal-backdrop" id="goal-modal-backdrop" style="display:none" onclick="closeGoalModal()">
     <div class="modal modal-tall" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeGoalModal()">✕</button>
@@ -142,10 +179,11 @@
   </div>
 </main>
 
-<!-- LOG -->
+<!-- ═══ LOG ══════════════════════════════════════════════════════ -->
 <main id="screen-log" class="screen">
+  <!-- Calendar -->
   <div class="section-label">Calendar</div>
-  <div class="card">
+  <div class="card" id="cal-wrap">
     <div class="cal-nav">
       <button class="cal-arrow" onclick="calPrev()">‹</button>
       <div class="cal-month" id="cal-month"></div>
@@ -164,8 +202,12 @@
     <div class="cal-detail-date" id="cal-detail-date"></div>
     <div id="cal-detail-body"></div>
   </div>
+
+  <!-- Session list -->
   <div class="section-label" style="margin-top:1rem">Sessions</div>
   <div id="history-list"></div>
+
+  <!-- Session detail modal -->
   <div class="modal-backdrop" id="session-modal-backdrop" style="display:none" onclick="closeSessionModal()">
     <div class="modal" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeSessionModal()">✕</button>
@@ -174,11 +216,14 @@
   </div>
 </main>
 
-<!-- SETTINGS -->
+<!-- ═══ SETTINGS ═════════════════════════════════════════════════ -->
 <main id="screen-settings" class="screen">
   <div class="section-label">Settings</div>
+
   <div class="collapsible-section">
-    <button class="collapsible-header" onclick="toggleSection('s-rest')"><span>Rest timers</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg></button>
+    <button class="collapsible-header" onclick="toggleSection('s-rest')">
+      <span>Rest timers</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
+    </button>
     <div class="collapsible-body collapsed" id="s-rest">
       <div class="card" style="margin:0">
         <div class="setting-row"><span>Heavy strength (s)</span><input type="number" class="num-input" id="rest-heavy" min="0" max="600" step="15" onchange="saveSetting('defaultRestHeavy',+this.value)"></div>
@@ -189,33 +234,44 @@
       </div>
     </div>
   </div>
+
   <div class="collapsible-section">
-    <button class="collapsible-header" onclick="toggleSection('s-equip')"><span>Equipment I have</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg></button>
+    <button class="collapsible-header" onclick="toggleSection('s-equip')">
+      <span>Equipment I have</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
+    </button>
     <div class="collapsible-body collapsed" id="s-equip">
       <div class="card" style="margin:0" id="equipment-list"></div>
     </div>
   </div>
+
   <div class="collapsible-section">
-    <button class="collapsible-header" onclick="toggleSection('s-library')"><span>Exercise library</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg></button>
+    <button class="collapsible-header" onclick="toggleSection('s-library')">
+      <span>Exercise library</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
+    </button>
     <div class="collapsible-body collapsed" id="s-library">
       <div id="exercise-state-list"></div>
     </div>
   </div>
+
   <div class="collapsible-section">
-    <button class="collapsible-header" onclick="toggleSection('s-data')"><span>Data</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg></button>
+    <button class="collapsible-header" onclick="toggleSection('s-data')">
+      <span>Data</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
+    </button>
     <div class="collapsible-body collapsed" id="s-data">
       <div class="card" style="margin:0">
         <button class="btn-ghost" onclick="Utils.exportToFile()">Export backup JSON ↓</button>
-        <label class="btn-ghost" style="cursor:pointer">Import backup JSON ↑<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
+        <label class="btn-ghost" style="cursor:pointer">Import backup JSON ↑
+          <input type="file" accept=".json" style="display:none" onchange="importData(this)">
+        </label>
       </div>
     </div>
   </div>
 </main>
 
-<!-- FAB -->
-<button class="fab" id="fab" onclick="openExerciseModal()" style="display:none">+</button>
+<!-- FAB — add exercise (visible in settings) -->
+<button class="fab" id="fab" onclick="openExerciseModal()" title="Add exercise" style="display:none">+</button>
 
-<!-- Exercise modal -->
+<!-- Exercise modal (global) -->
 <div class="modal-backdrop" id="ex-modal-backdrop" style="display:none" onclick="closeExerciseModal()">
   <div class="modal modal-tall" onclick="event.stopPropagation()">
     <button class="modal-close" onclick="closeExerciseModal()">✕</button>
@@ -226,657 +282,771 @@
 <script src="data/library.js"></script>
 <script src="js/app.js"></script>
 <script src="js/custom.js"></script>
-<script src="js/overrides.js"></script>
 <script>
 
-// ── NAV ────────────────────────────────────────────────────────
-function navTo(s) {
-  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
-  document.getElementById('screen-'+s)?.classList.add('active');
-  document.querySelector(`.nav-btn[data-screen="${s}"]`)?.classList.add('active');
-  App.screen=s;
-  document.getElementById('fab').style.display=s==='settings'?'flex':'none';
-  if(s==='home')     renderHome();
-  if(s==='goals')    renderGoals();
-  if(s==='log')      renderLog();
-  if(s==='settings') renderSettings();
-  if(s==='session')  renderSessionScreen();
+// ─────────────────────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────────────────────
+function navTo(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + screen)?.classList.add('active');
+  document.querySelector(`.nav-btn[data-screen="${screen}"]`)?.classList.add('active');
+  App.screen = screen;
+  document.getElementById('fab').style.display = screen === 'settings' ? 'flex' : 'none';
+  if (screen === 'home')     renderHome();
+  if (screen === 'goals')    renderGoals();
+  if (screen === 'log')      renderLog();
+  if (screen === 'settings') renderSettings();
+  if (screen === 'session')  renderSessionScreen();
 }
 
-function slug(str){ return str.toLowerCase().replace(/[^a-z0-9]/g,'-'); }
-
-// ── HOME ───────────────────────────────────────────────────────
-function renderHome(){
-  const profile=App.profile,today=Utils.getTodayTheme(profile),cfg=Utils.getThemeConfig(today.theme);
-  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  document.getElementById('week-label').textContent='Week '+profile.currentWeek;
-  document.getElementById('today-day').textContent=days[new Date().getDay()];
-  document.getElementById('today-theme').textContent=cfg.label;
-  document.getElementById('today-theme').style.color=cfg.color;
-  const subMap={'strength-a':'Squat · Bench · Pull-up · Skill block','plio-b':'Deadlift · OHP · Plyometrics · Skill block','z2-movement':'Zone 2 · Ground flow · Object manipulation','intense':'Sprints · Power · Intervals','z2-flex':'Zone 2 · Splits · Pancake · Bridge','rest':'Walk · Stretch · Somatic'};
-  document.getElementById('today-sub').textContent=subMap[today.theme]||'';
-  const banner=document.getElementById('active-banner');
-  if(LiveSession.getSession()){banner.style.display='block';const prog=LiveSession.getProgress();document.getElementById('banner-info').textContent=`${prog.done}/${prog.total} done · ${prog.elapsed}m elapsed`;document.querySelector('.session-nav').style.display='flex';}
-  else banner.style.display='none';
-  const index=History.getIndex(100);
-  document.getElementById('stat-sessions').textContent=index.length;
-  document.getElementById('stat-last').textContent=index[0]?Utils.daysSince(index[0].date)+'d ago':'—';
-  let streak=0,check=new Date();check.setHours(0,0,0,0);check=check.getTime();
-  for(const s of [...index].sort((a,b)=>new Date(b.date)-new Date(a.date))){const d=new Date(s.date);d.setHours(0,0,0,0);if(d.getTime()===check||d.getTime()===check-86400000){streak++;check=d.getTime()-86400000;}else break;}
-  document.getElementById('stat-streak').textContent=streak;
-  const stale=History.getStaledGoals(7).filter(g=>{const pg=Custom.getAllGoals().find(x=>x.id===g.id);return pg&&pg.priority<=2;}).slice(0,3);
-  document.getElementById('goal-flags').innerHTML=stale.length?`<div class="section-label">Needs attention</div>${stale.map(g=>{const pg=Custom.getAllGoals().find(x=>x.id===g.id);const ms=goalMilestoneInfo(g.id);const last=History.getGoalLastPracticed(g.id);return`<div class="card flag-card" onclick="navTo('goals')"><div class="flag-name">${pg.name}</div><div class="flag-ms">${ms?.current||'—'}</div>${last?`<div class="flag-age">${Utils.daysSince(last)}d ago</div>`:'<div class="flag-age">never</div>'}</div>`;}).join('')}`:'';
-  document.getElementById('home-recent').innerHTML=History.getIndex(5).map(sessionRow).join('')||'<div class="empty-state">No sessions yet.</div>';
+// ─────────────────────────────────────────────────────────────
+// UTILITIES — slug for safe element IDs
+// ─────────────────────────────────────────────────────────────
+function slug(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]/g, '-');
 }
 
-function sessionRow(s){const cfg=Utils.getThemeConfig(s.theme);return`<div class="card session-row" onclick="openSessionModal('${s.id}')"><div class="sr-dot" style="background:${cfg.color}"></div><div class="sr-body"><div class="sr-theme">${cfg.label}</div><div class="sr-date">${Utils.formatDate(s.date)}</div></div><div class="sr-dur">${s.duration}m</div></div>`;}
-function toggleWeek(){Profile.toggleWeek(App.profile);renderHome();}
-function startToday(){_selectedTheme=Utils.getTodayTheme(App.profile).theme;buildAndStart();}
+// ─────────────────────────────────────────────────────────────
+// HOME
+// ─────────────────────────────────────────────────────────────
+function renderHome() {
+  const profile = App.profile;
+  const today   = Utils.getTodayTheme(profile);
+  const cfg     = Utils.getThemeConfig(today.theme);
+  const days    = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  document.getElementById('week-label').textContent  = 'Week ' + profile.currentWeek;
+  document.getElementById('today-day').textContent   = days[new Date().getDay()];
+  document.getElementById('today-theme').textContent = cfg.label;
+  document.getElementById('today-theme').style.color  = cfg.color;
+  const subMap = {
+    'strength-a':  'Squat · Bench · Pull-up · Skill block',
+    'plio-b':      'Deadlift · OHP · Plyometrics · Skill block',
+    'z2-movement': 'Zone 2 · Ground flow · Object manipulation',
+    'intense':     'Sprints · Power · Intervals',
+    'z2-flex':     'Zone 2 · Splits · Pancake · Bridge',
+    'rest':        'Walk · Stretch · Somatic',
+  };
+  document.getElementById('today-sub').textContent = subMap[today.theme] || '';
 
-// ── GENERATE ───────────────────────────────────────────────────
-const SLEEP_LABELS=['','terrible','poor','okay','good','excellent'];
-const ENERGY_LABELS=['','very low','low','moderate','good','high'];
-const TIER_LABELS={1:'quick session',2:'medium session',3:'full session',4:'long session'};
-const TIER_COLORS={lightBlock:'#1D9E75',objManip:'#7F77DD',meditate:'#7F77DD',warmup:'#378ADD',skill:'#185FA5',main:'#D85A30',cooldown:'#5F5E5A'};
-let _selectedTheme=null;
+  const banner = document.getElementById('active-banner');
+  if (LiveSession.getSession()) {
+    banner.style.display = 'block';
+    const prog = LiveSession.getProgress();
+    document.getElementById('banner-info').textContent = `${prog.done}/${prog.total} done · ${prog.elapsed}m elapsed`;
+    document.querySelector('.session-nav').style.display = 'flex';
+  } else { banner.style.display = 'none'; }
 
-function setPip(type,val){App.checkin[type]=val;document.querySelectorAll(`#${type}-pips .pip`).forEach(p=>p.classList.toggle('on',+p.dataset.val<=val));document.getElementById(`${type}-label`).textContent=(type==='sleep'?SLEEP_LABELS:ENERGY_LABELS)[val]||'';}
-function onDurChange(v){App.checkin.duration=v;document.getElementById('dur-val').textContent=v;document.getElementById('dur-tier').textContent=TIER_LABELS[Generator.getTier(v)];renderTierBar(v);}
-function renderTierBar(dur){const blocks=Generator.getBlockDurations(dur);const labels={lightBlock:'Light block',objManip:'Object manip',meditate:'Meditate',warmup:'Warm-up',skill:'Skill',main:'Main',cooldown:'Cool-down'};const bar=document.getElementById('tier-bar');bar.innerHTML='';const leg=document.getElementById('tier-legend');leg.innerHTML='';Object.entries(blocks).forEach(([k,v])=>{if(!v)return;bar.insertAdjacentHTML('beforeend',`<div class="tier-seg" style="flex:${v};background:${TIER_COLORS[k]||'#ccc'}"></div>`);leg.insertAdjacentHTML('beforeend',`<div class="tier-item"><div class="tier-dot" style="background:${TIER_COLORS[k]}"></div>${labels[k]} ${v}m</div>`);});}
+  const index = History.getIndex(100);
+  document.getElementById('stat-sessions').textContent = index.length;
+  document.getElementById('stat-last').textContent = index[0] ? Utils.daysSince(index[0].date) + 'd ago' : '—';
 
-function genNextStep(){
-  App.checkin.pain=document.getElementById('pain-input').value;App.checkin.focus=document.getElementById('focus-input').value;
-  const low=(App.checkin.sleep>0&&App.checkin.sleep<3)||(App.checkin.energy>0&&App.checkin.energy<3);
-  const warn=document.getElementById('gen-warn');const msgs=[];
-  if(App.checkin.sleep>0&&App.checkin.sleep<3)msgs.push('Sleep < 3 — no heavy skill or strength.');
-  if(App.checkin.energy>0&&App.checkin.energy<3)msgs.push('Energy < 3 — reduce volume 30%.');
-  warn.style.display=msgs.length?'block':'none';warn.textContent=msgs.join(' ');
-  const THEMES=[{id:'strength-a',label:'Strength A',sub:'Squat · Bench · Pull-up',weeks:'Wk1: Mon/Wed · Wk2: Fri'},{id:'plio-b',label:'Plio B',sub:'Deadlift · OHP · Plyometrics',weeks:'Wk1: Fri · Wk2: Mon/Wed'},{id:'z2-movement',label:'Z2 + Movement',sub:'Zone 2 · Ground flow',weeks:'Tue both weeks'},{id:'intense',label:'Intense',sub:'Sprints · Power',weeks:'Wed both weeks'},{id:'z2-flex',label:'Z2 + Flexibility',sub:'Zone 2 · Long stretch',weeks:'Thu both weeks'},{id:'rest',label:'Rest + Recovery',sub:'Walk · Somatic',weeks:'Weekend'}];
-  const list=document.getElementById('theme-list');list.innerHTML='';_selectedTheme=null;document.getElementById('gen-go-btn').disabled=true;
-  THEMES.forEach(t=>{const cfg=Utils.getThemeConfig(t.id);const disabled=low&&['intense','strength-a','plio-b'].includes(t.id);const btn=document.createElement('button');btn.className='theme-btn';btn.dataset.id=t.id;if(disabled)btn.classList.add('dimmed');btn.innerHTML=`<div class="theme-dot" style="background:${cfg.color}"></div><div class="theme-body"><div class="theme-label">${t.label}${disabled?' <span class="warn-tag">not recommended</span>':''}</div><div class="theme-sub">${t.sub}</div><div class="theme-weeks">${t.weeks}</div></div>`;btn.onclick=()=>{_selectedTheme=t.id;document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');document.getElementById('gen-go-btn').disabled=false;};list.appendChild(btn);});
-  document.getElementById('gen-checkin').classList.remove('active');document.getElementById('gen-theme').classList.add('active');
+  let streak = 0, check = new Date(); check.setHours(0,0,0,0); check = check.getTime();
+  for (const s of [...index].sort((a,b)=>new Date(b.date)-new Date(a.date))) {
+    const d = new Date(s.date); d.setHours(0,0,0,0);
+    if (d.getTime()===check||d.getTime()===check-86400000){streak++;check=d.getTime()-86400000;}else break;
+  }
+  document.getElementById('stat-streak').textContent = streak;
+
+  // Stale high-priority goals
+  const stale = History.getStaledGoals(7).filter(g => {
+    const pg = Custom.getAllGoals().find(x => x.id === g.id);
+    return pg && pg.priority <= 2;
+  }).slice(0,3);
+  document.getElementById('goal-flags').innerHTML = stale.length
+    ? `<div class="section-label">Needs attention</div>${stale.map(g => {
+        const pg = Custom.getAllGoals().find(x => x.id === g.id);
+        const ms = goalMilestoneInfo(g.id);
+        const last = History.getGoalLastPracticed(g.id);
+        return `<div class="card flag-card" onclick="navTo('goals')">
+          <div class="flag-name">${pg.name}</div>
+          <div class="flag-ms">${ms?.current||'—'}</div>
+          ${last?`<div class="flag-age">${Utils.daysSince(last)}d ago</div>`:'<div class="flag-age">never logged</div>'}
+        </div>`;
+      }).join('')}` : '';
+
+  document.getElementById('home-recent').innerHTML = History.getIndex(5).map(sessionRow).join('') || '<div class="empty-state">No sessions yet.</div>';
 }
-function genBack(){document.getElementById('gen-theme').classList.remove('active');document.getElementById('gen-checkin').classList.add('active');}
-function buildAndStart(){if(!_selectedTheme)return;const session=Generator.generate({theme:_selectedTheme,duration:App.checkin.duration,sleep:App.checkin.sleep,energy:App.checkin.energy,pain:App.checkin.pain,focus:App.checkin.focus,profile:App.profile});LiveSession.start(session,s=>{App.session=s;if(App.screen==='session')renderSessionScreen();});App.session=session;document.querySelector('.session-nav').style.display='flex';navTo('session');}
 
-// ── SESSION ────────────────────────────────────────────────────
-function renderSessionScreen(){
-  const session=LiveSession.getSession();
-  if(!session){document.getElementById('session-blocks').innerHTML='<div class="empty-state" style="margin:2rem 1rem">No active session.</div>';return;}
-  const cfg=Utils.getThemeConfig(session.theme);
-  document.getElementById('sh-theme').textContent=cfg.label;document.getElementById('sh-theme').style.color=cfg.color;
-  document.getElementById('sh-meta').textContent=`${session.duration}m · Tier ${session.tier}`;
-  const prog=LiveSession.getProgress();document.getElementById('sh-progress').textContent=`${prog.done}/${prog.total}`;document.getElementById('sh-elapsed').textContent=prog.elapsed+'m';
-  const container=document.getElementById('session-blocks');container.innerHTML='';
-  session.blocks.forEach((block,bIdx)=>{
-    const done=block.exercises.filter(e=>e.completed||e.skipped).length;
-    const wrap=document.createElement('div');wrap.className='block-wrap';wrap.id=`block-${bIdx}`;
-    wrap.innerHTML=`<div class="block-header${done===block.exercises.length?' block-done':''}" onclick="toggleBlock(${bIdx})"><div class="bh-left"><div class="bh-dot" style="background:${block.color}"></div><div><div class="bh-title">${block.label}</div>${block.duration?`<div class="bh-dur">~${block.duration} min</div>`:''}</div></div><div class="bh-right"><span class="bh-count">${done}/${block.exercises.length}</span><svg class="bh-chevron" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg></div></div><div class="block-body" id="block-body-${bIdx}">${block.note?`<div class="block-note">${block.note}</div>`:''}<div class="ex-list" id="ex-list-${bIdx}"></div></div>`;
-    container.appendChild(wrap);
-    const exList=document.getElementById(`ex-list-${bIdx}`);
-    block.exercises.forEach((ex,eIdx)=>exList.appendChild(buildExerciseEl(ex,bIdx,eIdx)));
+function sessionRow(s) {
+  const cfg = Utils.getThemeConfig(s.theme);
+  return `<div class="card session-row" onclick="openSessionModal('${s.id}')">
+    <div class="sr-dot" style="background:${cfg.color}"></div>
+    <div class="sr-body"><div class="sr-theme">${cfg.label}</div><div class="sr-date">${Utils.formatDate(s.date)}</div></div>
+    <div class="sr-dur">${s.duration}m</div>
+  </div>`;
+}
+
+function toggleWeek() { Profile.toggleWeek(App.profile); renderHome(); }
+
+function startToday() {
+  const today = Utils.getTodayTheme(App.profile);
+  _selectedTheme = today.theme;
+  buildAndStart();
+}
+
+// ─────────────────────────────────────────────────────────────
+// GENERATE
+// ─────────────────────────────────────────────────────────────
+const SLEEP_LABELS  = ['','terrible','poor','okay','good','excellent'];
+const ENERGY_LABELS = ['','very low','low','moderate','good','high'];
+const TIER_LABELS   = {1:'quick session',2:'medium session',3:'full session',4:'long session'};
+const TIER_COLORS   = {lightBlock:'#1D9E75',objManip:'#7F77DD',meditate:'#7F77DD',warmup:'#378ADD',skill:'#185FA5',main:'#D85A30',cooldown:'#5F5E5A'};
+let _selectedTheme  = null;
+
+function setPip(type, val) {
+  App.checkin[type] = val;
+  document.querySelectorAll(`#${type}-pips .pip`).forEach(p => p.classList.toggle('on', +p.dataset.val <= val));
+  document.getElementById(`${type}-label`).textContent = (type==='sleep'?SLEEP_LABELS:ENERGY_LABELS)[val]||'';
+}
+
+function onDurChange(v) {
+  App.checkin.duration = v;
+  document.getElementById('dur-val').textContent  = v;
+  document.getElementById('dur-tier').textContent = TIER_LABELS[Generator.getTier(v)];
+  renderTierBar(v);
+}
+
+function renderTierBar(dur) {
+  const blocks = Generator.getBlockDurations(dur);
+  const labels = {lightBlock:'Light block',objManip:'Object manip',meditate:'Meditate',warmup:'Warm-up',skill:'Skill',main:'Main',cooldown:'Cool-down'};
+  const bar = document.getElementById('tier-bar'); bar.innerHTML='';
+  const leg = document.getElementById('tier-legend'); leg.innerHTML='';
+  Object.entries(blocks).forEach(([k,v]) => {
+    if (!v) return;
+    bar.insertAdjacentHTML('beforeend',`<div class="tier-seg" style="flex:${v};background:${TIER_COLORS[k]||'#ccc'}" title="${labels[k]}: ${v}m"></div>`);
+    leg.insertAdjacentHTML('beforeend',`<div class="tier-item"><div class="tier-dot" style="background:${TIER_COLORS[k]}"></div>${labels[k]} ${v}m</div>`);
   });
 }
 
-function buildExerciseEl(ex,bIdx,eIdx){
-  const wrap=document.createElement('div');
-  wrap.className=`ex-wrap${ex.completed?' ex-done':''}${ex.skipped?' ex-skipped':''}`;
-  wrap.id=`ex-${bIdx}-${eIdx}`;
+function genNextStep() {
+  App.checkin.pain  = document.getElementById('pain-input').value;
+  App.checkin.focus = document.getElementById('focus-input').value;
+  const low = (App.checkin.sleep>0&&App.checkin.sleep<3)||(App.checkin.energy>0&&App.checkin.energy<3);
+  const warn = document.getElementById('gen-warn');
+  const msgs = [];
+  if(App.checkin.sleep>0&&App.checkin.sleep<3)  msgs.push('Sleep < 3 — no heavy skill or strength.');
+  if(App.checkin.energy>0&&App.checkin.energy<3) msgs.push('Energy < 3 — reduce volume 30%.');
+  warn.style.display = msgs.length?'block':'none'; warn.textContent = msgs.join(' ');
 
-  // Resolve with overrides
-  const resolved = Overrides.resolve(ex.id) || ex;
-  const link = resolved.link || ex.link;
-  const notes = resolved.notes || ex.notes;
+  const THEMES = [
+    {id:'strength-a', label:'Strength A',      sub:'Squat · Bench · Pull-up',    weeks:'Wk1: Mon/Wed · Wk2: Fri'},
+    {id:'plio-b',     label:'Plio B',           sub:'Deadlift · OHP · Plyometrics',weeks:'Wk1: Fri · Wk2: Mon/Wed'},
+    {id:'z2-movement',label:'Z2 + Movement',    sub:'Zone 2 · Ground flow',       weeks:'Tue both weeks'},
+    {id:'intense',    label:'Intense',          sub:'Sprints · Power',            weeks:'Wed both weeks'},
+    {id:'z2-flex',    label:'Z2 + Flexibility', sub:'Zone 2 · Long stretch',      weeks:'Thu both weeks'},
+    {id:'rest',       label:'Rest + Recovery',  sub:'Walk · Somatic',             weeks:'Weekend'},
+  ];
+  const list = document.getElementById('theme-list'); list.innerHTML='';
+  _selectedTheme = null; document.getElementById('gen-go-btn').disabled = true;
+  THEMES.forEach(t => {
+    const cfg = Utils.getThemeConfig(t.id);
+    const disabled = low && ['intense','strength-a','plio-b'].includes(t.id);
+    const btn = document.createElement('button'); btn.className='theme-btn'; btn.dataset.id=t.id;
+    if (disabled) btn.classList.add('dimmed');
+    btn.innerHTML=`<div class="theme-dot" style="background:${cfg.color}"></div><div class="theme-body"><div class="theme-label">${t.label}${disabled?' <span class="warn-tag">not recommended</span>':''}</div><div class="theme-sub">${t.sub}</div><div class="theme-weeks">${t.weeks}</div></div>`;
+    btn.onclick = () => { _selectedTheme=t.id; document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); document.getElementById('gen-go-btn').disabled=false; };
+    list.appendChild(btn);
+  });
+  document.getElementById('gen-checkin').classList.remove('active');
+  document.getElementById('gen-theme').classList.add('active');
+}
 
-  // Determine thumbnail: auto from YouTube, or explicit imageUrl
-  const thumb = resolved.imageUrl || Overrides.thumbFromYouTube(link);
+function genBack() {
+  document.getElementById('gen-theme').classList.remove('active');
+  document.getElementById('gen-checkin').classList.add('active');
+}
 
-  const lastLog=ex.lastLog;
-  let logHtml='';
-  if(ex.logType==='weight+reps'){
-    logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si)).join('')}</div><div class="add-set-row"><input type="number" class="num-in" id="w-${bIdx}-${eIdx}" placeholder="${lastLog?.lastWeight||'kg'}" min="0" step="2.5"><span class="mul">×</span><input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" min="0"><button class="log-btn" onclick="logSet(${bIdx},${eIdx})">Log</button></div>${ex.progressionSuggestion?`<div class="prog-hint">⬆ ${ex.progressionSuggestion}</div>`:''}`;
-  }else if(ex.logType==='hold'){
+function buildAndStart() {
+  if (!_selectedTheme) return;
+  const session = Generator.generate({ theme:_selectedTheme, duration:App.checkin.duration, sleep:App.checkin.sleep, energy:App.checkin.energy, pain:App.checkin.pain, focus:App.checkin.focus, profile:App.profile });
+  LiveSession.start(session, s => { App.session=s; if(App.screen==='session') renderSessionScreen(); });
+  App.session = session;
+  document.querySelector('.session-nav').style.display = 'flex';
+  navTo('session');
+}
+
+// ─────────────────────────────────────────────────────────────
+// SESSION
+// ─────────────────────────────────────────────────────────────
+function renderSessionScreen() {
+  const session = LiveSession.getSession();
+  if (!session) { document.getElementById('session-blocks').innerHTML='<div class="empty-state" style="margin:2rem 1rem">No active session.</div>'; return; }
+  const cfg = Utils.getThemeConfig(session.theme);
+  document.getElementById('sh-theme').textContent = cfg.label;
+  document.getElementById('sh-theme').style.color  = cfg.color;
+  document.getElementById('sh-meta').textContent   = `${session.duration}m · Tier ${session.tier}`;
+  const prog = LiveSession.getProgress();
+  document.getElementById('sh-progress').textContent = `${prog.done}/${prog.total}`;
+  document.getElementById('sh-elapsed').textContent  = prog.elapsed + 'm';
+  const container = document.getElementById('session-blocks'); container.innerHTML='';
+  session.blocks.forEach((block, bIdx) => {
+    const done = block.exercises.filter(e=>e.completed||e.skipped).length;
+    const wrap = document.createElement('div'); wrap.className='block-wrap'; wrap.id=`block-${bIdx}`;
+    wrap.innerHTML=`
+      <div class="block-header${done===block.exercises.length?' block-done':''}" onclick="toggleBlock(${bIdx})">
+        <div class="bh-left"><div class="bh-dot" style="background:${block.color}"></div><div><div class="bh-title">${block.label}</div>${block.duration?`<div class="bh-dur">~${block.duration} min</div>`:''}</div></div>
+        <div class="bh-right"><span class="bh-count">${done}/${block.exercises.length}</span><svg class="bh-chevron" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg></div>
+      </div>
+      <div class="block-body" id="block-body-${bIdx}">
+        ${block.note?`<div class="block-note">${block.note}</div>`:''}
+        <div class="ex-list" id="ex-list-${bIdx}"></div>
+      </div>`;
+    container.appendChild(wrap);
+    const exList = document.getElementById(`ex-list-${bIdx}`);
+    block.exercises.forEach((ex,eIdx) => exList.appendChild(buildExerciseEl(ex,bIdx,eIdx)));
+  });
+}
+
+function buildExerciseEl(ex, bIdx, eIdx) {
+  const wrap = document.createElement('div');
+  wrap.className = `ex-wrap${ex.completed?' ex-done':''}${ex.skipped?' ex-skipped':''}`;
+  wrap.id = `ex-${bIdx}-${eIdx}`;
+  const lastLog = ex.lastLog;
+  let logHtml = '';
+  if (ex.logType==='weight+reps') {
+    logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si)).join('')}</div>
+      <div class="add-set-row">
+        <input type="number" class="num-in" id="w-${bIdx}-${eIdx}" placeholder="${lastLog?.lastWeight||'kg'}" min="0" step="2.5">
+        <span class="mul">×</span>
+        <input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" min="0">
+        <button class="log-btn" onclick="logSet(${bIdx},${eIdx})">Log</button>
+      </div>${ex.progressionSuggestion?`<div class="prog-hint">⬆ ${ex.progressionSuggestion}</div>`:''}`;
+  } else if (ex.logType==='hold') {
     const dur=ex.sets?.[0]?.duration;
     logHtml=`<div class="hold-row">${dur?`<span class="hold-result">${Utils.formatMMSS(dur)}</span>`:''}<button class="sw-btn" id="sw-${bIdx}-${eIdx}" onclick="toggleStopwatch(${bIdx},${eIdx})">▶ Start</button>${lastLog?.lastDuration?`<span class="last-hint">last: ${Utils.formatMMSS(lastLog.lastDuration)}</span>`:''}</div>`;
-  }else if(ex.logType==='reps'){
-    logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si)).join('')}</div><div class="add-set-row"><input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" min="0"><button class="log-btn" onclick="logReps(${bIdx},${eIdx})">Log</button></div>`;
-  }else if(ex.logType==='cardio'){
+  } else if (ex.logType==='reps') {
+    logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si)).join('')}</div>
+      <div class="add-set-row"><input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" min="0"><button class="log-btn" onclick="logReps(${bIdx},${eIdx})">Log</button></div>`;
+  } else if (ex.logType==='cardio') {
     const c=ex.cardioLog;
-    logHtml=`<div class="cardio-row">${c?`<div class="cardio-result">${Utils.formatDuration(c.duration)}${c.appleFitnessLink?' · <a href="'+c.appleFitnessLink+'" target="_blank">Apple Fitness ↗</a>':''}</div>`:`<div class="cardio-inputs"><input type="number" class="num-in sm" id="cd-m-${bIdx}-${eIdx}" placeholder="min"><span>:</span><input type="number" class="num-in sm" id="cd-s-${bIdx}-${eIdx}" placeholder="ss" max="59"><input type="text" class="text-in-sm" id="cd-link-${bIdx}-${eIdx}" placeholder="Apple Fitness link"><button class="log-btn" onclick="logCardio(${bIdx},${eIdx})">Log</button></div>`}</div>`;
+    logHtml=`<div class="cardio-row">${c
+      ?`<div class="cardio-result">${Utils.formatDuration(c.duration)}${c.appleFitnessLink?' · <a href="'+c.appleFitnessLink+'" target="_blank">Apple Fitness ↗</a>':''}</div>`
+      :`<div class="cardio-inputs"><input type="number" class="num-in sm" id="cd-m-${bIdx}-${eIdx}" placeholder="min"><span>:</span><input type="number" class="num-in sm" id="cd-s-${bIdx}-${eIdx}" placeholder="ss" max="59"><input type="text" class="text-in-sm" id="cd-link-${bIdx}-${eIdx}" placeholder="Apple Fitness link"><button class="log-btn" onclick="logCardio(${bIdx},${eIdx})">Log</button></div>`
+    }</div>`;
   }
-
-  const instructions = resolved.instructions || '';
+  const libEx = Custom.getAllExercises().find(e=>e.id===ex.id);
+  let extraHtml = '';
+  if (libEx?.imageUrl)     extraHtml += `<img src="${libEx.imageUrl}" class="ex-image" alt="${ex.name}" onerror="this.style.display='none'">`;
+  if (libEx?.instructions) extraHtml += `<div class="ex-instructions">${libEx.instructions}</div>`;
 
   wrap.innerHTML=`
     <div class="ex-header">
       <div class="ex-check${ex.completed?' checked':''}${ex.skipped?' skipped':''}" onclick="toggleExerciseDone(${bIdx},${eIdx})">${ex.completed?'✓':ex.skipped?'–':''}</div>
       <div class="ex-info">
-        <div class="ex-name">${link?`<a href="${link}" target="_blank" rel="noopener">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:ex.name}</div>
-        ${notes?`<div class="ex-notes">${notes}</div>`:''}
+        <div class="ex-name">${ex.link?`<a href="${ex.link}" target="_blank" rel="noopener">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:ex.name}</div>
+        ${ex.notes?`<div class="ex-notes">${ex.notes}</div>`:''}
       </div>
       <button class="ex-skip-btn" onclick="skipExercise(${bIdx},${eIdx})">−</button>
     </div>
-    ${thumb?`<div class="ex-thumb-wrap"><img class="ex-thumb" src="${thumb}" alt="${ex.name}" onerror="this.parentElement.style.display='none'" loading="lazy"><div class="ex-thumb-play">${link?`<a href="${link}" target="_blank" rel="noopener">▶ Watch</a>`:''}</div></div>`:''}
-    ${instructions?`<div class="ex-instructions">${instructions}</div>`:''}
+    ${extraHtml?`<div class="ex-extra">${extraHtml}</div>`:''}
     ${logHtml?`<div class="ex-log">${logHtml}</div>`:''}
     <div class="ex-note-row"><input type="text" class="note-in" placeholder="note…" id="note-${bIdx}-${eIdx}" onblur="saveExNote(${bIdx},${eIdx},this.value)" value="${ex.sessionNote||''}"></div>`;
   return wrap;
 }
 
 function setRow(s,si){return`<div class="set-row"><span class="set-num">${si+1}</span>${s.weight?`<span class="set-weight">${s.weight}kg</span>`:''} ${s.reps?`<span class="set-reps">× ${s.reps}</span>`:''} ${s.duration?`<span class="set-reps">${Utils.formatMMSS(s.duration)}</span>`:''}</div>`;}
+
 const _sw={};let _swActive=null;
-function toggleStopwatch(b,e){const key=`${b}-${e}`,btn=document.getElementById(`sw-${b}-${e}`);if(_swActive&&_swActive!==key){Timer.stopStopwatch();_sw[_swActive]={running:false};const[pb,pe]=_swActive.split('-');const ob=document.getElementById(`sw-${pb}-${pe}`);if(ob)ob.textContent='▶ Start';_swActive=null;}if(_sw[key]?.running){const el=Timer.stopStopwatch();_sw[key]={running:false};btn.textContent=`▶ ${Utils.formatMMSS(el)}`;LiveSession.logSet({duration:el,completed:true});refreshExercise(b,e);_swActive=null;}else{_sw[key]={running:true};_swActive=key;btn.textContent='⏹ 0:00';Timer.startStopwatch(s=>{if(btn)btn.textContent=`⏹ ${Timer.format(s)}`;});}}
-function logSet(b,e){const w=parseFloat(document.getElementById(`w-${b}-${e}`)?.value)||null,r=parseInt(document.getElementById(`r-${b}-${e}`)?.value)||null;const res=LiveSession.logSet({weight:w,reps:r,completed:true});refreshExercise(b,e);if(res?.startRest){const ex=LiveSession.getSession().blocks[b].exercises[e];showRest(ex.restSeconds);}const wi=document.getElementById(`w-${b}-${e}`),ri=document.getElementById(`r-${b}-${e}`);if(wi)wi.value='';if(ri)ri.value='';}
-function logReps(b,e){const r=parseInt(document.getElementById(`r-${b}-${e}`)?.value)||null;const res=LiveSession.logSet({reps:r,completed:true});refreshExercise(b,e);if(res?.startRest){const ex=LiveSession.getSession().blocks[b].exercises[e];showRest(ex.restSeconds);}const ri=document.getElementById(`r-${b}-${e}`);if(ri)ri.value='';}
-function logCardio(b,e){const m=parseInt(document.getElementById(`cd-m-${b}-${e}`)?.value)||0,s=parseInt(document.getElementById(`cd-s-${b}-${e}`)?.value)||0,link=document.getElementById(`cd-link-${b}-${e}`)?.value||'';LiveSession.logCardio({durationMin:m,durationSec:s,appleFitnessLink:link});refreshExercise(b,e);}
+function toggleStopwatch(b,e){
+  const key=`${b}-${e}`,btn=document.getElementById(`sw-${b}-${e}`);
+  if(_swActive&&_swActive!==key){Timer.stopStopwatch();_sw[_swActive]={running:false};const[pb,pe]=_swActive.split('-');const ob=document.getElementById(`sw-${pb}-${pe}`);if(ob)ob.textContent='▶ Start';_swActive=null;}
+  if(_sw[key]?.running){const el=Timer.stopStopwatch();_sw[key]={running:false};btn.textContent=`▶ ${Utils.formatMMSS(el)}`;LiveSession.logSet({duration:el,completed:true});refreshExercise(b,e);_swActive=null;}
+  else{_sw[key]={running:true};_swActive=key;btn.textContent='⏹ 0:00';Timer.startStopwatch(s=>{if(btn)btn.textContent=`⏹ ${Timer.format(s)}`;});}
+}
+
+function logSet(b,e){
+  const w=parseFloat(document.getElementById(`w-${b}-${e}`)?.value)||null,r=parseInt(document.getElementById(`r-${b}-${e}`)?.value)||null;
+  const res=LiveSession.logSet({weight:w,reps:r,completed:true});refreshExercise(b,e);
+  if(res?.startRest){const ex=LiveSession.getSession().blocks[b].exercises[e];showRest(ex.restSeconds);}
+  const wi=document.getElementById(`w-${b}-${e}`),ri=document.getElementById(`r-${b}-${e}`);
+  if(wi)wi.value='';if(ri)ri.value='';
+}
+function logReps(b,e){
+  const r=parseInt(document.getElementById(`r-${b}-${e}`)?.value)||null;
+  const res=LiveSession.logSet({reps:r,completed:true});refreshExercise(b,e);
+  if(res?.startRest){const ex=LiveSession.getSession().blocks[b].exercises[e];showRest(ex.restSeconds);}
+  const ri=document.getElementById(`r-${b}-${e}`);if(ri)ri.value='';
+}
+function logCardio(b,e){
+  const m=parseInt(document.getElementById(`cd-m-${b}-${e}`)?.value)||0,s=parseInt(document.getElementById(`cd-s-${b}-${e}`)?.value)||0,link=document.getElementById(`cd-link-${b}-${e}`)?.value||'';
+  LiveSession.logCardio({durationMin:m,durationSec:s,appleFitnessLink:link});refreshExercise(b,e);
+}
 function toggleExerciseDone(b,e){const ex=LiveSession.getSession()?.blocks[b]?.exercises[e];if(!ex)return;if(ex.completed)ex.completed=false;else LiveSession.markExerciseDone(b,e);refreshBlock(b);}
 function skipExercise(b,e){LiveSession.skipExercise(b,e);refreshBlock(b);}
 function saveExNote(b,e,v){LiveSession.addExerciseNote(b,e,v);}
 function toggleBlock(b){document.getElementById(`block-body-${b}`)?.classList.toggle('collapsed');}
 function refreshExercise(b,e){const ex=LiveSession.getSession()?.blocks[b]?.exercises[e];if(!ex)return;document.getElementById(`ex-${b}-${e}`)?.replaceWith(buildExerciseEl(ex,b,e));}
-function refreshBlock(b){const block=LiveSession.getSession()?.blocks[b];if(!block)return;const done=block.exercises.filter(e=>e.completed||e.skipped).length;const hdr=document.querySelector(`#block-${b} .block-header`);if(hdr){hdr.classList.toggle('block-done',done===block.exercises.length);const cnt=hdr.querySelector('.bh-count');if(cnt)cnt.textContent=`${done}/${block.exercises.length}`;}block.exercises.forEach((_,e)=>refreshExercise(b,e));const prog=LiveSession.getProgress();document.getElementById('sh-progress').textContent=`${prog.done}/${prog.total}`;}
+function refreshBlock(b){
+  const block=LiveSession.getSession()?.blocks[b];if(!block)return;
+  const done=block.exercises.filter(e=>e.completed||e.skipped).length;
+  const hdr=document.querySelector(`#block-${b} .block-header`);
+  if(hdr){hdr.classList.toggle('block-done',done===block.exercises.length);const cnt=hdr.querySelector('.bh-count');if(cnt)cnt.textContent=`${done}/${block.exercises.length}`;}
+  block.exercises.forEach((_,e)=>refreshExercise(b,e));
+  const prog=LiveSession.getProgress();document.getElementById('sh-progress').textContent=`${prog.done}/${prog.total}`;
+}
 function showRest(s){if(!s)return;document.getElementById('rest-overlay').style.display='flex';Timer.startCountdown(s,t=>{document.getElementById('rest-time').textContent=Timer.format(t);},()=>hideRest());}
 function hideRest(){document.getElementById('rest-overlay').style.display='none';Timer.stopCountdown();}
-function skipRest(){hideRest();}function adjustRest(d){Timer.adjustCountdown(d);}
+function skipRest(){hideRest();}
+function adjustRest(d){Timer.adjustCountdown(d);}
 function finishSession(){LiveSession.setSessionNote(document.getElementById('session-note').value);const id=LiveSession.complete();if(id){document.querySelector('.session-nav').style.display='none';App.session=null;navTo('home');}}
-function discardSession(){if(!confirm('Discard?'))return;LiveSession.discard();App.session=null;document.querySelector('.session-nav').style.display='none';navTo('home');}
+function discardSession(){if(!confirm('Discard session?'))return;LiveSession.discard();App.session=null;document.querySelector('.session-nav').style.display='none';navTo('home');}
 
-// ── GOALS ──────────────────────────────────────────────────────
-let _goalFilter='all';
-function setGoalFilter(p){_goalFilter=p;document.querySelectorAll('.filter-tab').forEach(t=>t.classList.toggle('active',t.dataset.priority===p));renderGoals();}
+// ─────────────────────────────────────────────────────────────
+// GOALS SCREEN
+// ─────────────────────────────────────────────────────────────
+let _goalFilter = 'all';
 
-function goalMilestoneInfo(goalId){
-  const milestones=Custom.getMilestones(goalId);if(!milestones.length)return null;
-  const idx=App.profile.goalMilestones[goalId]||0;
-  return{current:milestones[idx],next:milestones[idx+1]||null,idx,total:milestones.length};
+function setGoalFilter(p) {
+  _goalFilter = p;
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.toggle('active', t.dataset.priority === p));
+  renderGoals();
 }
 
-function renderGoals(){
-  let goals=Custom.getAllGoals();
-  if(_goalFilter!=='all') goals=goals.filter(g=>String(g.priority)===_goalFilter);
-  const pColors={1:'#C0392B',2:'#E67E22',3:'#7F8C8D'};
-  const goalsList = document.getElementById('goals-list');
-  goalsList.innerHTML = '';
-  if (!goals.length) { goalsList.innerHTML='<div class="empty-state">No goals. Tap + New goal.</div>'; return; }
+function goalMilestoneInfo(goalId) {
+  const milestones = Custom.getMilestones(goalId);
+  if (!milestones.length) return null;
+  const idx = App.profile.goalMilestones[goalId] || 0;
+  return { current: milestones[idx], next: milestones[idx+1]||null, idx, total: milestones.length };
+}
 
-  goals.forEach(g => {
+function renderGoals() {
+  let goals = Custom.getAllGoals();
+  if (_goalFilter !== 'all') goals = goals.filter(g => String(g.priority) === _goalFilter);
+
+  document.getElementById('goals-list').innerHTML = goals.length ? goals.map(g => {
     const ms   = goalMilestoneInfo(g.id);
     const last = History.getGoalLastPracticed(g.id);
     const pct  = ms && ms.total > 1 ? Math.round((ms.idx / (ms.total-1)) * 100) : 0;
     const age  = last ? Utils.daysSince(last) : null;
-    const govOv = DB.get('goal_overrides') || {};
-    const ov    = govOv[g.id] || {};
-    const goalImg = g.goalImage || ov.goalImage || '';
-    // Resolve image: YouTube → thumbnail, otherwise use as-is
-    const imgSrc = goalImg ? (Overrides.thumbFromYouTube(goalImg) || goalImg) : '';
-
-    const card = document.createElement('div');
-    card.className = 'card goal-card';
-
-    if (imgSrc) {
-      const imgWrap = document.createElement('div'); imgWrap.className='goal-img-wrap';
-      const img = document.createElement('img'); img.className='goal-img'; img.src=imgSrc; img.alt=g.name; img.loading='lazy';
-      img.onerror=()=>imgWrap.style.display='none';
-      imgWrap.appendChild(img); card.appendChild(imgWrap);
-    }
-
-    const header = document.createElement('div'); header.className='goal-card-header';
-    const headerLeft = document.createElement('div');
-    const nameLine = document.createElement('div'); nameLine.className='goal-name'; nameLine.textContent=g.name;
-    const metaLine = document.createElement('div'); metaLine.className='goal-meta';
-    const dot = document.createElement('span'); dot.className='goal-priority-dot'; dot.style.background=pColors[g.priority]||'#888';
-    const cat = document.createElement('span'); cat.className='goal-cat'; cat.textContent=g.category;
-    const ageEl = document.createElement('span'); ageEl.className='goal-age'; ageEl.textContent=age!==null?age+'d ago':'never';
-    metaLine.append(dot,cat,ageEl); headerLeft.append(nameLine,metaLine); header.appendChild(headerLeft);
-
-    const editBtn = document.createElement('button'); editBtn.className='btn-icon';
-    editBtn.innerHTML='<svg viewBox="0 0 24 24" width="16"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-    const gId = g.id; // capture for closure
-    editBtn.onclick = () => openGoalModal(gId);
-    header.appendChild(editBtn);
-    card.appendChild(header);
-
-    const bar = document.createElement('div'); bar.className='progress-bar';
-    const fill = document.createElement('div'); fill.className='progress-fill'; fill.style.width=pct+'%';
-    bar.appendChild(fill); card.appendChild(bar);
-
-    const msNow = document.createElement('div'); msNow.className='goal-milestone-now'; msNow.textContent=ms?.current||'No milestones set'; card.appendChild(msNow);
-    if (ms?.next) { const msNext=document.createElement('div'); msNext.className='goal-milestone-next'; msNext.textContent='→ '+ms.next; card.appendChild(msNext); }
-    if (g.notes) { const notesEl=document.createElement('div'); notesEl.className='goal-notes'; notesEl.textContent=g.notes; card.appendChild(notesEl); }
-
-    const actions = document.createElement('div'); actions.className='goal-actions';
-    const advBtn = document.createElement('button'); advBtn.className='btn-xs'; advBtn.textContent='Advance ↑';
-    advBtn.onclick = () => advanceGoal(gId);
-    const resetBtn = document.createElement('button'); resetBtn.className='btn-xs'; resetBtn.textContent='Reset';
-    resetBtn.onclick = () => resetGoal(gId);
-    actions.append(advBtn, resetBtn); card.appendChild(actions);
-
-    goalsList.appendChild(card);
-  });
+    const cfg  = Utils.getThemeConfig('strength-a'); // just for priority color
+    const pColors = { 1:'#C0392B', 2:'#E67E22', 3:'#7F8C8D' };
+    return `<div class="card goal-card">
+      <div class="goal-card-header">
+        <div>
+          <div class="goal-name">${g.name}</div>
+          <div class="goal-meta">
+            <span class="goal-priority-dot" style="background:${pColors[g.priority]||'#888'}"></span>
+            <span class="goal-cat">${g.category}</span>
+            ${age!==null?`<span class="goal-age">${age}d ago</span>`:'<span class="goal-age">never</span>'}
+          </div>
+        </div>
+        <button class="btn-icon" onclick="openGoalModal('${g.id}')" aria-label="Edit goal">
+          <svg viewBox="0 0 24 24" width="16"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="goal-milestone-now">${ms?.current||'No milestones set'}</div>
+      ${ms?.next?`<div class="goal-milestone-next">→ ${ms.next}</div>`:''}
+      ${g.notes?`<div class="goal-notes">${g.notes}</div>`:''}
+      <div class="goal-actions">
+        <button class="btn-xs" onclick="advanceGoal('${g.id}')">Advance ↑</button>
+        <button class="btn-xs" onclick="resetGoal('${g.id}')">Reset</button>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty-state">No goals yet. Tap + New goal to add one.</div>';
 }
 
-function advanceGoal(id){const ms=Custom.getMilestones(id);const cur=App.profile.goalMilestones[id]||0;if(cur<ms.length-1){App.profile.goalMilestones[id]=cur+1;Profile.save(App.profile);}renderGoals();}
-function resetGoal(id){if(!confirm('Reset progress?'))return;Custom.resetGoalProgress(id);renderGoals();}
+function advanceGoal(id) {
+  const ms = Custom.getMilestones(id);
+  const cur = App.profile.goalMilestones[id] || 0;
+  if (cur < ms.length - 1) { App.profile.goalMilestones[id] = cur + 1; Profile.save(App.profile); }
+  renderGoals();
+}
 
-// ── GOAL MODAL ─────────────────────────────────────────────────
-let _gmFeedExercises=[];
+function resetGoal(id) {
+  if (!confirm('Reset progress to milestone 0?')) return;
+  Custom.resetGoalProgress(id); renderGoals();
+}
 
-function openGoalModal(id){
-  const isEdit=!!id, allGoals=Custom.getAllGoals();
-  const g=id?allGoals.find(x=>x.id===id):null;
-  const milestones=id?Custom.getMilestones(id):[];
-  const isBuiltIn=isEdit&&!g?.isCustom;
-  const govOv=DB.get('goal_overrides')||{};
-  const existingImg=g?.goalImage||(govOv[id]?.goalImage)||'';
+// ─────────────────────────────────────────────────────────────
+// GOAL MODAL — search-based feed exercise picker
+// ─────────────────────────────────────────────────────────────
+let _gmFeedExercises = []; // array of {id, name, subcategory}
 
-  _gmFeedExercises=(g?.feedExercises||[]).map(eid=>{
-    const ex=Custom.getAllExercises().find(e=>e.id===eid);
-    return ex?{id:ex.id,name:ex.name,subcategory:ex.subcategory}:null;
+function openGoalModal(id) {
+  const isEdit = !!id;
+  const allGoals = Custom.getAllGoals();
+  const g = id ? allGoals.find(x => x.id === id) : null;
+  const milestones = id ? Custom.getMilestones(id) : [];
+  _gmFeedExercises = (g?.feedExercises || []).map(eid => {
+    const ex = Custom.getAllExercises().find(e => e.id === eid);
+    return ex ? { id: ex.id, name: ex.name, subcategory: ex.subcategory } : null;
   }).filter(Boolean);
 
-  const content=document.getElementById('goal-modal-content');
-  content.innerHTML='';
+  const isBuiltIn = isEdit && !g?.isCustom;
 
-  // Title
-  const title=document.createElement('div');title.className='modal-title';
-  title.textContent=isEdit?(isBuiltIn?'Manage goal':'Edit goal'):'New goal';
-  content.appendChild(title);
+  document.getElementById('goal-modal-content').innerHTML = `
+    <div class="modal-title">${isEdit ? (isBuiltIn?'Manage goal':'Edit goal') : 'New goal'}</div>
+    ${isBuiltIn?'<div class="field-sub" style="margin-bottom:.75rem">Built-in goal — milestones and feed exercises are editable.</div>':''}
 
-  if(isBuiltIn){
-    const sub=document.createElement('div');sub.className='field-sub';sub.style.marginBottom='.75rem';
-    sub.textContent='Built-in goal — milestones, image and feed exercises are editable.';
-    content.appendChild(sub);
-  }
+    <div class="field-label">Name *</div>
+    <input type="text" class="text-input" id="gm-name" value="${g?.name||''}" ${isBuiltIn?'disabled':''} placeholder="e.g. Pistol squat">
 
-  // Name
-  const nl=document.createElement('div');nl.className='field-label';nl.textContent='Name *';content.appendChild(nl);
-  const ni=document.createElement('input');ni.type='text';ni.className='text-input';ni.id='gm-name';
-  ni.value=g?.name||'';ni.placeholder='e.g. Pistol squat';if(isBuiltIn)ni.disabled=true;
-  content.appendChild(ni);
+    <div class="two-col" style="margin-top:.75rem">
+      <div>
+        <div class="field-label">Category</div>
+        <input type="text" class="text-input" id="gm-cat" value="${g?.category||''}" placeholder="Body Movement">
+      </div>
+      <div>
+        <div class="field-label">Priority</div>
+        <select class="text-input" id="gm-priority">
+          <option value="1" ${g?.priority===1?'selected':''}>1 — High</option>
+          <option value="2" ${(!g||g?.priority===2)?'selected':''}>2 — Medium</option>
+          <option value="3" ${g?.priority===3?'selected':''}>3 — Low</option>
+        </select>
+      </div>
+    </div>
 
-  // Category + Priority
-  const row1=document.createElement('div');row1.className='two-col';row1.style.marginTop='.75rem';
-  const cw=document.createElement('div');
-  const cl=document.createElement('div');cl.className='field-label';cl.textContent='Category';cw.appendChild(cl);
-  const ci=document.createElement('input');ci.type='text';ci.className='text-input';ci.id='gm-cat';
-  ci.value=g?.category||'';ci.placeholder='Body Movement';cw.appendChild(ci);
-  const pw=document.createElement('div');
-  const pl=document.createElement('div');pl.className='field-label';pl.textContent='Priority';pw.appendChild(pl);
-  const ps=document.createElement('select');ps.className='text-input';ps.id='gm-priority';
-  [{v:'1',t:'1 — High'},{v:'2',t:'2 — Medium'},{v:'3',t:'3 — Low'}].forEach(o=>{
-    const opt=document.createElement('option');opt.value=o.v;opt.textContent=o.t;
-    if(String(g?.priority||2)===o.v)opt.selected=true;ps.appendChild(opt);
-  });
-  pw.appendChild(ps);row1.append(cw,pw);content.appendChild(row1);
+    <div class="field-label" style="margin-top:.75rem">Notes</div>
+    <textarea class="text-input" id="gm-notes" rows="2" placeholder="Coaching notes…">${g?.notes||''}</textarea>
 
-  // Goal image
-  const il=document.createElement('div');il.className='field-label';il.style.marginTop='.75rem';
-  il.innerHTML='Goal image <span class="opt">YouTube URL or image URL</span>';content.appendChild(il);
-  const ii=document.createElement('input');ii.type='text';ii.className='text-input';ii.id='gm-img';
-  ii.value=existingImg;ii.placeholder='https://youtube.com/... or image URL';
-  const ip=document.createElement('div');ip.id='gm-img-preview';ip.style.marginTop='.5rem';
-  if(existingImg){
-    const src=Overrides.thumbFromYouTube(existingImg)||existingImg;
-    const pi=document.createElement('img');pi.className='goal-img-preview';pi.src=src;pi.onerror=()=>pi.style.display='none';
-    ip.appendChild(pi);
-  }
-  ii.oninput=()=>previewGoalImg(ii.value);
-  content.appendChild(ii);content.appendChild(ip);
+    <div class="field-label" style="margin-top:.75rem">Milestones <span class="opt">in order</span></div>
+    <div id="gm-milestones">${milestones.map((ms,i)=>msRow(ms,i)).join('')}</div>
+    <button class="btn-ghost" style="margin-top:.375rem;padding:.5rem" onclick="addMsRow()">+ Add milestone</button>
 
-  // Notes
-  const ntl=document.createElement('div');ntl.className='field-label';ntl.style.marginTop='.75rem';ntl.textContent='Notes';content.appendChild(ntl);
-  const nta=document.createElement('textarea');nta.className='text-input';nta.id='gm-notes';nta.rows=2;nta.placeholder='Coaching notes…';
-  nta.value=g?.notes||'';content.appendChild(nta);
+    <div class="field-label" style="margin-top:.75rem">Feed exercises <span class="opt">optional — type to search</span></div>
+    <div class="feed-chips" id="feed-chips"></div>
+    <div style="position:relative">
+      <input type="text" class="text-input" id="feed-search" placeholder="Search exercises…" oninput="onFeedSearch(this.value)" autocomplete="off">
+      <div class="feed-dropdown" id="feed-dropdown" style="display:none"></div>
+    </div>
 
-  // Milestones
-  const msl=document.createElement('div');msl.className='field-label';msl.style.marginTop='.75rem';
-  msl.innerHTML='Milestones <span class="opt">in order</span>';content.appendChild(msl);
-  const msc=document.createElement('div');msc.id='gm-milestones';
-  milestones.forEach((ms,i)=>msc.insertAdjacentHTML('beforeend',msRow(ms,i)));
-  content.appendChild(msc);
-  const amb=document.createElement('button');amb.className='btn-ghost';amb.style.cssText='margin-top:.375rem;padding:.5rem';
-  amb.textContent='+ Add milestone';amb.onclick=addMsRow;content.appendChild(amb);
-
-  // Feed exercises search
-  const fel=document.createElement('div');fel.className='field-label';fel.style.marginTop='.75rem';
-  fel.innerHTML='Feed exercises <span class="opt">type to search</span>';content.appendChild(fel);
-  const fc=document.createElement('div');fc.className='feed-chips';fc.id='feed-chips';content.appendChild(fc);
-  const fw=document.createElement('div');fw.style.position='relative';
-  const fs=document.createElement('input');fs.type='text';fs.className='text-input';fs.id='feed-search';
-  fs.placeholder='Search exercises…';fs.autocomplete='off';fs.oninput=()=>onFeedSearch(fs.value);
-  const fd=document.createElement('div');fd.className='feed-dropdown';fd.id='feed-dropdown';fd.style.display='none';
-  fw.append(fs,fd);content.appendChild(fw);
-
-  // Buttons
-  const br=document.createElement('div');br.style.cssText='display:flex;gap:8px;margin-top:1.25rem';
-  const sb=document.createElement('button');sb.className='btn-primary';sb.style.flex='1';sb.textContent='Save';
-  const goalId=id;sb.onclick=()=>saveGoal(goalId||'');br.appendChild(sb);
-  if(isEdit&&g?.isCustom){
-    const db=document.createElement('button');db.className='btn-ghost';
-    db.style.cssText='color:var(--danger);flex:0 0 auto;padding:.75rem 1rem';db.textContent='Delete';
-    db.onclick=()=>deleteGoal(goalId);br.appendChild(db);
-  }
-  content.appendChild(br);
+    <div style="display:flex;gap:8px;margin-top:1.25rem">
+      <button class="btn-primary" style="flex:1" onclick="saveGoal('${id||''}')">Save</button>
+      ${isEdit&&g?.isCustom?`<button class="btn-ghost" style="color:var(--danger);flex:0 0 auto;padding:.75rem 1rem" onclick="deleteGoal('${id}')">Delete</button>`:''}
+    </div>`;
 
   renderFeedChips();
-  document.getElementById('goal-modal-backdrop').style.display='flex';
-}
-function previewGoalImg(val){
-  const preview=document.getElementById('gm-img-preview');if(!preview)return;
-  const src=Overrides.thumbFromYouTube(val)||val;
-  preview.innerHTML=src?`<img src="${src}" class="goal-img-preview" onerror="this.style.display='none'" alt="preview">`:'';
+  document.getElementById('goal-modal-backdrop').style.display = 'flex';
 }
 
-function msRow(text,i){return`<div class="ms-row" id="ms-row-${i}"><span class="ms-num">${i+1}</span><input type="text" class="text-input ms-input" id="ms-${i}" value="${text||''}" placeholder="Milestone ${i+1}"><button class="btn-xs danger" onclick="removeMsRow(${i})">✕</button></div>`;}
-function addMsRow(){const n=document.getElementById('gm-milestones').querySelectorAll('.ms-row').length;document.getElementById('gm-milestones').insertAdjacentHTML('beforeend',msRow('',n));}
-function removeMsRow(i){document.getElementById(`ms-row-${i}`)?.remove();document.querySelectorAll('#gm-milestones .ms-row').forEach((r,idx)=>{const num=r.querySelector('.ms-num');if(num)num.textContent=idx+1;});}
-
-function onFeedSearch(query){
-  const drop=document.getElementById('feed-dropdown');
-  if(!query.trim()){drop.style.display='none';return;}
-  const q=query.toLowerCase(),already=new Set(_gmFeedExercises.map(e=>e.id));
-  const matches=Custom.getAllExercises().filter(e=>!already.has(e.id)&&(e.name.toLowerCase().includes(q)||(e.subcategory||'').toLowerCase().includes(q)||e.category.toLowerCase().includes(q))).slice(0,8);
-  if(!matches.length){drop.style.display='none';return;}
-  drop.innerHTML=matches.map(e=>`<div class="feed-option" onclick="addFeedExercise('${e.id}','${e.name.replace(/'/g,"\\'")}','${(e.subcategory||'').replace(/'/g,"\\'")}')"><span class="fo-name">${e.name}</span><span class="fo-sub">${e.category}${e.subcategory?' · '+e.subcategory:''}</span></div>`).join('');
-  drop.style.display='block';
-}
-function addFeedExercise(id,name,sub){if(_gmFeedExercises.find(e=>e.id===id))return;_gmFeedExercises.push({id,name,subcategory:sub});renderFeedChips();document.getElementById('feed-search').value='';document.getElementById('feed-dropdown').style.display='none';}
-function removeFeedExercise(id){_gmFeedExercises=_gmFeedExercises.filter(e=>e.id!==id);renderFeedChips();}
-function renderFeedChips(){document.getElementById('feed-chips').innerHTML=_gmFeedExercises.map(e=>`<div class="feed-chip"><span>${e.name}</span>${e.subcategory?`<span class="chip-sub">${e.subcategory}</span>`:''}<button onclick="removeFeedExercise('${e.id}')">✕</button></div>`).join('');}
-
-document.addEventListener('click',e=>{if(!e.target.closest('#feed-search')&&!e.target.closest('#feed-dropdown')){const d=document.getElementById('feed-dropdown');if(d)d.style.display='none';}});
-
-function saveGoal(existingId){
-  const name=document.getElementById('gm-name')?.value?.trim();if(!name)return alert('Name required.');
-  const category=document.getElementById('gm-cat')?.value?.trim()||'General';
-  const priority=parseInt(document.getElementById('gm-priority')?.value)||2;
-  const notes=document.getElementById('gm-notes')?.value?.trim()||'';
-  const milestones=[...document.querySelectorAll('.ms-input')].map(i=>i.value.trim()).filter(Boolean);
-  const feedExercises=_gmFeedExercises.map(e=>e.id);
-  const rawImg=document.getElementById('gm-img')?.value?.trim()||'';
-  // Store YouTube URL as-is; thumbnail derived at render time
-  const goalImage=rawImg;
-
-  if(existingId){
-    const g=Custom.getAllGoals().find(x=>x.id===existingId);
-    if(g?.isCustom){Custom.updateGoal(existingId,{name,category,priority,notes,milestones,feedExercises,goalImage});}
-    else{
-      const ov=DB.get('goal_milestone_overrides')||{};ov[existingId]=milestones;DB.set('goal_milestone_overrides',ov);
-      const gov=DB.get('goal_overrides')||{};gov[existingId]={category,priority,notes,feedExercises,goalImage};DB.set('goal_overrides',gov);
-    }
-  }else{Custom.addGoal({name,category,priority,notes,milestones,feedExercises,goalImage});}
-  closeGoalModal();renderGoals();
-}
-function deleteGoal(id){if(!confirm('Delete?'))return;Custom.deleteGoal(id);closeGoalModal();renderGoals();}
-function closeGoalModal(){document.getElementById('goal-modal-backdrop').style.display='none';_gmFeedExercises=[];}
-
-// ── LOG ────────────────────────────────────────────────────────
-let _calYear=new Date().getFullYear(),_calMonth=new Date().getMonth();
-function renderLog(){renderCalendar();document.getElementById('history-list').innerHTML=History.getIndex(50).map(sessionRow).join('')||'<div class="empty-state">No sessions yet.</div>';}
-function renderCalendar(){
-  const y=_calYear,m=_calMonth;
-  document.getElementById('cal-month').textContent=new Date(y,m,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-  const index=History.getIndex(200),dayMap={};
-  index.forEach(s=>{const d=new Date(s.date);if(d.getFullYear()===y&&d.getMonth()===m){const k=d.getDate();if(!dayMap[k])dayMap[k]=[];dayMap[k].push(s);}});
-  const firstDay=new Date(y,m,1).getDay(),daysInMonth=new Date(y,m+1,0).getDate(),now=new Date();
-  const grid=document.getElementById('cal-grid');grid.innerHTML='';
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{const el=document.createElement('div');el.className='cal-day-name';el.textContent=d;grid.appendChild(el);});
-  for(let i=0;i<firstDay;i++){const el=document.createElement('div');el.className='cal-cell empty';grid.appendChild(el);}
-  for(let d=1;d<=daysInMonth;d++){
-    const el=document.createElement('div');el.className='cal-cell';
-    const sessions=dayMap[d]||[];
-    if(y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate())el.classList.add('cal-today');
-    el.innerHTML=`<span class="cal-num">${d}</span>`;
-    if(sessions.length){const dots=document.createElement('div');dots.className='cal-dots';sessions.slice(0,3).forEach(s=>{const cfg=Utils.getThemeConfig(s.theme);const dot=document.createElement('div');dot.className='cal-dot';dot.style.background=cfg.color;dots.appendChild(dot);});el.appendChild(dots);}
-    el.onclick=()=>showCalDay(d,sessions);grid.appendChild(el);
-  }
-}
-function showCalDay(day,sessions){
-  const detail=document.getElementById('cal-day-detail'),body=document.getElementById('cal-detail-body');
-  document.getElementById('cal-detail-date').textContent=new Date(_calYear,_calMonth,day).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
-  body.innerHTML=sessions.length?sessions.map(s=>{const cfg=Utils.getThemeConfig(s.theme);return`<div class="cal-session-item" onclick="openSessionModal('${s.id}')"><div class="sr-dot" style="background:${cfg.color}"></div><div class="sr-theme">${cfg.label}</div><div class="sr-dur">${s.duration}m</div></div>`;}).join(''):'<div class="empty-state">Rest day</div>';
-  detail.style.display='block';
-}
-function calPrev(){if(_calMonth===0){_calMonth=11;_calYear--;}else _calMonth--;renderCalendar();document.getElementById('cal-day-detail').style.display='none';}
-function calNext(){if(_calMonth===11){_calMonth=0;_calYear++;}else _calMonth++;renderCalendar();document.getElementById('cal-day-detail').style.display='none';}
-
-function openSessionModal(id){
-  const session=History.getSession(id);if(!session)return;
-  const cfg=Utils.getThemeConfig(session.theme);
-  let html=`<div class="modal-theme" style="color:${cfg.color}">${cfg.label}</div><div class="modal-date">${Utils.formatDate(session.date)} · ${session.duration}m</div>${session.notes?`<div class="modal-note">${session.notes}</div>`:''}<div class="modal-blocks">`;
-  session.blocks?.forEach(block=>{const logged=block.exercises?.filter(e=>e.sets?.length||e.completed||e.cardioLog);if(!logged?.length)return;html+=`<div class="modal-block-label" style="color:${block.color}">${block.label}</div>`;logged.forEach(ex=>{html+=`<div class="modal-ex"><div class="modal-ex-name">${ex.name}</div>`;ex.sets?.forEach(s=>{html+=`<div class="modal-set">${s.weight?s.weight+'kg ':''} ${s.reps?'× '+s.reps:''} ${s.duration?Utils.formatMMSS(s.duration):''}</div>`;});if(ex.cardioLog)html+=`<div class="modal-set">${Utils.formatDuration(ex.cardioLog.duration)}</div>`;html+=`</div>`;});});
-  html+=`</div><button class="btn-ghost" style="margin-top:1rem;color:var(--danger)" onclick="deleteSession('${id}')">Delete session</button>`;
-  document.getElementById('session-modal-content').innerHTML=html;document.getElementById('session-modal-backdrop').style.display='flex';
-}
-function closeSessionModal(){document.getElementById('session-modal-backdrop').style.display='none';}
-function deleteSession(id){if(!confirm('Delete?'))return;History.deleteSession(id);closeSessionModal();renderLog();}
-
-// ── SETTINGS ───────────────────────────────────────────────────
-function toggleSection(id){const body=document.getElementById(id);if(!body)return;body.classList.toggle('collapsed');const hdr=body.previousElementSibling;if(hdr)hdr.classList.toggle('open',!body.classList.contains('collapsed'));}
-
-// Registry maps index → exercise id, avoids inline onclick escaping issues
-const _exRegistry = {};
-let _exRegistryIdx = 0;
-
-function regEx(id) {
-  const k = 'ex_' + (_exRegistryIdx++);
-  _exRegistry[k] = id;
-  return k;
+function msRow(text, i) {
+  return `<div class="ms-row" id="ms-row-${i}">
+    <span class="ms-num">${i+1}</span>
+    <input type="text" class="text-input ms-input" id="ms-${i}" value="${text||''}" placeholder="Milestone ${i+1}">
+    <button class="btn-xs danger" onclick="removeMsRow(${i})">✕</button>
+  </div>`;
 }
 
-function renderSettings(){
-  const s=App.profile.settings;
-  _exRegistryIdx = 0; // reset on each render
-  document.getElementById('rest-heavy').value=s.defaultRestHeavy;document.getElementById('rest-acc').value=s.defaultRestAcc;document.getElementById('rest-skill').value=s.defaultRestSkill;document.getElementById('rest-prehab').value=s.defaultRestPrehab;document.getElementById('rest-power').value=s.defaultRestPower;
-  document.getElementById('equipment-list').innerHTML=EQUIPMENT.map(e=>`<label class="setting-row toggle-row"><span>${e.name}</span><input type="checkbox" ${App.profile.equipment[e.id]?'checked':''} onchange="saveEquipment('${e.id}',this.checked)"></label>`).join('');
+function addMsRow() {
+  const container = document.getElementById('gm-milestones');
+  const n = container.querySelectorAll('.ms-row').length;
+  container.insertAdjacentHTML('beforeend', msRow('', n));
+}
 
-  const allEx=Custom.getAllExercises();
-  const cats=[...new Set(allEx.map(e=>e.category))];
-  const listEl=document.getElementById('exercise-state-list');
-  listEl.innerHTML='';
-
-  cats.forEach(cat=>{
-    const catEx=allEx.filter(e=>e.category===cat);
-    const subcats=[...new Set(catEx.map(e=>e.subcategory||'General'))];
-    const catId='cat-'+slug(cat);
-    const catSection=document.createElement('div');catSection.className='ex-cat-section';
-
-    const catBtn=document.createElement('button');catBtn.className='ex-cat-header';
-    catBtn.onclick=()=>toggleSection(catId);
-    catBtn.innerHTML=`<span>${cat} <span class="ex-cat-count">${catEx.length}</span></span><svg class="chev" viewBox="0 0 24 24" width="14"><polyline points="6,9 12,15 18,9"/></svg>`;
-    catSection.appendChild(catBtn);
-
-    const catBody=document.createElement('div');catBody.className='collapsible-body collapsed';catBody.id=catId;
-
-    subcats.forEach(sub=>{
-      const subEx=catEx.filter(e=>(e.subcategory||'General')===sub);
-      const subId='sub-'+slug(cat+'-'+sub);
-      const subSection=document.createElement('div');subSection.className='ex-subcat-section';
-
-      const subBtn=document.createElement('button');subBtn.className='ex-subcat-header';
-      subBtn.onclick=()=>toggleSection(subId);
-      subBtn.innerHTML=`<span>${sub} <span class="ex-cat-count">${subEx.length}</span></span><svg class="chev" viewBox="0 0 24 24" width="12"><polyline points="6,9 12,15 18,9"/></svg>`;
-      subSection.appendChild(subBtn);
-
-      const subBody=document.createElement('div');subBody.className='collapsible-body collapsed';subBody.id=subId;
-
-      subEx.forEach(ex=>{
-        const ov=Overrides.get(ex.id);
-        const hasMedia=!!(ov?.link||ov?.imageUrl||ex.link);
-        const row=document.createElement('div');row.className='ex-state-row';
-
-        const nameSpan=document.createElement('span');nameSpan.className='ex-state-name';
-        nameSpan.textContent=ex.name;
-        if(ex.isCustom){const t=document.createElement('span');t.className='custom-tag';t.textContent='custom';nameSpan.appendChild(t);}
-        if(hasMedia){const t=document.createElement('span');t.className='media-tag';t.textContent='▶';nameSpan.appendChild(t);}
-        row.appendChild(nameSpan);
-
-        const controls=document.createElement('div');controls.style.cssText='display:flex;gap:6px;align-items:center';
-
-        const editBtn=document.createElement('button');editBtn.className='btn-xs';editBtn.textContent='Edit';
-        const exId=ex.id; // capture in closure — no escaping needed
-        editBtn.onclick=()=>openExerciseModal(exId);
-        controls.appendChild(editBtn);
-
-        const sel=document.createElement('select');sel.className='state-select';
-        ['active','notyet','excluded'].forEach(v=>{
-          const opt=document.createElement('option');opt.value=v;opt.textContent=v==='active'?'Active':v==='notyet'?'Not yet':'Excluded';
-          if(Profile.getExerciseState(App.profile,ex.id)===v)opt.selected=true;
-          sel.appendChild(opt);
-        });
-        sel.onchange=()=>saveExerciseState(ex.id,sel.value);
-        controls.appendChild(sel);
-
-        row.appendChild(controls);
-        subBody.appendChild(row);
-      });
-      subSection.appendChild(subBody);
-      catBody.appendChild(subSection);
-    });
-    catSection.appendChild(catBody);
-    listEl.appendChild(catSection);
+function removeMsRow(i) {
+  document.getElementById(`ms-row-${i}`)?.remove();
+  // Renumber
+  document.querySelectorAll('#gm-milestones .ms-row').forEach((r,idx) => {
+    const num = r.querySelector('.ms-num'); if (num) num.textContent = idx+1;
   });
 }
 
-function saveSetting(key,val){App.profile.settings[key]=val;Profile.save(App.profile);}
-function saveEquipment(id,val){App.profile.equipment[id]=val;Profile.save(App.profile);}
-function saveExerciseState(id,val){Profile.setExerciseState(App.profile,id,val);}
-function importData(input){const f=input.files[0];if(!f)return;Utils.importFromFile(f).then(()=>{App.profile=Profile.load();alert('Imported.');}).catch(()=>alert('Import failed.'));}
+// Feed exercise search
+function onFeedSearch(query) {
+  const drop = document.getElementById('feed-dropdown');
+  if (!query.trim()) { drop.style.display='none'; return; }
+  const q = query.toLowerCase();
+  const already = new Set(_gmFeedExercises.map(e=>e.id));
+  const matches = Custom.getAllExercises()
+    .filter(e => !already.has(e.id) && (e.name.toLowerCase().includes(q) || (e.subcategory||'').toLowerCase().includes(q) || e.category.toLowerCase().includes(q)))
+    .slice(0, 8);
+  if (!matches.length) { drop.style.display='none'; return; }
+  drop.innerHTML = matches.map(e =>
+    `<div class="feed-option" onclick="addFeedExercise('${e.id}','${e.name.replace(/'/g,"\\'")}','${(e.subcategory||'').replace(/'/g,"\\'")}')">
+      <span class="fo-name">${e.name}</span>
+      <span class="fo-sub">${e.category}${e.subcategory?' · '+e.subcategory:''}</span>
+    </div>`
+  ).join('');
+  drop.style.display = 'block';
+}
 
-// ── EXERCISE MODAL (built-in + custom) ─────────────────────────
-function openExerciseModal(id){
-  const allEx=Custom.getAllExercises();
-  const base=allEx.find(e=>e.id===id);
-  const ex=base?.isCustom?base:(base?Overrides.apply(base):null);
-  const isNew=!id;
-  const cats=[...new Set(LIBRARY.map(e=>e.category)),'Other'];
-  const segs=['lightBlock','objManip','meditate','warmup','skill','main','cooldown'];
-  const logTypes=['weight+reps','hold','reps','cardio','none'];
-  const restGroups=['strength-heavy','strength-acc','skill','prehab','power','flexibility','somatic','meditation','cardio'];
-  const currentThumb=ex?.imageUrl||Overrides.thumbFromYouTube(ex?.link)||'';
+function addFeedExercise(id, name, sub) {
+  if (_gmFeedExercises.find(e=>e.id===id)) return;
+  _gmFeedExercises.push({ id, name, subcategory: sub });
+  renderFeedChips();
+  document.getElementById('feed-search').value = '';
+  document.getElementById('feed-dropdown').style.display = 'none';
+}
 
-  const content=document.getElementById('ex-modal-content');
-  content.innerHTML='';
+function removeFeedExercise(id) {
+  _gmFeedExercises = _gmFeedExercises.filter(e=>e.id!==id);
+  renderFeedChips();
+}
 
-  // Title
-  const title=document.createElement('div');title.className='modal-title';
-  title.textContent=isNew?'New exercise':(ex?.name||'Edit exercise');
-  content.appendChild(title);
+function renderFeedChips() {
+  document.getElementById('feed-chips').innerHTML = _gmFeedExercises.map(e =>
+    `<div class="feed-chip">
+      <span>${e.name}</span>
+      ${e.subcategory?`<span class="chip-sub">${e.subcategory}</span>`:''}
+      <button onclick="removeFeedExercise('${e.id}')" aria-label="Remove">✕</button>
+    </div>`
+  ).join('');
+}
 
-  // Name
-  const nl=document.createElement('div');nl.className='field-label';nl.textContent='Name *';content.appendChild(nl);
-  const ni=document.createElement('input');ni.type='text';ni.className='text-input';ni.id='em-name';
-  ni.value=ex?.name||'';ni.placeholder='Exercise name';
-  if(!isNew&&!base?.isCustom)ni.disabled=true;
-  content.appendChild(ni);
-
-  // Category + Subcategory
-  const r1=document.createElement('div');r1.className='two-col';r1.style.marginTop='.75rem';
-  const cw=document.createElement('div');
-  const cl=document.createElement('div');cl.className='field-label';cl.textContent='Category';cw.appendChild(cl);
-  const cs=document.createElement('select');cs.className='text-input';cs.id='em-cat';
-  if(!isNew&&!base?.isCustom)cs.disabled=true;
-  cats.forEach(c=>{const o=document.createElement('option');o.textContent=c;if(ex?.category===c)o.selected=true;cs.appendChild(o);});
-  cw.appendChild(cs);
-  const sw=document.createElement('div');
-  const sl=document.createElement('div');sl.className='field-label';sl.textContent='Subcategory';sw.appendChild(sl);
-  const si=document.createElement('input');si.type='text';si.className='text-input';si.id='em-subcat';
-  si.value=ex?.subcategory||'';si.placeholder='e.g. Handstand';sw.appendChild(si);
-  r1.append(cw,sw);content.appendChild(r1);
-
-  // Log type + Rest group
-  const r2=document.createElement('div');r2.className='two-col';r2.style.marginTop='.75rem';
-  const lw=document.createElement('div');
-  const ll=document.createElement('div');ll.className='field-label';ll.textContent='Log type';lw.appendChild(ll);
-  const ls=document.createElement('select');ls.className='text-input';ls.id='em-logtype';
-  logTypes.forEach(l=>{const o=document.createElement('option');o.textContent=l;if(ex?.logType===l)o.selected=true;ls.appendChild(o);});
-  lw.appendChild(ls);
-  const rw=document.createElement('div');
-  const rl=document.createElement('div');rl.className='field-label';rl.textContent='Rest group';rw.appendChild(rl);
-  const rs=document.createElement('select');rs.className='text-input';rs.id='em-restgroup';
-  restGroups.forEach(r=>{const o=document.createElement('option');o.textContent=r;if(ex?.restGroup===r)o.selected=true;rs.appendChild(o);});
-  rw.appendChild(rs);
-  r2.append(lw,rw);content.appendChild(r2);
-
-  // Video link
-  const vl=document.createElement('div');vl.className='field-label';vl.style.marginTop='.75rem';
-  vl.innerHTML='Video link <span class="opt">YouTube — thumbnail auto-generated</span>';content.appendChild(vl);
-  const vi=document.createElement('input');vi.type='url';vi.className='text-input';vi.id='em-link';
-  vi.value=ex?.link||'';vi.placeholder='https://youtube.com/watch?v=...';
-  const tp=document.createElement('div');tp.id='em-thumb-preview';tp.style.margin='.5rem 0';
-  if(currentThumb){const tw=document.createElement('div');tw.className='ex-thumb-wrap-sm';const ti=document.createElement('img');ti.className='ex-thumb-sm';ti.src=currentThumb;ti.onerror=()=>tw.style.display='none';tw.appendChild(ti);tp.appendChild(tw);}
-  vi.oninput=()=>previewExThumb(vi.value);
-  content.appendChild(vi);content.appendChild(tp);
-
-  // Image URL
-  const iml=document.createElement('div');iml.className='field-label';
-  iml.innerHTML='Custom image URL <span class="opt">overrides thumbnail</span>';content.appendChild(iml);
-  const imi=document.createElement('input');imi.type='url';imi.className='text-input';imi.id='em-img';
-  imi.value=ex?.imageUrl||'';imi.placeholder='https://...image.jpg';content.appendChild(imi);
-
-  // Notes
-  const ntl=document.createElement('div');ntl.className='field-label';ntl.style.marginTop='.75rem';ntl.textContent='Notes / cues';content.appendChild(ntl);
-  const nta=document.createElement('textarea');nta.className='text-input';nta.id='em-notes';nta.rows=2;nta.placeholder='e.g. Keep lower back flat';
-  nta.value=ex?.notes||'';content.appendChild(nta);
-
-  // Instructions
-  const inl=document.createElement('div');inl.className='field-label';inl.style.marginTop='.75rem';
-  inl.innerHTML='Instructions <span class="opt">shown during session</span>';content.appendChild(inl);
-  const ina=document.createElement('textarea');ina.className='text-input';ina.id='em-instructions';ina.rows=3;ina.placeholder='Step by step…';
-  ina.value=ex?.instructions||'';content.appendChild(ina);
-
-  // Buttons
-  const br=document.createElement('div');br.style.cssText='display:flex;gap:8px;margin-top:1.25rem';
-  const sb=document.createElement('button');sb.className='btn-primary';sb.style.flex='1';sb.textContent='Save';
-  const exId=id;const isCustom=!!(base?.isCustom);
-  sb.onclick=()=>saveExercise(exId||'',isCustom);br.appendChild(sb);
-  if(!isNew&&base?.isCustom){
-    const db=document.createElement('button');db.className='btn-ghost';
-    db.style.cssText='color:var(--danger);flex:0 0 auto;padding:.75rem 1rem';db.textContent='Delete';
-    db.onclick=()=>deleteExercise(exId);br.appendChild(db);
+// Close dropdown when clicking outside
+document.addEventListener('click', e => {
+  if (!e.target.closest('#feed-search') && !e.target.closest('#feed-dropdown')) {
+    const drop = document.getElementById('feed-dropdown');
+    if (drop) drop.style.display = 'none';
   }
-  content.appendChild(br);
+});
 
+function saveGoal(existingId) {
+  const name = document.getElementById('gm-name')?.value?.trim();
+  if (!name) return alert('Name is required.');
+  const category  = document.getElementById('gm-cat')?.value?.trim() || 'General';
+  const priority  = parseInt(document.getElementById('gm-priority')?.value) || 2;
+  const notes     = document.getElementById('gm-notes')?.value?.trim() || '';
+  const milestones = [...document.querySelectorAll('.ms-input')].map(i=>i.value.trim()).filter(Boolean);
+  const feedExercises = _gmFeedExercises.map(e=>e.id);
+
+  if (existingId) {
+    const g = Custom.getAllGoals().find(x => x.id === existingId);
+    if (g?.isCustom) {
+      Custom.updateGoal(existingId, { name, category, priority, notes, milestones, feedExercises });
+    } else {
+      // Built-in: store overrides
+      const ov = DB.get('goal_milestone_overrides') || {};
+      ov[existingId] = milestones; DB.set('goal_milestone_overrides', ov);
+      const gov = DB.get('goal_overrides') || {};
+      gov[existingId] = { category, priority, notes, feedExercises }; DB.set('goal_overrides', gov);
+    }
+  } else {
+    Custom.addGoal({ name, category, priority, notes, milestones, feedExercises });
+  }
+  closeGoalModal(); renderGoals();
+}
+
+function deleteGoal(id) {
+  if (!confirm('Delete this goal?')) return;
+  Custom.deleteGoal(id); closeGoalModal(); renderGoals();
+}
+
+function closeGoalModal() {
+  document.getElementById('goal-modal-backdrop').style.display = 'none';
+  _gmFeedExercises = [];
+}
+
+// ─────────────────────────────────────────────────────────────
+// LOG SCREEN
+// ─────────────────────────────────────────────────────────────
+let _calYear=new Date().getFullYear(), _calMonth=new Date().getMonth();
+
+function renderLog() {
+  renderCalendar();
+  document.getElementById('history-list').innerHTML = History.getIndex(50).map(sessionRow).join('') || '<div class="empty-state">No sessions logged yet.</div>';
+}
+
+function renderCalendar() {
+  const y=_calYear, m=_calMonth;
+  document.getElementById('cal-month').textContent = new Date(y,m,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  const index = History.getIndex(200);
+  const dayMap = {};
+  index.forEach(s => { const d=new Date(s.date); if(d.getFullYear()===y&&d.getMonth()===m){ const k=d.getDate(); if(!dayMap[k]) dayMap[k]=[]; dayMap[k].push(s); } });
+  const firstDay = new Date(y,m,1).getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const now = new Date();
+  const grid = document.getElementById('cal-grid'); grid.innerHTML='';
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{ const el=document.createElement('div'); el.className='cal-day-name'; el.textContent=d; grid.appendChild(el); });
+  for(let i=0;i<firstDay;i++){ const el=document.createElement('div'); el.className='cal-cell empty'; grid.appendChild(el); }
+  for(let d=1;d<=daysInMonth;d++){
+    const el=document.createElement('div'); el.className='cal-cell';
+    const sessions=dayMap[d]||[];
+    if(y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate()) el.classList.add('cal-today');
+    el.innerHTML=`<span class="cal-num">${d}</span>`;
+    if(sessions.length){
+      const dots=document.createElement('div'); dots.className='cal-dots';
+      sessions.slice(0,3).forEach(s=>{ const cfg=Utils.getThemeConfig(s.theme); const dot=document.createElement('div'); dot.className='cal-dot'; dot.style.background=cfg.color; dots.appendChild(dot); });
+      el.appendChild(dots);
+    }
+    el.onclick=()=>showCalDay(d,sessions);
+    grid.appendChild(el);
+  }
+}
+
+function showCalDay(day, sessions) {
+  const detail=document.getElementById('cal-day-detail'), body=document.getElementById('cal-detail-body');
+  document.getElementById('cal-detail-date').textContent=new Date(_calYear,_calMonth,day).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+  body.innerHTML=sessions.length?sessions.map(s=>{ const cfg=Utils.getThemeConfig(s.theme); return `<div class="cal-session-item" onclick="openSessionModal('${s.id}')"><div class="sr-dot" style="background:${cfg.color}"></div><div class="sr-theme">${cfg.label}</div><div class="sr-dur">${s.duration}m</div></div>`; }).join(''):'<div class="empty-state">Rest day</div>';
+  detail.style.display='block';
+}
+
+function calPrev(){ if(_calMonth===0){_calMonth=11;_calYear--;}else _calMonth--; renderCalendar(); document.getElementById('cal-day-detail').style.display='none'; }
+function calNext(){ if(_calMonth===11){_calMonth=0;_calYear++;}else _calMonth++; renderCalendar(); document.getElementById('cal-day-detail').style.display='none'; }
+
+function openSessionModal(id) {
+  const session=History.getSession(id); if(!session) return;
+  const cfg=Utils.getThemeConfig(session.theme);
+  let html=`<div class="modal-theme" style="color:${cfg.color}">${cfg.label}</div><div class="modal-date">${Utils.formatDate(session.date)} · ${session.duration}m</div>${session.notes?`<div class="modal-note">${session.notes}</div>`:''}<div class="modal-blocks">`;
+  session.blocks?.forEach(block=>{
+    const logged=block.exercises?.filter(e=>e.sets?.length||e.completed||e.cardioLog);
+    if(!logged?.length) return;
+    html+=`<div class="modal-block-label" style="color:${block.color}">${block.label}</div>`;
+    logged.forEach(ex=>{
+      html+=`<div class="modal-ex"><div class="modal-ex-name">${ex.name}</div>`;
+      ex.sets?.forEach(s=>{html+=`<div class="modal-set">${s.weight?s.weight+'kg ':''} ${s.reps?'× '+s.reps:''} ${s.duration?Utils.formatMMSS(s.duration):''}</div>`;});
+      if(ex.cardioLog) html+=`<div class="modal-set">${Utils.formatDuration(ex.cardioLog.duration)}</div>`;
+      html+=`</div>`;
+    });
+  });
+  html+=`</div><button class="btn-ghost" style="margin-top:1rem;color:var(--danger)" onclick="deleteSession('${id}')">Delete session</button>`;
+  document.getElementById('session-modal-content').innerHTML=html;
+  document.getElementById('session-modal-backdrop').style.display='flex';
+}
+function closeSessionModal(){ document.getElementById('session-modal-backdrop').style.display='none'; }
+function deleteSession(id){ if(!confirm('Delete?'))return; History.deleteSession(id); closeSessionModal(); renderLog(); }
+
+// ─────────────────────────────────────────────────────────────
+// SETTINGS
+// ─────────────────────────────────────────────────────────────
+function toggleSection(id) {
+  const body = document.getElementById(id); if (!body) return;
+  body.classList.toggle('collapsed');
+  const hdr = body.previousElementSibling;
+  if (hdr) hdr.classList.toggle('open', !body.classList.contains('collapsed'));
+}
+
+function renderSettings() {
+  const s = App.profile.settings;
+  document.getElementById('rest-heavy').value  = s.defaultRestHeavy;
+  document.getElementById('rest-acc').value    = s.defaultRestAcc;
+  document.getElementById('rest-skill').value  = s.defaultRestSkill;
+  document.getElementById('rest-prehab').value = s.defaultRestPrehab;
+  document.getElementById('rest-power').value  = s.defaultRestPower;
+
+  document.getElementById('equipment-list').innerHTML = EQUIPMENT.map(e =>
+    `<label class="setting-row toggle-row">
+      <span>${e.name}</span>
+      <input type="checkbox" ${App.profile.equipment[e.id]?'checked':''} onchange="saveEquipment('${e.id}',this.checked)">
+    </label>`).join('');
+
+  // Two-level collapsible library using slug() for safe IDs
+  const allEx = Custom.getAllExercises();
+  const cats  = [...new Set(allEx.map(e=>e.category))];
+  document.getElementById('exercise-state-list').innerHTML = cats.map(cat => {
+    const catEx   = allEx.filter(e=>e.category===cat);
+    const subcats = [...new Set(catEx.map(e=>e.subcategory||'General'))];
+    const catId   = 'cat-' + slug(cat);
+    return `<div class="ex-cat-section">
+      <button class="ex-cat-header" onclick="toggleSection('${catId}')">
+        <span>${cat} <span class="ex-cat-count">${catEx.length}</span></span>
+        <svg class="chev" viewBox="0 0 24 24" width="14"><polyline points="6,9 12,15 18,9"/></svg>
+      </button>
+      <div class="collapsible-body collapsed" id="${catId}">
+        ${subcats.map(sub => {
+          const subEx = catEx.filter(e=>(e.subcategory||'General')===sub);
+          const subId = 'sub-' + slug(cat+'-'+sub);
+          return `<div class="ex-subcat-section">
+            <button class="ex-subcat-header" onclick="toggleSection('${subId}')">
+              <span>${sub} <span class="ex-cat-count">${subEx.length}</span></span>
+              <svg class="chev" viewBox="0 0 24 24" width="12"><polyline points="6,9 12,15 18,9"/></svg>
+            </button>
+            <div class="collapsible-body collapsed" id="${subId}">
+              ${subEx.map(ex => `<div class="ex-state-row">
+                <span class="ex-state-name">${ex.name}${ex.isCustom?' <span class="custom-tag">custom</span>':''}</span>
+                <div style="display:flex;gap:6px;align-items:center">
+                  ${ex.isCustom?`<button class="btn-xs" onclick="openExerciseModal('${ex.id}')">Edit</button>`:''}
+                  <select class="state-select" onchange="saveExerciseState('${ex.id}',this.value)">
+                    <option value="active"   ${Profile.getExerciseState(App.profile,ex.id)==='active'  ?'selected':''}>Active</option>
+                    <option value="notyet"   ${Profile.getExerciseState(App.profile,ex.id)==='notyet'  ?'selected':''}>Not yet</option>
+                    <option value="excluded" ${Profile.getExerciseState(App.profile,ex.id)==='excluded'?'selected':''}>Excluded</option>
+                  </select>
+                </div>
+              </div>`).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveSetting(key,val){ App.profile.settings[key]=val; Profile.save(App.profile); }
+function saveEquipment(id,val){ App.profile.equipment[id]=val; Profile.save(App.profile); }
+function saveExerciseState(id,val){ Profile.setExerciseState(App.profile,id,val); }
+function importData(input){ const f=input.files[0]; if(!f)return; Utils.importFromFile(f).then(()=>{ App.profile=Profile.load(); alert('Imported.'); }).catch(()=>alert('Import failed.')); }
+
+// ─────────────────────────────────────────────────────────────
+// ADD/EDIT EXERCISE MODAL
+// ─────────────────────────────────────────────────────────────
+function openExerciseModal(id) {
+  const ex = id ? Custom.getExercise(id) : null;
+  const cats = [...new Set(LIBRARY.map(e=>e.category)),'Other'];
+  const segs = ['lightBlock','objManip','meditate','warmup','skill','main','cooldown'];
+  const logTypes = ['weight+reps','hold','reps','cardio','none'];
+  const restGroups = ['strength-heavy','strength-acc','skill','prehab','power','flexibility','somatic','meditation','cardio'];
+
+  document.getElementById('ex-modal-content').innerHTML=`
+    <div class="modal-title">${id?'Edit exercise':'New exercise'}</div>
+    <div class="field-label">Name *</div>
+    <input type="text" class="text-input" id="em-name" value="${ex?.name||''}" placeholder="Exercise name">
+    <div class="two-col" style="margin-top:.75rem">
+      <div><div class="field-label">Category *</div>
+        <select class="text-input" id="em-cat">${cats.map(c=>`<option ${ex?.category===c?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div><div class="field-label">Subcategory</div>
+        <input type="text" class="text-input" id="em-subcat" value="${ex?.subcategory||''}" placeholder="e.g. Handstand"></div>
+    </div>
+    <div class="two-col" style="margin-top:.75rem">
+      <div><div class="field-label">Energy</div>
+        <select class="text-input" id="em-energy">${['Low','Med','High'].map(e=>`<option ${ex?.energy===e?'selected':''}>${e}</option>`).join('')}</select></div>
+      <div><div class="field-label">Segment</div>
+        <select class="text-input" id="em-segment">${segs.map(s=>`<option value="${s}" ${ex?.segment===s?'selected':''}>${s}</option>`).join('')}</select></div>
+    </div>
+    <div class="two-col" style="margin-top:.75rem">
+      <div><div class="field-label">Log type</div>
+        <select class="text-input" id="em-logtype">${logTypes.map(l=>`<option ${ex?.logType===l?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div><div class="field-label">Rest group</div>
+        <select class="text-input" id="em-restgroup">${restGroups.map(r=>`<option ${ex?.restGroup===r?'selected':''}>${r}</option>`).join('')}</select></div>
+    </div>
+    <div class="field-label" style="margin-top:.75rem">Notes / cues</div>
+    <textarea class="text-input" id="em-notes" rows="2" placeholder="e.g. Keep lower back flat">${ex?.notes||''}</textarea>
+    <div class="field-label" style="margin-top:.75rem">Video link <span class="opt">YouTube URL</span></div>
+    <input type="url" class="text-input" id="em-link" value="${ex?.link||''}" placeholder="https://youtube.com/...">
+    <div class="field-label" style="margin-top:.75rem">Image URL <span class="opt">optional</span></div>
+    <input type="url" class="text-input" id="em-img" value="${ex?.imageUrl||''}" placeholder="https://...">
+    <div class="field-label" style="margin-top:.75rem">Instructions <span class="opt">shown during session</span></div>
+    <textarea class="text-input" id="em-instructions" rows="3" placeholder="Step by step…">${ex?.instructions||''}</textarea>
+    <div style="display:flex;gap:8px;margin-top:1.25rem">
+      <button class="btn-primary" style="flex:1" onclick="saveExercise('${id||''}')">Save</button>
+      ${id?`<button class="btn-ghost" style="color:var(--danger);flex:0 0 auto;padding:.75rem 1rem" onclick="deleteExercise('${id}')">Delete</button>`:''}
+    </div>`;
   document.getElementById('ex-modal-backdrop').style.display='flex';
 }
-function previewExThumb(url){
-  const preview=document.getElementById('em-thumb-preview');if(!preview)return;
-  const thumb=Overrides.thumbFromYouTube(url);
-  preview.innerHTML=thumb?`<div class="ex-thumb-wrap-sm"><img src="${thumb}" class="ex-thumb-sm" onerror="this.parentElement.style.display='none'" alt="thumbnail"></div>`:'';
-}
 
-function saveExercise(existingId,isCustom){
-  const name=document.getElementById('em-name')?.value?.trim();
-  if(!name&&!existingId)return alert('Name required.');
-  const data={
-    link:         document.getElementById('em-link')?.value?.trim()||'',
-    imageUrl:     document.getElementById('em-img')?.value?.trim()||'',
-    notes:        document.getElementById('em-notes')?.value||'',
-    instructions: document.getElementById('em-instructions')?.value||'',
-    logType:      document.getElementById('em-logtype')?.value,
-    restGroup:    document.getElementById('em-restgroup')?.value,
-    subcategory:  document.getElementById('em-subcat')?.value||'',
+function saveExercise(existingId) {
+  const name = document.getElementById('em-name')?.value?.trim(); if(!name) return alert('Name required.');
+  const data = {
+    name, category:document.getElementById('em-cat')?.value,
+    subcategory:document.getElementById('em-subcat')?.value||'',
+    energy:document.getElementById('em-energy')?.value,
+    segment:document.getElementById('em-segment')?.value,
+    logType:document.getElementById('em-logtype')?.value,
+    restGroup:document.getElementById('em-restgroup')?.value,
+    notes:document.getElementById('em-notes')?.value||'',
+    link:document.getElementById('em-link')?.value||'',
+    imageUrl:document.getElementById('em-img')?.value||'',
+    instructions:document.getElementById('em-instructions')?.value||'',
   };
-  if(!existingId){
-    // New exercise — fully custom
-    Custom.addExercise({name,category:document.getElementById('em-cat')?.value,...data});
-  } else if(isCustom){
-    Custom.updateExercise(existingId,{name,...data});
-  } else {
-    // Built-in exercise — save as override (name/category stay from library.js)
-    Overrides.save(existingId,data);
-  }
-  closeExerciseModal();
-  if(App.screen==='settings')renderSettings();
+  if(existingId) Custom.updateExercise(existingId,data); else Custom.addExercise(data);
+  closeExerciseModal(); if(App.screen==='settings') renderSettings();
 }
+function deleteExercise(id){ if(!confirm('Delete?'))return; Custom.deleteExercise(id); closeExerciseModal(); if(App.screen==='settings') renderSettings(); }
+function closeExerciseModal(){ document.getElementById('ex-modal-backdrop').style.display='none'; }
 
-function deleteExercise(id){if(!confirm('Delete?'))return;Custom.deleteExercise(id);closeExerciseModal();if(App.screen==='settings')renderSettings();}
-function closeExerciseModal(){document.getElementById('ex-modal-backdrop').style.display='none';}
-
-// ── INIT ───────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded',()=>{App.init();onDurChange(90);renderHome();});
-setInterval(()=>{if(App.screen==='session'&&LiveSession.getSession())document.getElementById('sh-elapsed').textContent=LiveSession.getProgress().elapsed+'m';},60000);
+// ─────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  App.init(); onDurChange(90); renderHome();
+});
+setInterval(() => {
+  if(App.screen==='session'&&LiveSession.getSession()){
+    document.getElementById('sh-elapsed').textContent=LiveSession.getProgress().elapsed+'m';
+  }
+}, 60000);
 </script>
 </body>
 </html>
