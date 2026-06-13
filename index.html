@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Practice Brain">
-<title>Movement</title>
+<title>Practice Brain</title>
 <link rel="manifest" href="manifest.json">
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -24,7 +24,7 @@
 <!-- HOME -->
 <main id="screen-home" class="screen active">
   <header class="screen-header">
-    <h1 class="logo">Movement</h1>
+    <h1 class="logo">Practice Brain</h1>
     <div class="week-toggle" onclick="toggleWeek()"><span id="week-label">Week 1</span><svg viewBox="0 0 24 24" width="14"><path d="M7 16l-4-4 4-4M17 8l4 4-4 4"/></svg></div>
   </header>
   <section class="card today-card">
@@ -396,38 +396,64 @@ function renderGoals(){
   let goals=Custom.getAllGoals();
   if(_goalFilter!=='all') goals=goals.filter(g=>String(g.priority)===_goalFilter);
   const pColors={1:'#C0392B',2:'#E67E22',3:'#7F8C8D'};
-  document.getElementById('goals-list').innerHTML=goals.length?goals.map(g=>{
-    const ms=goalMilestoneInfo(g.id);
-    const last=History.getGoalLastPracticed(g.id);
-    const pct=ms&&ms.total>1?Math.round((ms.idx/(ms.total-1))*100):0;
-    const age=last?Utils.daysSince(last):null;
-    // Goal image — from custom goal data or overrides
-    const goalData=DB.get('goal_overrides')||{};
-    const ov=goalData[g.id]||{};
-    const goalImg=g.goalImage||ov.goalImage||'';
-    return`<div class="card goal-card">
-      ${goalImg?`<div class="goal-img-wrap"><img class="goal-img" src="${goalImg}" alt="${g.name}" onerror="this.parentElement.style.display='none'" loading="lazy"></div>`:''}
-      <div class="goal-card-header">
-        <div>
-          <div class="goal-name">${g.name}</div>
-          <div class="goal-meta">
-            <span class="goal-priority-dot" style="background:${pColors[g.priority]||'#888'}"></span>
-            <span class="goal-cat">${g.category}</span>
-            ${age!==null?`<span class="goal-age">${age}d ago</span>`:'<span class="goal-age">never</span>'}
-          </div>
-        </div>
-        <button class="btn-icon" onclick="openGoalModal('${g.id}')"><svg viewBox="0 0 24 24" width="16"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-      </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-      <div class="goal-milestone-now">${ms?.current||'No milestones set'}</div>
-      ${ms?.next?`<div class="goal-milestone-next">→ ${ms.next}</div>`:''}
-      ${g.notes?`<div class="goal-notes">${g.notes}</div>`:''}
-      <div class="goal-actions">
-        <button class="btn-xs" onclick="advanceGoal('${g.id}')">Advance ↑</button>
-        <button class="btn-xs" onclick="resetGoal('${g.id}')">Reset</button>
-      </div>
-    </div>`;
-  }).join(''):'<div class="empty-state">No goals. Tap + New goal.</div>';
+  const goalsList = document.getElementById('goals-list');
+  goalsList.innerHTML = '';
+  if (!goals.length) { goalsList.innerHTML='<div class="empty-state">No goals. Tap + New goal.</div>'; return; }
+
+  goals.forEach(g => {
+    const ms   = goalMilestoneInfo(g.id);
+    const last = History.getGoalLastPracticed(g.id);
+    const pct  = ms && ms.total > 1 ? Math.round((ms.idx / (ms.total-1)) * 100) : 0;
+    const age  = last ? Utils.daysSince(last) : null;
+    const govOv = DB.get('goal_overrides') || {};
+    const ov    = govOv[g.id] || {};
+    const goalImg = g.goalImage || ov.goalImage || '';
+    // Resolve image: YouTube → thumbnail, otherwise use as-is
+    const imgSrc = goalImg ? (Overrides.thumbFromYouTube(goalImg) || goalImg) : '';
+
+    const card = document.createElement('div');
+    card.className = 'card goal-card';
+
+    if (imgSrc) {
+      const imgWrap = document.createElement('div'); imgWrap.className='goal-img-wrap';
+      const img = document.createElement('img'); img.className='goal-img'; img.src=imgSrc; img.alt=g.name; img.loading='lazy';
+      img.onerror=()=>imgWrap.style.display='none';
+      imgWrap.appendChild(img); card.appendChild(imgWrap);
+    }
+
+    const header = document.createElement('div'); header.className='goal-card-header';
+    const headerLeft = document.createElement('div');
+    const nameLine = document.createElement('div'); nameLine.className='goal-name'; nameLine.textContent=g.name;
+    const metaLine = document.createElement('div'); metaLine.className='goal-meta';
+    const dot = document.createElement('span'); dot.className='goal-priority-dot'; dot.style.background=pColors[g.priority]||'#888';
+    const cat = document.createElement('span'); cat.className='goal-cat'; cat.textContent=g.category;
+    const ageEl = document.createElement('span'); ageEl.className='goal-age'; ageEl.textContent=age!==null?age+'d ago':'never';
+    metaLine.append(dot,cat,ageEl); headerLeft.append(nameLine,metaLine); header.appendChild(headerLeft);
+
+    const editBtn = document.createElement('button'); editBtn.className='btn-icon';
+    editBtn.innerHTML='<svg viewBox="0 0 24 24" width="16"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+    const gId = g.id; // capture for closure
+    editBtn.onclick = () => openGoalModal(gId);
+    header.appendChild(editBtn);
+    card.appendChild(header);
+
+    const bar = document.createElement('div'); bar.className='progress-bar';
+    const fill = document.createElement('div'); fill.className='progress-fill'; fill.style.width=pct+'%';
+    bar.appendChild(fill); card.appendChild(bar);
+
+    const msNow = document.createElement('div'); msNow.className='goal-milestone-now'; msNow.textContent=ms?.current||'No milestones set'; card.appendChild(msNow);
+    if (ms?.next) { const msNext=document.createElement('div'); msNext.className='goal-milestone-next'; msNext.textContent='→ '+ms.next; card.appendChild(msNext); }
+    if (g.notes) { const notesEl=document.createElement('div'); notesEl.className='goal-notes'; notesEl.textContent=g.notes; card.appendChild(notesEl); }
+
+    const actions = document.createElement('div'); actions.className='goal-actions';
+    const advBtn = document.createElement('button'); advBtn.className='btn-xs'; advBtn.textContent='Advance ↑';
+    advBtn.onclick = () => advanceGoal(gId);
+    const resetBtn = document.createElement('button'); resetBtn.className='btn-xs'; resetBtn.textContent='Reset';
+    resetBtn.onclick = () => resetGoal(gId);
+    actions.append(advBtn, resetBtn); card.appendChild(actions);
+
+    goalsList.appendChild(card);
+  });
 }
 
 function advanceGoal(id){const ms=Custom.getMilestones(id);const cur=App.profile.goalMilestones[id]||0;if(cur<ms.length-1){App.profile.goalMilestones[id]=cur+1;Profile.save(App.profile);}renderGoals();}
@@ -437,6 +463,10 @@ function resetGoal(id){if(!confirm('Reset progress?'))return;Custom.resetGoalPro
 let _gmFeedExercises=[];
 
 function openGoalModal(id){
+  // Guard against missing dependencies
+  if(typeof Custom==='undefined'||typeof DB==='undefined'||typeof Overrides==='undefined'){
+    alert('App not fully loaded. Please refresh the page.');return;
+  }
   const isEdit=!!id,allGoals=Custom.getAllGoals();
   const g=id?allGoals.find(x=>x.id===id):null;
   const milestones=id?Custom.getMilestones(id):[];
@@ -480,10 +510,16 @@ function openGoalModal(id){
       <div class="feed-dropdown" id="feed-dropdown" style="display:none"></div>
     </div>
     <div style="display:flex;gap:8px;margin-top:1.25rem">
-      <button class="btn-primary" style="flex:1" onclick="saveGoal('${id||''}')">Save</button>
-      ${isEdit&&g?.isCustom?`<button class="btn-ghost" style="color:var(--danger);flex:0 0 auto;padding:.75rem 1rem" onclick="deleteGoal('${id}')">Delete</button>`:''}
+      <button class="btn-primary" style="flex:1" id="gm-save-btn">Save</button>
+      ${isEdit&&g?.isCustom?`<button class="btn-ghost" style="color:var(--danger);flex:0 0 auto;padding:.75rem 1rem" id="gm-delete-btn">Delete</button>`:''}
     </div>`;
   renderFeedChips();
+  // Attach with closures
+  const goalId = id;
+  document.getElementById('gm-save-btn').onclick = () => saveGoal(goalId||'');
+  if (isEdit && g?.isCustom) {
+    document.getElementById('gm-delete-btn').onclick = () => deleteGoal(goalId);
+  }
   document.getElementById('goal-modal-backdrop').style.display='flex';
 }
 
@@ -580,58 +616,88 @@ function deleteSession(id){if(!confirm('Delete?'))return;History.deleteSession(i
 // ── SETTINGS ───────────────────────────────────────────────────
 function toggleSection(id){const body=document.getElementById(id);if(!body)return;body.classList.toggle('collapsed');const hdr=body.previousElementSibling;if(hdr)hdr.classList.toggle('open',!body.classList.contains('collapsed'));}
 
+// Registry maps index → exercise id, avoids inline onclick escaping issues
+const _exRegistry = {};
+let _exRegistryIdx = 0;
+
+function regEx(id) {
+  const k = 'ex_' + (_exRegistryIdx++);
+  _exRegistry[k] = id;
+  return k;
+}
+
 function renderSettings(){
   const s=App.profile.settings;
+  _exRegistryIdx = 0; // reset on each render
   document.getElementById('rest-heavy').value=s.defaultRestHeavy;document.getElementById('rest-acc').value=s.defaultRestAcc;document.getElementById('rest-skill').value=s.defaultRestSkill;document.getElementById('rest-prehab').value=s.defaultRestPrehab;document.getElementById('rest-power').value=s.defaultRestPower;
   document.getElementById('equipment-list').innerHTML=EQUIPMENT.map(e=>`<label class="setting-row toggle-row"><span>${e.name}</span><input type="checkbox" ${App.profile.equipment[e.id]?'checked':''} onchange="saveEquipment('${e.id}',this.checked)"></label>`).join('');
 
-  // Two-level collapsible library — Edit button on ALL exercises
   const allEx=Custom.getAllExercises();
   const cats=[...new Set(allEx.map(e=>e.category))];
-  document.getElementById('exercise-state-list').innerHTML=cats.map(cat=>{
+  const listEl=document.getElementById('exercise-state-list');
+  listEl.innerHTML='';
+
+  cats.forEach(cat=>{
     const catEx=allEx.filter(e=>e.category===cat);
     const subcats=[...new Set(catEx.map(e=>e.subcategory||'General'))];
     const catId='cat-'+slug(cat);
-    return`<div class="ex-cat-section">
-      <button class="ex-cat-header" onclick="toggleSection('${catId}')">
-        <span>${cat} <span class="ex-cat-count">${catEx.length}</span></span>
-        <svg class="chev" viewBox="0 0 24 24" width="14"><polyline points="6,9 12,15 18,9"/></svg>
-      </button>
-      <div class="collapsible-body collapsed" id="${catId}">
-        ${subcats.map(sub=>{
-          const subEx=catEx.filter(e=>(e.subcategory||'General')===sub);
-          const subId='sub-'+slug(cat+'-'+sub);
-          return`<div class="ex-subcat-section">
-            <button class="ex-subcat-header" onclick="toggleSection('${subId}')">
-              <span>${sub} <span class="ex-cat-count">${subEx.length}</span></span>
-              <svg class="chev" viewBox="0 0 24 24" width="12"><polyline points="6,9 12,15 18,9"/></svg>
-            </button>
-            <div class="collapsible-body collapsed" id="${subId}">
-              ${subEx.map(ex=>{
-                const ov=Overrides.get(ex.id);
-                const hasMedia=ov?.link||ov?.imageUrl||ex.link;
-                return`<div class="ex-state-row">
-                  <span class="ex-state-name">
-                    ${ex.name}
-                    ${ex.isCustom?'<span class="custom-tag">custom</span>':''}
-                    ${hasMedia?'<span class="media-tag">▶</span>':''}
-                  </span>
-                  <div style="display:flex;gap:6px;align-items:center">
-                    <button class="btn-xs" onclick="openExerciseModal('${ex.id}')">Edit</button>
-                    <select class="state-select" onchange="saveExerciseState('${ex.id}',this.value)">
-                      <option value="active"   ${Profile.getExerciseState(App.profile,ex.id)==='active'  ?'selected':''}>Active</option>
-                      <option value="notyet"   ${Profile.getExerciseState(App.profile,ex.id)==='notyet'  ?'selected':''}>Not yet</option>
-                      <option value="excluded" ${Profile.getExerciseState(App.profile,ex.id)==='excluded'?'selected':''}>Excluded</option>
-                    </select>
-                  </div>
-                </div>`;
-              }).join('')}
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
-  }).join('');
+    const catSection=document.createElement('div');catSection.className='ex-cat-section';
+
+    const catBtn=document.createElement('button');catBtn.className='ex-cat-header';
+    catBtn.onclick=()=>toggleSection(catId);
+    catBtn.innerHTML=`<span>${cat} <span class="ex-cat-count">${catEx.length}</span></span><svg class="chev" viewBox="0 0 24 24" width="14"><polyline points="6,9 12,15 18,9"/></svg>`;
+    catSection.appendChild(catBtn);
+
+    const catBody=document.createElement('div');catBody.className='collapsible-body collapsed';catBody.id=catId;
+
+    subcats.forEach(sub=>{
+      const subEx=catEx.filter(e=>(e.subcategory||'General')===sub);
+      const subId='sub-'+slug(cat+'-'+sub);
+      const subSection=document.createElement('div');subSection.className='ex-subcat-section';
+
+      const subBtn=document.createElement('button');subBtn.className='ex-subcat-header';
+      subBtn.onclick=()=>toggleSection(subId);
+      subBtn.innerHTML=`<span>${sub} <span class="ex-cat-count">${subEx.length}</span></span><svg class="chev" viewBox="0 0 24 24" width="12"><polyline points="6,9 12,15 18,9"/></svg>`;
+      subSection.appendChild(subBtn);
+
+      const subBody=document.createElement('div');subBody.className='collapsible-body collapsed';subBody.id=subId;
+
+      subEx.forEach(ex=>{
+        const ov=Overrides.get(ex.id);
+        const hasMedia=!!(ov?.link||ov?.imageUrl||ex.link);
+        const row=document.createElement('div');row.className='ex-state-row';
+
+        const nameSpan=document.createElement('span');nameSpan.className='ex-state-name';
+        nameSpan.textContent=ex.name;
+        if(ex.isCustom){const t=document.createElement('span');t.className='custom-tag';t.textContent='custom';nameSpan.appendChild(t);}
+        if(hasMedia){const t=document.createElement('span');t.className='media-tag';t.textContent='▶';nameSpan.appendChild(t);}
+        row.appendChild(nameSpan);
+
+        const controls=document.createElement('div');controls.style.cssText='display:flex;gap:6px;align-items:center';
+
+        const editBtn=document.createElement('button');editBtn.className='btn-xs';editBtn.textContent='Edit';
+        const exId=ex.id; // capture in closure — no escaping needed
+        editBtn.onclick=()=>openExerciseModal(exId);
+        controls.appendChild(editBtn);
+
+        const sel=document.createElement('select');sel.className='state-select';
+        ['active','notyet','excluded'].forEach(v=>{
+          const opt=document.createElement('option');opt.value=v;opt.textContent=v==='active'?'Active':v==='notyet'?'Not yet':'Excluded';
+          if(Profile.getExerciseState(App.profile,ex.id)===v)opt.selected=true;
+          sel.appendChild(opt);
+        });
+        sel.onchange=()=>saveExerciseState(ex.id,sel.value);
+        controls.appendChild(sel);
+
+        row.appendChild(controls);
+        subBody.appendChild(row);
+      });
+      subSection.appendChild(subBody);
+      catBody.appendChild(subSection);
+    });
+    catSection.appendChild(catBody);
+    listEl.appendChild(catSection);
+  });
 }
 
 function saveSetting(key,val){App.profile.settings[key]=val;Profile.save(App.profile);}
@@ -691,9 +757,14 @@ function openExerciseModal(id){
     <div class="field-label" style="margin-top:.75rem">Instructions <span class="opt">shown during session</span></div>
     <textarea class="text-input" id="em-instructions" rows="3" placeholder="Step by step…">${ex?.instructions||''}</textarea>
     <div style="display:flex;gap:8px;margin-top:1.25rem">
-      <button class="btn-primary" style="flex:1" onclick="saveExercise('${id||''}',${!!(base?.isCustom)})">Save</button>
-      ${!isNew&&base?.isCustom?`<button class="btn-ghost" style="color:var(--danger);flex:0 0 auto;padding:.75rem 1rem" onclick="deleteExercise('${id}')">Delete</button>`:''}
+      <button class="btn-primary" style="flex:1" id="em-save-btn">Save</button>
+      ${!isNew&&base?.isCustom?`<button class="btn-ghost" style="color:var(--danger);flex:0 0 auto;padding:.75rem 1rem" id="em-delete-btn">Delete</button>`:''}
     </div>`;
+  // Attach save/delete with closures — no ID escaping in onclick
+  document.getElementById('em-save-btn').onclick = () => saveExercise(id||'', !!(base?.isCustom));
+  if (!isNew && base?.isCustom) {
+    document.getElementById('em-delete-btn').onclick = () => deleteExercise(id);
+  }
   document.getElementById('ex-modal-backdrop').style.display='flex';
 }
 
