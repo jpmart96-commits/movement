@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 // PRACTICE BRAIN — CUSTOM DATA
-// custom.js — custom exercises and goals, stored in localStorage
+// custom.js — custom exercises, goals, milestone overrides
 // ─────────────────────────────────────────────────────────────
 
 'use strict';
@@ -9,40 +9,33 @@ const Custom = {
 
   // ── EXERCISES ───────────────────────────────────────────────
 
-  getExercises() {
-    return DB.get('custom_exercises') || [];
-  },
-
-  saveExercises(list) {
-    DB.set('custom_exercises', list);
-  },
+  getExercises() { return DB.get('custom_exercises') || []; },
+  saveExercises(list) { DB.set('custom_exercises', list); },
 
   addExercise(ex) {
     const list = this.getExercises();
     const id   = 'custom_ex_' + Date.now();
     const item = {
-      id,
+      id, isCustom: true,
       name:         ex.name,
-      category:     ex.category,
-      subcategory:  ex.subcategory || '',
-      difficulty:   ex.difficulty  || 3,
-      energy:       ex.energy      || 'Med',
-      segment:      ex.segment     || 'main',
-      goals:        ex.goals       || [],
-      equipment:    ex.equipment   || [],
-      frequency:    ex.frequency   || '',
-      restGroup:    ex.restGroup   || 'strength-acc',
-      logType:      ex.logType     || 'weight+reps',
-      notes:        ex.notes       || '',
-      link:         ex.link        || '',
-      imageUrl:     ex.imageUrl    || '',
-      instructions: ex.instructions|| '',
+      category:     ex.category     || 'General',
+      subcategory:  ex.subcategory  || '',
+      difficulty:   ex.difficulty   || 3,
+      energy:       ex.energy       || 'Med',
+      segment:      ex.segment      || 'main',
+      goals:        ex.goals        || [],
+      equipment:    ex.equipment    || [],
+      frequency:    ex.frequency    || '',
+      restGroup:    ex.restGroup    || 'strength-acc',
+      logType:      ex.logType      || 'weight+reps',
+      notes:        ex.notes        || '',
+      link:         ex.link         || '',
+      imageUrl:     ex.imageUrl     || '',
+      instructions: ex.instructions || '',
       defaultState: 'active',
-      isCustom:     true,
     };
     list.push(item);
     this.saveExercises(list);
-    // Also set state in profile
     if (App.profile) {
       App.profile.exerciseStates[id] = 'active';
       Profile.save(App.profile);
@@ -60,9 +53,7 @@ const Custom = {
   },
 
   deleteExercise(id) {
-    const list = this.getExercises().filter(e => e.id !== id);
-    this.saveExercises(list);
-    // Remove from profile states
+    this.saveExercises(this.getExercises().filter(e => e.id !== id));
     if (App.profile) {
       delete App.profile.exerciseStates[id];
       Profile.save(App.profile);
@@ -70,40 +61,41 @@ const Custom = {
   },
 
   getExercise(id) {
-    return this.getExercises().find(e => e.id === id) || null;
+    // Check custom first, then built-in with override applied
+    const custom = this.getExercises().find(e => e.id === id);
+    if (custom) return custom;
+    const base = LIBRARY.find(e => e.id === id);
+    if (base) return Overrides.resolve(base);
+    return null;
   },
 
-  // Returns full library: built-in + custom
+  // Full library: built-in (overrides applied) + custom
   getAllExercises() {
-    return [...LIBRARY, ...this.getExercises()];
+    const builtIn  = LIBRARY.map(ex => Overrides.resolve(ex));
+    const custom   = this.getExercises();
+    return [...builtIn, ...custom];
   },
 
   // ── GOALS ───────────────────────────────────────────────────
 
-  getGoals() {
-    return DB.get('custom_goals') || [];
-  },
-
-  saveGoals(list) {
-    DB.set('custom_goals', list);
-  },
+  getGoals() { return DB.get('custom_goals') || []; },
+  saveGoals(list) { DB.set('custom_goals', list); },
 
   addGoal(g) {
     const list = this.getGoals();
     const id   = 'custom_goal_' + Date.now();
     const item = {
-      id,
-      name:         g.name,
-      category:     g.category     || 'General',
-      priority:     g.priority     || 2,
-      milestones:   g.milestones   || [],
-      feedExercises:g.feedExercises|| [],
-      notes:        g.notes        || '',
-      isCustom:     true,
+      id, isCustom: true,
+      name:          g.name,
+      category:      g.category      || 'General',
+      priority:      g.priority      || 2,
+      milestones:    g.milestones    || [],
+      feedExercises: g.feedExercises || [],
+      notes:         g.notes         || '',
+      imageUrl:      g.imageUrl      || '',
     };
     list.push(item);
     this.saveGoals(list);
-    // Init milestone in profile
     if (App.profile) {
       App.profile.goalMilestones[id] = 0;
       Profile.save(App.profile);
@@ -121,8 +113,7 @@ const Custom = {
   },
 
   deleteGoal(id) {
-    const list = this.getGoals().filter(g => g.id !== id);
-    this.saveGoals(list);
+    this.saveGoals(this.getGoals().filter(g => g.id !== id));
     if (App.profile) {
       delete App.profile.goalMilestones[id];
       Profile.save(App.profile);
@@ -133,64 +124,39 @@ const Custom = {
     return this.getGoals().find(g => g.id === id) || null;
   },
 
-  // Returns full goal list: built-in + custom
+  // Full goal list: built-in (with overrides) + custom
   getAllGoals() {
-    return [...GOALS, ...this.getGoals()];
+    const gov     = DB.get('goal_overrides') || {};
+    const builtIn = GOALS.map(g => gov[g.id] ? { ...g, ...gov[g.id] } : g);
+    return [...builtIn, ...this.getGoals()];
   },
 
-  // Add a milestone to a goal (built-in or custom)
-  addMilestone(goalId, text, insertAfterIdx) {
-    // Custom goals stored in DB
-    const customList = this.getGoals();
-    const cg = customList.find(g => g.id === goalId);
-    if (cg) {
-      const ms = [...cg.milestones];
-      if (insertAfterIdx !== undefined) ms.splice(insertAfterIdx + 1, 0, text);
-      else ms.push(text);
-      cg.milestones = ms;
-      this.saveGoals(customList);
-      return;
-    }
-    // Built-in goals — store overrides in DB
-    const overrides = DB.get('goal_milestone_overrides') || {};
-    const base = GOALS.find(g => g.id === goalId);
-    if (!base) return;
-    const ms = overrides[goalId] ? [...overrides[goalId]] : [...base.milestones];
-    if (insertAfterIdx !== undefined) ms.splice(insertAfterIdx + 1, 0, text);
-    else ms.push(text);
-    overrides[goalId] = ms;
-    DB.set('goal_milestone_overrides', overrides);
-  },
+  // Get image for a goal: explicit imageUrl > auto-thumbnail from a feed exercise
+  getGoalImage(goalId) {
+    const allGoals = this.getAllGoals();
+    const g = allGoals.find(x => x.id === goalId);
+    if (!g) return null;
 
-  deleteMilestone(goalId, idx) {
-    const customList = this.getGoals();
-    const cg = customList.find(g => g.id === goalId);
-    if (cg) {
-      cg.milestones.splice(idx, 1);
-      this.saveGoals(customList);
-      // Adjust profile index
-      if (App.profile) {
-        const cur = App.profile.goalMilestones[goalId] || 0;
-        if (cur >= idx) App.profile.goalMilestones[goalId] = Math.max(0, cur - 1);
-        Profile.save(App.profile);
+    // Explicit goal image wins
+    if (g.imageUrl) return g.imageUrl;
+
+    // Try to get thumbnail from the highest-difficulty feed exercise that has a link
+    if (g.feedExercises?.length) {
+      const allEx = this.getAllExercises();
+      for (const eid of g.feedExercises) {
+        const ex = allEx.find(e => e.id === eid);
+        if (ex) {
+          const thumb = Overrides.getYouTubeThumbnail(ex.link);
+          if (thumb) return thumb;
+        }
       }
-      return;
     }
-    const overrides = DB.get('goal_milestone_overrides') || {};
-    const base = GOALS.find(g => g.id === goalId);
-    if (!base) return;
-    const ms = overrides[goalId] ? [...overrides[goalId]] : [...base.milestones];
-    ms.splice(idx, 1);
-    overrides[goalId] = ms;
-    DB.set('goal_milestone_overrides', overrides);
-    if (App.profile) {
-      const cur = App.profile.goalMilestones[goalId] || 0;
-      if (cur >= idx) App.profile.goalMilestones[goalId] = Math.max(0, cur - 1);
-      Profile.save(App.profile);
-    }
+
+    return null;
   },
 
-  // Get milestones for any goal (respects overrides for built-ins)
+  // ── MILESTONES ───────────────────────────────────────────────
+
   getMilestones(goalId) {
     const cg = this.getGoal(goalId);
     if (cg) return cg.milestones;
