@@ -463,15 +463,10 @@ function resetGoal(id){if(!confirm('Reset progress?'))return;Custom.resetGoalPro
 let _gmFeedExercises=[];
 
 function openGoalModal(id){
-  // Guard against missing dependencies
-  if(typeof Custom==='undefined'||typeof DB==='undefined'||typeof Overrides==='undefined'){
-    alert('App not fully loaded. Please refresh the page.');return;
-  }
-  const isEdit=!!id,allGoals=Custom.getAllGoals();
+  const isEdit=!!id, allGoals=Custom.getAllGoals();
   const g=id?allGoals.find(x=>x.id===id):null;
   const milestones=id?Custom.getMilestones(id):[];
   const isBuiltIn=isEdit&&!g?.isCustom;
-  // Resolve goal image from custom data or overrides
   const govOv=DB.get('goal_overrides')||{};
   const existingImg=g?.goalImage||(govOv[id]?.goalImage)||'';
 
@@ -480,49 +475,93 @@ function openGoalModal(id){
     return ex?{id:ex.id,name:ex.name,subcategory:ex.subcategory}:null;
   }).filter(Boolean);
 
-  document.getElementById('goal-modal-content').innerHTML=`
-    <div class="modal-title">${isEdit?(isBuiltIn?'Manage goal':'Edit goal'):'New goal'}</div>
-    ${isBuiltIn?'<div class="field-sub" style="margin-bottom:.75rem">Built-in goal — milestones, image and feed exercises are editable.</div>':''}
-    <div class="field-label">Name *</div>
-    <input type="text" class="text-input" id="gm-name" value="${g?.name||''}" ${isBuiltIn?'disabled':''} placeholder="e.g. Pistol squat">
-    <div class="two-col" style="margin-top:.75rem">
-      <div><div class="field-label">Category</div><input type="text" class="text-input" id="gm-cat" value="${g?.category||''}" placeholder="Body Movement"></div>
-      <div><div class="field-label">Priority</div>
-        <select class="text-input" id="gm-priority">
-          <option value="1" ${g?.priority===1?'selected':''}>1 — High</option>
-          <option value="2" ${(!g||g?.priority===2)?'selected':''}>2 — Medium</option>
-          <option value="3" ${g?.priority===3?'selected':''}>3 — Low</option>
-        </select>
-      </div>
-    </div>
-    <div class="field-label" style="margin-top:.75rem">Goal image <span class="opt">paste YouTube URL or image URL</span></div>
-    <input type="text" class="text-input" id="gm-img" value="${existingImg}" placeholder="https://youtube.com/... or https://...image.jpg" oninput="previewGoalImg(this.value)">
-    <div id="gm-img-preview" style="margin-top:.5rem">${existingImg?`<img src="${Overrides.thumbFromYouTube(existingImg)||existingImg}" class="goal-img-preview" onerror="this.style.display='none'" alt="preview">`:''}</div>
-    <div class="field-label" style="margin-top:.75rem">Notes</div>
-    <textarea class="text-input" id="gm-notes" rows="2" placeholder="Coaching notes…">${g?.notes||''}</textarea>
-    <div class="field-label" style="margin-top:.75rem">Milestones <span class="opt">in order</span></div>
-    <div id="gm-milestones">${milestones.map((ms,i)=>msRow(ms,i)).join('')}</div>
-    <button class="btn-ghost" style="margin-top:.375rem;padding:.5rem" onclick="addMsRow()">+ Add milestone</button>
-    <div class="field-label" style="margin-top:.75rem">Feed exercises <span class="opt">type to search</span></div>
-    <div class="feed-chips" id="feed-chips"></div>
-    <div style="position:relative">
-      <input type="text" class="text-input" id="feed-search" placeholder="Search exercises…" oninput="onFeedSearch(this.value)" autocomplete="off">
-      <div class="feed-dropdown" id="feed-dropdown" style="display:none"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:1.25rem">
-      <button class="btn-primary" style="flex:1" id="gm-save-btn">Save</button>
-      ${isEdit&&g?.isCustom?`<button class="btn-ghost" style="color:var(--danger);flex:0 0 auto;padding:.75rem 1rem" id="gm-delete-btn">Delete</button>`:''}
-    </div>`;
-  renderFeedChips();
-  // Attach with closures
-  const goalId = id;
-  document.getElementById('gm-save-btn').onclick = () => saveGoal(goalId||'');
-  if (isEdit && g?.isCustom) {
-    document.getElementById('gm-delete-btn').onclick = () => deleteGoal(goalId);
+  const content=document.getElementById('goal-modal-content');
+  content.innerHTML='';
+
+  // Title
+  const title=document.createElement('div');title.className='modal-title';
+  title.textContent=isEdit?(isBuiltIn?'Manage goal':'Edit goal'):'New goal';
+  content.appendChild(title);
+
+  if(isBuiltIn){
+    const sub=document.createElement('div');sub.className='field-sub';sub.style.marginBottom='.75rem';
+    sub.textContent='Built-in goal — milestones, image and feed exercises are editable.';
+    content.appendChild(sub);
   }
+
+  // Name
+  const nl=document.createElement('div');nl.className='field-label';nl.textContent='Name *';content.appendChild(nl);
+  const ni=document.createElement('input');ni.type='text';ni.className='text-input';ni.id='gm-name';
+  ni.value=g?.name||'';ni.placeholder='e.g. Pistol squat';if(isBuiltIn)ni.disabled=true;
+  content.appendChild(ni);
+
+  // Category + Priority
+  const row1=document.createElement('div');row1.className='two-col';row1.style.marginTop='.75rem';
+  const cw=document.createElement('div');
+  const cl=document.createElement('div');cl.className='field-label';cl.textContent='Category';cw.appendChild(cl);
+  const ci=document.createElement('input');ci.type='text';ci.className='text-input';ci.id='gm-cat';
+  ci.value=g?.category||'';ci.placeholder='Body Movement';cw.appendChild(ci);
+  const pw=document.createElement('div');
+  const pl=document.createElement('div');pl.className='field-label';pl.textContent='Priority';pw.appendChild(pl);
+  const ps=document.createElement('select');ps.className='text-input';ps.id='gm-priority';
+  [{v:'1',t:'1 — High'},{v:'2',t:'2 — Medium'},{v:'3',t:'3 — Low'}].forEach(o=>{
+    const opt=document.createElement('option');opt.value=o.v;opt.textContent=o.t;
+    if(String(g?.priority||2)===o.v)opt.selected=true;ps.appendChild(opt);
+  });
+  pw.appendChild(ps);row1.append(cw,pw);content.appendChild(row1);
+
+  // Goal image
+  const il=document.createElement('div');il.className='field-label';il.style.marginTop='.75rem';
+  il.innerHTML='Goal image <span class="opt">YouTube URL or image URL</span>';content.appendChild(il);
+  const ii=document.createElement('input');ii.type='text';ii.className='text-input';ii.id='gm-img';
+  ii.value=existingImg;ii.placeholder='https://youtube.com/... or image URL';
+  const ip=document.createElement('div');ip.id='gm-img-preview';ip.style.marginTop='.5rem';
+  if(existingImg){
+    const src=Overrides.thumbFromYouTube(existingImg)||existingImg;
+    const pi=document.createElement('img');pi.className='goal-img-preview';pi.src=src;pi.onerror=()=>pi.style.display='none';
+    ip.appendChild(pi);
+  }
+  ii.oninput=()=>previewGoalImg(ii.value);
+  content.appendChild(ii);content.appendChild(ip);
+
+  // Notes
+  const ntl=document.createElement('div');ntl.className='field-label';ntl.style.marginTop='.75rem';ntl.textContent='Notes';content.appendChild(ntl);
+  const nta=document.createElement('textarea');nta.className='text-input';nta.id='gm-notes';nta.rows=2;nta.placeholder='Coaching notes…';
+  nta.value=g?.notes||'';content.appendChild(nta);
+
+  // Milestones
+  const msl=document.createElement('div');msl.className='field-label';msl.style.marginTop='.75rem';
+  msl.innerHTML='Milestones <span class="opt">in order</span>';content.appendChild(msl);
+  const msc=document.createElement('div');msc.id='gm-milestones';
+  milestones.forEach((ms,i)=>msc.insertAdjacentHTML('beforeend',msRow(ms,i)));
+  content.appendChild(msc);
+  const amb=document.createElement('button');amb.className='btn-ghost';amb.style.cssText='margin-top:.375rem;padding:.5rem';
+  amb.textContent='+ Add milestone';amb.onclick=addMsRow;content.appendChild(amb);
+
+  // Feed exercises search
+  const fel=document.createElement('div');fel.className='field-label';fel.style.marginTop='.75rem';
+  fel.innerHTML='Feed exercises <span class="opt">type to search</span>';content.appendChild(fel);
+  const fc=document.createElement('div');fc.className='feed-chips';fc.id='feed-chips';content.appendChild(fc);
+  const fw=document.createElement('div');fw.style.position='relative';
+  const fs=document.createElement('input');fs.type='text';fs.className='text-input';fs.id='feed-search';
+  fs.placeholder='Search exercises…';fs.autocomplete='off';fs.oninput=()=>onFeedSearch(fs.value);
+  const fd=document.createElement('div');fd.className='feed-dropdown';fd.id='feed-dropdown';fd.style.display='none';
+  fw.append(fs,fd);content.appendChild(fw);
+
+  // Buttons
+  const br=document.createElement('div');br.style.cssText='display:flex;gap:8px;margin-top:1.25rem';
+  const sb=document.createElement('button');sb.className='btn-primary';sb.style.flex='1';sb.textContent='Save';
+  const goalId=id;sb.onclick=()=>saveGoal(goalId||'');br.appendChild(sb);
+  if(isEdit&&g?.isCustom){
+    const db=document.createElement('button');db.className='btn-ghost';
+    db.style.cssText='color:var(--danger);flex:0 0 auto;padding:.75rem 1rem';db.textContent='Delete';
+    db.onclick=()=>deleteGoal(goalId);br.appendChild(db);
+  }
+  content.appendChild(br);
+
+  renderFeedChips();
   document.getElementById('goal-modal-backdrop').style.display='flex';
 }
-
 function previewGoalImg(val){
   const preview=document.getElementById('gm-img-preview');if(!preview)return;
   const src=Overrides.thumbFromYouTube(val)||val;
@@ -707,67 +746,100 @@ function importData(input){const f=input.files[0];if(!f)return;Utils.importFromF
 
 // ── EXERCISE MODAL (built-in + custom) ─────────────────────────
 function openExerciseModal(id){
-  // Resolve: could be built-in (with overrides) or custom
   const allEx=Custom.getAllExercises();
   const base=allEx.find(e=>e.id===id);
-  // Merge override if built-in
   const ex=base?.isCustom?base:(base?Overrides.apply(base):null);
   const isNew=!id;
   const cats=[...new Set(LIBRARY.map(e=>e.category)),'Other'];
   const segs=['lightBlock','objManip','meditate','warmup','skill','main','cooldown'];
   const logTypes=['weight+reps','hold','reps','cardio','none'];
   const restGroups=['strength-heavy','strength-acc','skill','prehab','power','flexibility','somatic','meditation','cardio'];
-
-  // Auto-generate thumb preview if YouTube URL present
   const currentThumb=ex?.imageUrl||Overrides.thumbFromYouTube(ex?.link)||'';
 
-  document.getElementById('ex-modal-content').innerHTML=`
-    <div class="modal-title">${isNew?'New exercise':ex?.name||'Edit exercise'}</div>
-    <div class="field-label">Name *</div>
-    <input type="text" class="text-input" id="em-name" value="${ex?.name||''}" ${!isNew&&!base?.isCustom?'disabled':''} placeholder="Exercise name">
-    <div class="two-col" style="margin-top:.75rem">
-      <div><div class="field-label">Category</div>
-        <select class="text-input" id="em-cat" ${!isNew&&!base?.isCustom?'disabled':''}>
-          ${cats.map(c=>`<option ${ex?.category===c?'selected':''}>${c}</option>`).join('')}
-        </select>
-      </div>
-      <div><div class="field-label">Subcategory</div>
-        <input type="text" class="text-input" id="em-subcat" value="${ex?.subcategory||''}" placeholder="e.g. Handstand">
-      </div>
-    </div>
-    <div class="two-col" style="margin-top:.75rem">
-      <div><div class="field-label">Log type</div>
-        <select class="text-input" id="em-logtype">
-          ${logTypes.map(l=>`<option ${ex?.logType===l?'selected':''}>${l}</option>`).join('')}
-        </select>
-      </div>
-      <div><div class="field-label">Rest group</div>
-        <select class="text-input" id="em-restgroup">
-          ${restGroups.map(r=>`<option ${ex?.restGroup===r?'selected':''}>${r}</option>`).join('')}
-        </select>
-      </div>
-    </div>
-    <div class="field-label" style="margin-top:.75rem">Video link <span class="opt">YouTube URL — thumbnail auto-generated</span></div>
-    <input type="url" class="text-input" id="em-link" value="${ex?.link||''}" placeholder="https://youtube.com/watch?v=..." oninput="previewExThumb(this.value)">
-    <div id="em-thumb-preview" style="margin:.5rem 0">${currentThumb?`<div class="ex-thumb-wrap-sm"><img src="${currentThumb}" class="ex-thumb-sm" onerror="this.parentElement.style.display='none'" alt="thumbnail"></div>`:''}</div>
-    <div class="field-label">Custom image URL <span class="opt">overrides YouTube thumbnail</span></div>
-    <input type="url" class="text-input" id="em-img" value="${ex?.imageUrl||''}" placeholder="https://...image.jpg">
-    <div class="field-label" style="margin-top:.75rem">Notes / cues</div>
-    <textarea class="text-input" id="em-notes" rows="2" placeholder="e.g. Keep lower back flat">${ex?.notes||''}</textarea>
-    <div class="field-label" style="margin-top:.75rem">Instructions <span class="opt">shown during session</span></div>
-    <textarea class="text-input" id="em-instructions" rows="3" placeholder="Step by step…">${ex?.instructions||''}</textarea>
-    <div style="display:flex;gap:8px;margin-top:1.25rem">
-      <button class="btn-primary" style="flex:1" id="em-save-btn">Save</button>
-      ${!isNew&&base?.isCustom?`<button class="btn-ghost" style="color:var(--danger);flex:0 0 auto;padding:.75rem 1rem" id="em-delete-btn">Delete</button>`:''}
-    </div>`;
-  // Attach save/delete with closures — no ID escaping in onclick
-  document.getElementById('em-save-btn').onclick = () => saveExercise(id||'', !!(base?.isCustom));
-  if (!isNew && base?.isCustom) {
-    document.getElementById('em-delete-btn').onclick = () => deleteExercise(id);
+  const content=document.getElementById('ex-modal-content');
+  content.innerHTML='';
+
+  // Title
+  const title=document.createElement('div');title.className='modal-title';
+  title.textContent=isNew?'New exercise':(ex?.name||'Edit exercise');
+  content.appendChild(title);
+
+  // Name
+  const nl=document.createElement('div');nl.className='field-label';nl.textContent='Name *';content.appendChild(nl);
+  const ni=document.createElement('input');ni.type='text';ni.className='text-input';ni.id='em-name';
+  ni.value=ex?.name||'';ni.placeholder='Exercise name';
+  if(!isNew&&!base?.isCustom)ni.disabled=true;
+  content.appendChild(ni);
+
+  // Category + Subcategory
+  const r1=document.createElement('div');r1.className='two-col';r1.style.marginTop='.75rem';
+  const cw=document.createElement('div');
+  const cl=document.createElement('div');cl.className='field-label';cl.textContent='Category';cw.appendChild(cl);
+  const cs=document.createElement('select');cs.className='text-input';cs.id='em-cat';
+  if(!isNew&&!base?.isCustom)cs.disabled=true;
+  cats.forEach(c=>{const o=document.createElement('option');o.textContent=c;if(ex?.category===c)o.selected=true;cs.appendChild(o);});
+  cw.appendChild(cs);
+  const sw=document.createElement('div');
+  const sl=document.createElement('div');sl.className='field-label';sl.textContent='Subcategory';sw.appendChild(sl);
+  const si=document.createElement('input');si.type='text';si.className='text-input';si.id='em-subcat';
+  si.value=ex?.subcategory||'';si.placeholder='e.g. Handstand';sw.appendChild(si);
+  r1.append(cw,sw);content.appendChild(r1);
+
+  // Log type + Rest group
+  const r2=document.createElement('div');r2.className='two-col';r2.style.marginTop='.75rem';
+  const lw=document.createElement('div');
+  const ll=document.createElement('div');ll.className='field-label';ll.textContent='Log type';lw.appendChild(ll);
+  const ls=document.createElement('select');ls.className='text-input';ls.id='em-logtype';
+  logTypes.forEach(l=>{const o=document.createElement('option');o.textContent=l;if(ex?.logType===l)o.selected=true;ls.appendChild(o);});
+  lw.appendChild(ls);
+  const rw=document.createElement('div');
+  const rl=document.createElement('div');rl.className='field-label';rl.textContent='Rest group';rw.appendChild(rl);
+  const rs=document.createElement('select');rs.className='text-input';rs.id='em-restgroup';
+  restGroups.forEach(r=>{const o=document.createElement('option');o.textContent=r;if(ex?.restGroup===r)o.selected=true;rs.appendChild(o);});
+  rw.appendChild(rs);
+  r2.append(lw,rw);content.appendChild(r2);
+
+  // Video link
+  const vl=document.createElement('div');vl.className='field-label';vl.style.marginTop='.75rem';
+  vl.innerHTML='Video link <span class="opt">YouTube — thumbnail auto-generated</span>';content.appendChild(vl);
+  const vi=document.createElement('input');vi.type='url';vi.className='text-input';vi.id='em-link';
+  vi.value=ex?.link||'';vi.placeholder='https://youtube.com/watch?v=...';
+  const tp=document.createElement('div');tp.id='em-thumb-preview';tp.style.margin='.5rem 0';
+  if(currentThumb){const tw=document.createElement('div');tw.className='ex-thumb-wrap-sm';const ti=document.createElement('img');ti.className='ex-thumb-sm';ti.src=currentThumb;ti.onerror=()=>tw.style.display='none';tw.appendChild(ti);tp.appendChild(tw);}
+  vi.oninput=()=>previewExThumb(vi.value);
+  content.appendChild(vi);content.appendChild(tp);
+
+  // Image URL
+  const iml=document.createElement('div');iml.className='field-label';
+  iml.innerHTML='Custom image URL <span class="opt">overrides thumbnail</span>';content.appendChild(iml);
+  const imi=document.createElement('input');imi.type='url';imi.className='text-input';imi.id='em-img';
+  imi.value=ex?.imageUrl||'';imi.placeholder='https://...image.jpg';content.appendChild(imi);
+
+  // Notes
+  const ntl=document.createElement('div');ntl.className='field-label';ntl.style.marginTop='.75rem';ntl.textContent='Notes / cues';content.appendChild(ntl);
+  const nta=document.createElement('textarea');nta.className='text-input';nta.id='em-notes';nta.rows=2;nta.placeholder='e.g. Keep lower back flat';
+  nta.value=ex?.notes||'';content.appendChild(nta);
+
+  // Instructions
+  const inl=document.createElement('div');inl.className='field-label';inl.style.marginTop='.75rem';
+  inl.innerHTML='Instructions <span class="opt">shown during session</span>';content.appendChild(inl);
+  const ina=document.createElement('textarea');ina.className='text-input';ina.id='em-instructions';ina.rows=3;ina.placeholder='Step by step…';
+  ina.value=ex?.instructions||'';content.appendChild(ina);
+
+  // Buttons
+  const br=document.createElement('div');br.style.cssText='display:flex;gap:8px;margin-top:1.25rem';
+  const sb=document.createElement('button');sb.className='btn-primary';sb.style.flex='1';sb.textContent='Save';
+  const exId=id;const isCustom=!!(base?.isCustom);
+  sb.onclick=()=>saveExercise(exId||'',isCustom);br.appendChild(sb);
+  if(!isNew&&base?.isCustom){
+    const db=document.createElement('button');db.className='btn-ghost';
+    db.style.cssText='color:var(--danger);flex:0 0 auto;padding:.75rem 1rem';db.textContent='Delete';
+    db.onclick=()=>deleteExercise(exId);br.appendChild(db);
   }
+  content.appendChild(br);
+
   document.getElementById('ex-modal-backdrop').style.display='flex';
 }
-
 function previewExThumb(url){
   const preview=document.getElementById('em-thumb-preview');if(!preview)return;
   const thumb=Overrides.thumbFromYouTube(url);
