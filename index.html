@@ -660,8 +660,8 @@ function renderGoals() {
     const imgSrc   = rawImage || Overrides.thumbFromYouTube(rawLink) || '';
     const vidLink  = rawLink;
     return `<div class="card goal-card">
-      <div class="goal-card-header">
-        ${imgSrc ? `<div class="goal-img-wrap">${vidLink ? `<a href="${vidLink}" target="_blank" rel="noopener">` : ''}<img class="goal-img" src="${imgSrc}" alt="${g.name}" loading="lazy" onerror="this.parentElement.style.display='none'">${vidLink ? `</a>` : ''}</div>` : ''}
+      <div class="goal-card-header" onclick="openGoalRing('${g.id}')" style="cursor:pointer">
+        ${imgSrc ? `<div class="goal-img-wrap">${vidLink ? `<a href="${vidLink}" target="_blank" rel="noopener" onclick="event.stopPropagation()">` : ''}<img class="goal-img" src="${imgSrc}" alt="${g.name}" loading="lazy" onerror="this.parentElement.style.display='none'">${vidLink ? `</a>` : ''}</div>` : ''}
         <div style="flex:1;min-width:0">
           <div class="goal-name">${g.name}</div>
           <div class="goal-meta">
@@ -670,7 +670,7 @@ function renderGoals() {
             ${age!==null?`<span class="goal-age">${age}d ago</span>`:'<span class="goal-age">never</span>'}
           </div>
         </div>
-        <button class="btn-icon" onclick="openGoalModal('${g.id}')" aria-label="Edit goal">
+        <button class="btn-icon" onclick="event.stopPropagation();openGoalModal('${g.id}')" aria-label="Edit goal">
           <svg viewBox="0 0 24 24" width="16"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
       </div>
@@ -684,6 +684,83 @@ function renderGoals() {
       </div>
     </div>`;
   }).join('') : '<div class="empty-state">No goals yet. Tap + New goal to add one.</div>';
+}
+
+function openGoalRing(goalId) {
+  const allGoals = Custom.getAllGoals();
+  const g = allGoals.find(x => x.id === goalId);
+  if (!g) return;
+
+  const feedIds = g.feedExercises || [];
+  if (!feedIds.length) {
+    // No feed exercises — still open but show empty state
+  }
+
+  document.getElementById('goal-ring-title').textContent = g.name;
+
+  const grid = document.getElementById('goal-ring-grid');
+  grid.innerHTML = '';
+
+  if (!feedIds.length) {
+    grid.innerHTML = '<div class="empty-state" style="padding:2rem">No exercises linked to this goal yet.<br>Tap Edit to add some.</div>';
+    document.getElementById('goal-ring-backdrop').style.display = 'flex';
+    return;
+  }
+
+  const stateColors = { active: '#1D9E75', notyet: '#9A9AB0', excluded: '#C0392B' };
+
+  feedIds.forEach(exId => {
+    const allEx  = Custom.getAllExercises();
+    const base   = allEx.find(e => e.id === exId);
+    if (!base) return;
+    const ex     = base.isCustom ? base : Overrides.apply(base);
+    const state  = Profile.getExerciseState(App.profile, exId);
+    const thumb  = ex.imageUrl || Overrides.thumbFromYouTube(ex.link) || '';
+    const link   = ex.link || '';
+    const ringColor = stateColors[state] || stateColors.notyet;
+
+    const item = document.createElement('div');
+    item.className = 'ring-item';
+
+    // Circle
+    const circle = document.createElement('div');
+    circle.className = 'ring-circle';
+    circle.style.borderColor = ringColor;
+
+    if (thumb) {
+      const img = document.createElement('img');
+      img.src = thumb; img.alt = ex.name;
+      img.onerror = () => { img.style.display='none'; circle.classList.add('ring-circle-empty'); };
+      circle.appendChild(img);
+    } else {
+      circle.classList.add('ring-circle-empty');
+      // Initials fallback
+      const initials = ex.name.split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const ini = document.createElement('span'); ini.className = 'ring-initials'; ini.textContent = initials;
+      circle.appendChild(ini);
+    }
+
+    // Make circle tappable if video link exists
+    if (link) {
+      circle.style.cursor = 'pointer';
+      circle.onclick = () => window.open(link, '_blank');
+    }
+
+    // Name label
+    const label = document.createElement('div');
+    label.className = 'ring-label';
+    label.textContent = ex.name;
+
+    item.appendChild(circle);
+    item.appendChild(label);
+    grid.appendChild(item);
+  });
+
+  document.getElementById('goal-ring-backdrop').style.display = 'flex';
+}
+
+function closeGoalRing() {
+  document.getElementById('goal-ring-backdrop').style.display = 'none';
 }
 
 function advanceGoal(id) {
@@ -1262,6 +1339,17 @@ setInterval(() => {
 </script>
 
 </div><!-- end app-root -->
+
+<!-- Goal ring modal -->
+<div class="modal-backdrop" id="goal-ring-backdrop" style="display:none" onclick="closeGoalRing()">
+  <div class="goal-ring-modal" onclick="event.stopPropagation()">
+    <div class="goal-ring-header">
+      <div class="goal-ring-title" id="goal-ring-title"></div>
+      <button class="modal-close" onclick="closeGoalRing()">✕</button>
+    </div>
+    <div class="goal-ring-grid" id="goal-ring-grid"></div>
+  </div>
+</div>
 
 <!-- Exercise edit modal -->
 <div class="modal-backdrop" id="ex-edit-backdrop" style="display:none" onclick="closeExEdit()">
