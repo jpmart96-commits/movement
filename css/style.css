@@ -704,3 +704,79 @@ textarea.text-input { resize: vertical; min-height: 72px; }
   color: var(--text);
   font-size: 12px;
 }
+
+/* ── COLLAPSIBLE SECTIONS ──────────────────────────────────── */
+.collapsible-section { margin-bottom: .5rem; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--bg2); }
+.collapsible-header {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  padding: .875rem 1rem; background: none; border: none; font-size: 14px; font-weight: 500;
+  color: var(--text); cursor: pointer; text-align: left;
+}
+.collapsible-header.open .chev { transform: rotate(180deg); }
+.collapsible-body { padding: .625rem; }
+.collapsible-body.collapsed { display: none; }
+.chev { stroke: var(--text3); fill: none; stroke-width: 2; stroke-linecap: round; transition: transform .2s; }
+
+/* ── EXERCISE LIBRARY TWO-LEVEL ───────────────────────────── */
+.ex-cat-section { margin-bottom: .375rem; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.ex-cat-header { width:100%; display:flex; justify-content:space-between; align-items:center; padding:.625rem .875rem; background:var(--bg3); border:none; font-size:13px; font-weight:600; color:var(--text); cursor:pointer; }
+.ex-cat-count  { font-size:11px; color:var(--text3); font-weight:400; margin-left:4px; }
+.ex-subcat-section { border-top:1px solid var(--border); }
+.ex-subcat-header  { width:100%; display:flex; justify-content:space-between; align-items:center; padding:.5rem .875rem .5rem 1.25rem; background:none; border:none; font-size:12px; font-weight:500; color:var(--text2); cursor:pointer; }
+.ex-state-row { display:flex; align-items:center; justify-content:space-between; padding:.4rem 1rem .4rem 1.5rem; border-top:1px solid var(--border); font-size:13px; }
+.ex-state-name { flex:1; padding-right:.5rem; }
+.custom-tag { font-size:10px; background:color-mix(in srgb,var(--accent) 15%,var(--bg)); color:var(--accent); padding:1px 5px; border-radius:8px; }
+.state-select { padding:.3rem .5rem; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg3); color:var(--text); font-size:12px; }
+
+/* ── CALENDAR ─────────────────────────────────────────────── */
+.cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; }
+.cal-month { font-size:15px; font-weight:500; }
+.cal-arrow { background:none; border:1px solid var(--border); border-radius:var(--radius-sm); padding:.25rem .625rem; font-size:18px; cursor:pointer; color:var(--text2); }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.cal-day-name { text-align:center; font-size:11px; color:var(--text3); padding:.25rem 0; font-weight:500; }
+.cal-cell { min-height:40px; border-radius:6px; padding:4px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; transition:background .1s; }
+.cal-cell:hover { background:var(--bg3); }
+.cal-cell.empty { cursor:default; }
+.cal-cell.cal-today .cal-num { background:var(--accent); color:#fff; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; }
+.cal-num { font-size:12px; color:var(--text2); }
+.cal-dots { display:flex; gap:2px; flex-wrap:wrap; justify-content:center; }
+.cal-dot { width:6px; height:6px; border-radius:50%; }
+.cal-legend { display:flex; flex-wrap:wrap; gap:8px; margin-top:.75rem; }
+.cal-legend-item { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--text2); }
+.cal-day-detail { margin-top:.5rem; }
+.cal-detail-date { font-size:14px; font-weight:500; margin-bottom:.625rem; }
+.cal-session-item { display:flex; align-items:center; gap:8px; padding:.375rem 0; border-top:1px solid var(--border); cursor:pointer; font-size:13px; }
+.cal-session-item:first-child { border-top:none; }
+
+/* ── GOAL MANAGEMENT ──────────────────────────────────────── */
+.btn-add-inline { float:right; font-size:12px; padding:.25rem .625rem; background:var(--accent); color:#fff; border:none; border-radius:12px; cursor:pointer; }
+.ms-row { display:flex; align-items:center; gap:6px; margin-bottom:.375rem; }
+.ms-num { font-size:11px; color:var(--text3); min-width:16px; }
+.ms-input { flex:1; }
+.btn-xs.danger { color:var(--danger); border-color:var(--danger); }
+.modal-title { font-size:17px; font-weight:600; margin-bottom:1rem; }
+.ex-chip {
+  font-size:12px; padding:4px 10px; border-radius:12px;
+  border:1px solid var(--border); background:var(--bg3); color:var(--text2);
+  cursor:pointer; transition:all .12s;
+}
+.ex-chip.checked { background:color-mix(in srgb,var(--accent) 15%,var(--bg)); color:var(--accent); border-color:var(--accent); }
+
+/* ── FAB (add exercise button) ────────────────────────────── */
+.fab {
+  position: fixed; bottom: calc(var(--nav-h) + var(--safe-b) + 1rem); right: 1rem;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent); color: #fff; border: none;
+  font-size: 26px; cursor: pointer; z-index: 50;
+  display: none; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+}
+.fab:active { transform: scale(.93); }
+
+/* ── MODAL TALL ───────────────────────────────────────────── */
+.modal-tall { max-height: 92dvh; }
+
+/* ── EXERCISE EXTRAS ──────────────────────────────────────── */
+.ex-extra { padding: .375rem .75rem; }
+.ex-image { width:100%; border-radius:var(--radius-sm); max-height:180px; object-fit:cover; margin-bottom:.375rem; }
+.ex-instructions { font-size:12px; color:var(--text2); line-height:1.5; white-space:pre-wrap; }
