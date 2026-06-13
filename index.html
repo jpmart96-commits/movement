@@ -282,6 +282,7 @@
 <script src="data/library.js"></script>
 <script src="js/app.js"></script>
 <script src="js/custom.js"></script>
+<script src="js/overrides.js"></script>
 <script>
 
 // ─────────────────────────────────────────────────────────────
@@ -949,17 +950,25 @@ function renderSettings() {
               <svg class="chev" viewBox="0 0 24 24" width="12"><polyline points="6,9 12,15 18,9"/></svg>
             </button>
             <div class="collapsible-body collapsed" id="${subId}">
-              ${subEx.map(ex => `<div class="ex-state-row">
-                <span class="ex-state-name">${ex.name}${ex.isCustom?' <span class="custom-tag">custom</span>':''}</span>
-                <div style="display:flex;gap:6px;align-items:center">
-                  ${ex.isCustom?`<button class="btn-xs" onclick="openExerciseModal('${ex.id}')">Edit</button>`:''}
-                  <select class="state-select" onchange="saveExerciseState('${ex.id}',this.value)">
-                    <option value="active"   ${Profile.getExerciseState(App.profile,ex.id)==='active'  ?'selected':''}>Active</option>
-                    <option value="notyet"   ${Profile.getExerciseState(App.profile,ex.id)==='notyet'  ?'selected':''}>Not yet</option>
-                    <option value="excluded" ${Profile.getExerciseState(App.profile,ex.id)==='excluded'?'selected':''}>Excluded</option>
-                  </select>
-                </div>
-              </div>`).join('')}
+              ${subEx.map(ex => {
+                const ov = Overrides.get(ex.id);
+                const hasMedia = !!(ov?.link || ov?.imageUrl || ex.link);
+                return `<div class="ex-state-row">
+                  <span class="ex-state-name">
+                    ${ex.name}
+                    ${ex.isCustom ? '<span class="custom-tag">custom</span>' : ''}
+                    ${hasMedia ? '<span class="media-tag">▶</span>' : ''}
+                  </span>
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <button class="btn-xs" onclick="openExEdit('${ex.id}')">Edit</button>
+                    <select class="state-select" onchange="saveExerciseState('${ex.id}',this.value)">
+                      <option value="active"   ${Profile.getExerciseState(App.profile,ex.id)==='active'  ?'selected':''}>Active</option>
+                      <option value="notyet"   ${Profile.getExerciseState(App.profile,ex.id)==='notyet'  ?'selected':''}>Not yet</option>
+                      <option value="excluded" ${Profile.getExerciseState(App.profile,ex.id)==='excluded'?'selected':''}>Excluded</option>
+                    </select>
+                  </div>
+                </div>`;
+              }).join('')}
             </div>
           </div>`;
         }).join('')}
@@ -972,6 +981,144 @@ function saveSetting(key,val){ App.profile.settings[key]=val; Profile.save(App.p
 function saveEquipment(id,val){ App.profile.equipment[id]=val; Profile.save(App.profile); }
 function saveExerciseState(id,val){ Profile.setExerciseState(App.profile,id,val); }
 function importData(input){ const f=input.files[0]; if(!f)return; Utils.importFromFile(f).then(()=>{ App.profile=Profile.load(); alert('Imported.'); }).catch(()=>alert('Import failed.')); }
+
+// ── EXERCISE EDIT MODAL ────────────────────────────────────────
+let _exEditId = null;
+
+function openExEdit(id) {
+  _exEditId = id;
+  const allEx = Custom.getAllExercises();
+  const base  = allEx.find(e => e.id === id);
+  if (!base) return;
+  // Merge any saved overrides onto the base exercise
+  const ex = base.isCustom ? base : Overrides.apply(base);
+
+  document.getElementById('ex-edit-name').textContent = ex.name;
+
+  const state   = Profile.getExerciseState(App.profile, id);
+  const logTypes   = ['weight+reps','hold','reps','cardio','none'];
+  const restGroups = ['strength-heavy','strength-acc','skill','prehab','power','flexibility','somatic','meditation','cardio'];
+
+  // Auto thumb from YouTube link
+  const thumb = ex.imageUrl || Overrides.thumbFromYouTube(ex.link) || '';
+
+  const body = document.getElementById('ex-edit-body');
+  body.innerHTML = '';
+
+  // Helper to build a labelled field row
+  function row(labelHtml, el) {
+    const wrap = document.createElement('div'); wrap.style.marginBottom = '.875rem';
+    const lbl = document.createElement('div'); lbl.className = 'field-label';
+    lbl.innerHTML = labelHtml; wrap.appendChild(lbl);
+    wrap.appendChild(el); body.appendChild(wrap);
+  }
+
+  // State (also editable here, mirrors the dropdown in the list)
+  const stateSel = document.createElement('select'); stateSel.className = 'text-input'; stateSel.id = 'exe-state';
+  [{v:'active',t:'Active'},{v:'notyet',t:'Not yet'},{v:'excluded',t:'Excluded'}].forEach(o => {
+    const opt = document.createElement('option'); opt.value=o.v; opt.textContent=o.t;
+    if (state === o.v) opt.selected = true; stateSel.appendChild(opt);
+  });
+  row('State', stateSel);
+
+  // Log type
+  const logSel = document.createElement('select'); logSel.className = 'text-input'; logSel.id = 'exe-logtype';
+  logTypes.forEach(l => {
+    const opt = document.createElement('option'); opt.value=l; opt.textContent=l;
+    if (ex.logType === l) opt.selected = true; logSel.appendChild(opt);
+  });
+  row('Log type', logSel);
+
+  // Rest group
+  const restSel = document.createElement('select'); restSel.className = 'text-input'; restSel.id = 'exe-restgroup';
+  restGroups.forEach(r => {
+    const opt = document.createElement('option'); opt.value=r; opt.textContent=r;
+    if (ex.restGroup === r) opt.selected = true; restSel.appendChild(opt);
+  });
+  row('Rest group', restSel);
+
+  // Notes / cues
+  const notesEl = document.createElement('textarea'); notesEl.className = 'text-input'; notesEl.id = 'exe-notes';
+  notesEl.rows = 2; notesEl.placeholder = 'e.g. Keep lower back flat'; notesEl.value = ex.notes || '';
+  row('Notes / cues', notesEl);
+
+  // Video link
+  const linkEl = document.createElement('input'); linkEl.type = 'url'; linkEl.className = 'text-input'; linkEl.id = 'exe-link';
+  linkEl.placeholder = 'https://youtube.com/watch?v=...'; linkEl.value = ex.link || '';
+  linkEl.oninput = () => refreshThumb(linkEl.value);
+  row('Video link <span class="opt">YouTube — thumbnail auto-generated</span>', linkEl);
+
+  // Thumbnail preview
+  const thumbWrap = document.createElement('div'); thumbWrap.id = 'exe-thumb';
+  if (thumb) {
+    const img = document.createElement('img'); img.src = thumb; img.className = 'ex-thumb-preview';
+    img.onerror = () => thumbWrap.style.display = 'none'; thumbWrap.appendChild(img);
+  }
+  body.appendChild(thumbWrap);
+
+  // Custom image URL
+  const imgEl = document.createElement('input'); imgEl.type = 'url'; imgEl.className = 'text-input'; imgEl.id = 'exe-img';
+  imgEl.placeholder = 'https://...image.jpg'; imgEl.value = ex.imageUrl || '';
+  imgEl.style.marginBottom = '.875rem';
+  row('Custom image URL <span class="opt">overrides thumbnail</span>', imgEl);
+
+  // Instructions
+  const instrEl = document.createElement('textarea'); instrEl.className = 'text-input'; instrEl.id = 'exe-instructions';
+  instrEl.rows = 3; instrEl.placeholder = 'Step by step instructions…'; instrEl.value = ex.instructions || '';
+  row('Instructions <span class="opt">shown during session</span>', instrEl);
+
+  // Save button
+  const saveBtn = document.createElement('button'); saveBtn.className = 'btn-primary';
+  saveBtn.textContent = 'Save'; saveBtn.onclick = saveExEdit;
+  body.appendChild(saveBtn);
+
+  document.getElementById('ex-edit-backdrop').style.display = 'flex';
+}
+
+function refreshThumb(url) {
+  const wrap = document.getElementById('exe-thumb'); if (!wrap) return;
+  const thumb = Overrides.thumbFromYouTube(url);
+  wrap.innerHTML = '';
+  if (thumb) {
+    const img = document.createElement('img'); img.src = thumb; img.className = 'ex-thumb-preview';
+    img.onerror = () => wrap.style.display = 'none'; wrap.appendChild(img);
+  }
+}
+
+function saveExEdit() {
+  if (!_exEditId) return;
+  const allEx  = Custom.getAllExercises();
+  const base   = allEx.find(e => e.id === _exEditId);
+  if (!base) return;
+
+  const data = {
+    logType:      document.getElementById('exe-logtype')?.value,
+    restGroup:    document.getElementById('exe-restgroup')?.value,
+    notes:        document.getElementById('exe-notes')?.value || '',
+    link:         document.getElementById('exe-link')?.value || '',
+    imageUrl:     document.getElementById('exe-img')?.value || '',
+    instructions: document.getElementById('exe-instructions')?.value || '',
+  };
+
+  // Save state separately (profile, not override)
+  const newState = document.getElementById('exe-state')?.value;
+  if (newState) Profile.setExerciseState(App.profile, _exEditId, newState);
+
+  if (base.isCustom) {
+    Custom.updateExercise(_exEditId, data);
+  } else {
+    Overrides.save(_exEditId, data);
+  }
+
+  closeExEdit();
+  // Refresh the library list so ▶ tag updates
+  renderSettings();
+}
+
+function closeExEdit() {
+  document.getElementById('ex-edit-backdrop').style.display = 'none';
+  _exEditId = null;
+}
 
 // ─────────────────────────────────────────────────────────────
 // ADD/EDIT EXERCISE MODAL
@@ -1052,5 +1199,16 @@ setInterval(() => {
   }
 }, 60000);
 </script>
+<!-- Exercise edit modal -->
+<div class="modal-backdrop" id="ex-edit-backdrop" style="display:none" onclick="closeExEdit()">
+  <div class="modal modal-tall" onclick="event.stopPropagation()">
+    <div class="ex-edit-header">
+      <div class="ex-edit-name" id="ex-edit-name"></div>
+      <button class="modal-close" onclick="closeExEdit()">✕</button>
+    </div>
+    <div id="ex-edit-body"></div>
+  </div>
+</div>
+
 </body>
 </html>
