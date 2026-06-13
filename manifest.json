@@ -1,8 +1,9 @@
 {
-  "name": "Practice Brain",
-  "short_name": "PracticeBrain",
+  "name": "Movement",
+  "short_name": "Movement",
   "description": "Daily training session generator and tracker",
-  "start_url": "/movement",
+  "start_url": "/movement/",
+  "scope": "/movement/",
   "display": "standalone",
   "background_color": "#F5F5F7",
   "theme_color": "#1A1A2E",
