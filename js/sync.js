@@ -109,8 +109,8 @@ async function _rest(table, method, params = {}, body = null) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// DB — drop-in replacement for the localStorage DB object
-// Keeps localStorage as a fast read cache, syncs to Supabase
+// DB EXTENSION — adds Supabase sync to the existing DB object
+// DB is already defined in app.js; we extend it here
 // ─────────────────────────────────────────────────────────────
 
 // Map from localStorage key prefix → supabase table + column
@@ -124,8 +124,8 @@ const KEY_MAP = {
   'pb_goal_milestone_overrides':  { table: 'overrides',     col: 'data',  keyCol: 'store_key', keyVal: 'goal_milestone_overrides' },
 };
 
-const DB = {
-  PREFIX: 'pb_',
+// Extend the DB object defined in app.js with sync methods
+Object.assign(DB, {
   _queue: [], // pending writes to flush
   _flushTimer: null,
 
@@ -291,7 +291,7 @@ const DB = {
   importAll(data) {
     Object.entries(data).forEach(([k, v]) => this.set(k, v));
   },
-};
+});
 
 async function _upsert(table, uid, row, conflictCol, conflictVal) {
   // Try update first, then insert
