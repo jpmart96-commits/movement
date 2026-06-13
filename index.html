@@ -633,9 +633,9 @@ function renderGoals() {
     const imgSrc   = rawImage || Overrides.thumbFromYouTube(rawLink) || '';
     const vidLink  = rawLink;
     return `<div class="card goal-card">
-      ${imgSrc ? `<div class="goal-img-wrap">${vidLink ? `<a href="${vidLink}" target="_blank" rel="noopener">` : ''}<img class="goal-img" src="${imgSrc}" alt="${g.name}" loading="lazy" onerror="this.parentElement.style.display='none'">${vidLink ? `</a>` : ''}</div>` : ''}
       <div class="goal-card-header">
-        <div>
+        ${imgSrc ? `<div class="goal-img-wrap">${vidLink ? `<a href="${vidLink}" target="_blank" rel="noopener">` : ''}<img class="goal-img" src="${imgSrc}" alt="${g.name}" loading="lazy" onerror="this.parentElement.style.display='none'">${vidLink ? `</a>` : ''}</div>` : ''}
+        <div style="flex:1;min-width:0">
           <div class="goal-name">${g.name}</div>
           <div class="goal-meta">
             <span class="goal-priority-dot" style="background:${pColors[g.priority]||'#888'}"></span>
