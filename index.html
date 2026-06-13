@@ -308,6 +308,10 @@ function slug(str) {
   return str.toLowerCase().replace(/[^a-z0-9]/g, '-');
 }
 
+function escAttr(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 // ─────────────────────────────────────────────────────────────
 // HOME
 // ─────────────────────────────────────────────────────────────
@@ -682,12 +686,12 @@ function openGoalModal(id) {
     ${isBuiltIn?'<div class="field-sub" style="margin-bottom:.75rem">Built-in goal — milestones and feed exercises are editable.</div>':''}
 
     <div class="field-label">Name *</div>
-    <input type="text" class="text-input" id="gm-name" value="${g?.name||''}" ${isBuiltIn?'disabled':''} placeholder="e.g. Pistol squat">
+    <input type="text" class="text-input" id="gm-name" value="${escAttr(g?.name)}" ${isBuiltIn?'disabled':''} placeholder="e.g. Pistol squat">
 
     <div class="two-col" style="margin-top:.75rem">
       <div>
         <div class="field-label">Category</div>
-        <input type="text" class="text-input" id="gm-cat" value="${g?.category||''}" placeholder="Body Movement">
+        <input type="text" class="text-input" id="gm-cat" value="${escAttr(g?.category)}" placeholder="Body Movement">
       </div>
       <div>
         <div class="field-label">Priority</div>
@@ -700,7 +704,7 @@ function openGoalModal(id) {
     </div>
 
     <div class="field-label" style="margin-top:.75rem">Notes</div>
-    <textarea class="text-input" id="gm-notes" rows="2" placeholder="Coaching notes…">${g?.notes||''}</textarea>
+    <textarea class="text-input" id="gm-notes" rows="2" placeholder="Coaching notes…">${escAttr(g?.notes)}</textarea>
 
     <div class="field-label" style="margin-top:.75rem">Milestones <span class="opt">in order</span></div>
     <div id="gm-milestones">${milestones.map((ms,i)=>msRow(ms,i)).join('')}</div>
@@ -725,7 +729,7 @@ function openGoalModal(id) {
 function msRow(text, i) {
   return `<div class="ms-row" id="ms-row-${i}">
     <span class="ms-num">${i+1}</span>
-    <input type="text" class="text-input ms-input" id="ms-${i}" value="${text||''}" placeholder="Milestone ${i+1}">
+    <input type="text" class="text-input ms-input" id="ms-${i}" value="${escAttr(text)}" placeholder="Milestone ${i+1}">
     <button class="btn-xs danger" onclick="removeMsRow(${i})">✕</button>
   </div>`;
 }
@@ -982,12 +986,12 @@ function openExerciseModal(id) {
   document.getElementById('ex-modal-content').innerHTML=`
     <div class="modal-title">${id?'Edit exercise':'New exercise'}</div>
     <div class="field-label">Name *</div>
-    <input type="text" class="text-input" id="em-name" value="${ex?.name||''}" placeholder="Exercise name">
+    <input type="text" class="text-input" id="em-name" value="${escAttr(ex?.name)}" placeholder="Exercise name">
     <div class="two-col" style="margin-top:.75rem">
       <div><div class="field-label">Category *</div>
         <select class="text-input" id="em-cat">${cats.map(c=>`<option ${ex?.category===c?'selected':''}>${c}</option>`).join('')}</select></div>
       <div><div class="field-label">Subcategory</div>
-        <input type="text" class="text-input" id="em-subcat" value="${ex?.subcategory||''}" placeholder="e.g. Handstand"></div>
+        <input type="text" class="text-input" id="em-subcat" value="${escAttr(ex?.subcategory)}" placeholder="e.g. Handstand"></div>
     </div>
     <div class="two-col" style="margin-top:.75rem">
       <div><div class="field-label">Energy</div>
@@ -1002,13 +1006,13 @@ function openExerciseModal(id) {
         <select class="text-input" id="em-restgroup">${restGroups.map(r=>`<option ${ex?.restGroup===r?'selected':''}>${r}</option>`).join('')}</select></div>
     </div>
     <div class="field-label" style="margin-top:.75rem">Notes / cues</div>
-    <textarea class="text-input" id="em-notes" rows="2" placeholder="e.g. Keep lower back flat">${ex?.notes||''}</textarea>
+    <textarea class="text-input" id="em-notes" rows="2" placeholder="e.g. Keep lower back flat">${escAttr(ex?.notes)}</textarea>
     <div class="field-label" style="margin-top:.75rem">Video link <span class="opt">YouTube URL</span></div>
-    <input type="url" class="text-input" id="em-link" value="${ex?.link||''}" placeholder="https://youtube.com/...">
+    <input type="url" class="text-input" id="em-link" value="${escAttr(ex?.link)}" placeholder="https://youtube.com/...">
     <div class="field-label" style="margin-top:.75rem">Image URL <span class="opt">optional</span></div>
-    <input type="url" class="text-input" id="em-img" value="${ex?.imageUrl||''}" placeholder="https://...">
+    <input type="url" class="text-input" id="em-img" value="${escAttr(ex?.imageUrl)}" placeholder="https://...">
     <div class="field-label" style="margin-top:.75rem">Instructions <span class="opt">shown during session</span></div>
-    <textarea class="text-input" id="em-instructions" rows="3" placeholder="Step by step…">${ex?.instructions||''}</textarea>
+    <textarea class="text-input" id="em-instructions" rows="3" placeholder="Step by step…">${escAttr(ex?.instructions)}</textarea>
     <div style="display:flex;gap:8px;margin-top:1.25rem">
       <button class="btn-primary" style="flex:1" onclick="saveExercise('${id||''}')">Save</button>
       ${id?`<button class="btn-ghost" style="color:var(--danger);flex:0 0 auto;padding:.75rem 1rem" onclick="deleteExercise('${id}')">Delete</button>`:''}
