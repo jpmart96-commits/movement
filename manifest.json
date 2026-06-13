@@ -1,6 +1,6 @@
 {
-  "name": "Practice Brain",
-  "short_name": "PracticeBrain",
+  "name": "Movement",
+  "short_name": "Movement",
   "description": "Daily training session generator and tracker",
   "start_url": "/movement/",
   "scope": "/movement/",
