@@ -411,9 +411,9 @@ const Generator = {
 
   // Main generation function
   // Returns a structured session object ready for the live screen
-  generate({ theme, duration, sleep, energy, pain, focus, profile }) {
+  generate({ theme, duration, sleep, energy, pain, focus, profile, customDurations }) {
     const tier      = this.getTier(duration);
-    const durations = this.getBlockDurations(duration, energy);
+    const durations = customDurations || this.getBlockDurations(duration, energy);
     const lowEnergy = (sleep > 0 && sleep < 3) || (energy > 0 && energy < 3);
     const useExt    = tier >= 3 && !lowEnergy;
 

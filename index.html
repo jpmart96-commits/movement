@@ -91,6 +91,7 @@
 
 <!-- ═══ GENERATE ════════════════════════════════════════════════ -->
 <main id="screen-generate" class="screen">
+  <!-- Step 1: Check-in + Theme -->
   <div id="gen-checkin" class="gen-step active">
     <div class="section-label">Check-in</div>
     <div class="card">
@@ -128,21 +129,30 @@
       </div>
       <input type="range" min="20" max="300" value="90" step="5" id="dur-slider" class="slider" oninput="onDurChange(+this.value)">
       <div class="dur-axis"><span>20m</span><span>1h</span><span>2h</span><span>3h</span><span>4h</span><span>5h</span></div>
-      <div class="tier-bar" id="tier-bar"></div>
-      <div class="tier-legend" id="tier-legend"></div>
     </div>
     <div class="card">
       <div class="field-label">Focus today <span class="opt">optional</span></div>
       <input type="text" id="focus-input" class="text-input" placeholder="e.g. handstand, rings">
     </div>
-    <button class="btn-primary" onclick="genNextStep()">Pick day theme ↗</button>
-  </div>
-  <div id="gen-theme" class="gen-step">
-    <button class="back-btn" onclick="genBack()">← back</button>
-    <div class="section-label">Day theme</div>
+    <!-- Theme inline in step 1 -->
+    <div class="section-label" style="margin-top:.25rem">Day theme</div>
     <div class="warn-box" id="gen-warn" style="display:none"></div>
     <div id="theme-list"></div>
-    <button class="btn-primary" id="gen-go-btn" onclick="buildAndStart()" disabled>Build session ↗</button>
+    <button class="btn-primary" id="gen-next-btn" onclick="genToCompose()" disabled>Compose session ↗</button>
+  </div>
+
+  <!-- Step 2: Block composer -->
+  <div id="gen-compose" class="gen-step">
+    <button class="back-btn" onclick="genBack()">← back</button>
+    <div class="compose-header">
+      <div>
+        <div class="section-label">Session blocks</div>
+        <div class="compose-total" id="compose-total">0 min total</div>
+      </div>
+      <div class="compose-theme-badge" id="compose-theme-badge"></div>
+    </div>
+    <div id="compose-blocks"></div>
+    <button class="btn-primary" style="margin-top:.5rem" onclick="buildAndStart()">Generate session ↗</button>
   </div>
 </main>
 
@@ -323,6 +333,7 @@ function navTo(screen) {
   App.screen = screen;
   document.getElementById('fab').style.display = screen === 'settings' ? 'flex' : 'none';
   if (screen === 'home')     renderHome();
+  if (screen === 'generate') renderThemeList();
   if (screen === 'goals')    renderGoals();
   if (screen === 'log')      renderLog();
   if (screen === 'settings') renderSettings();
@@ -415,7 +426,14 @@ function toggleWeek() { Profile.toggleWeek(App.profile); renderHome(); }
 function startToday() {
   const today = Utils.getTodayTheme(App.profile);
   _selectedTheme = today.theme;
-  buildAndStart();
+  // Pre-select theme button if on generate screen, then go to compose
+  navTo('generate');
+  // Small delay to let the screen render first
+  setTimeout(() => {
+    renderThemeList();
+    document.getElementById('gen-next-btn').disabled = false;
+    genToCompose();
+  }, 50);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -431,40 +449,23 @@ function setPip(type, val) {
   App.checkin[type] = val;
   document.querySelectorAll(`#${type}-pips .pip`).forEach(p => p.classList.toggle('on', +p.dataset.val <= val));
   document.getElementById(`${type}-label`).textContent = (type==='sleep'?SLEEP_LABELS:ENERGY_LABELS)[val]||'';
-  // Re-render tier bar when energy changes — durations shift
-  if (type === 'energy') renderTierBar(App.checkin.duration);
+  if (type === 'energy') renderThemeList();
 }
 
 function onDurChange(v) {
   App.checkin.duration = v;
   document.getElementById('dur-val').textContent  = v;
   document.getElementById('dur-tier').textContent = TIER_LABELS[Generator.getTier(v)];
-  renderTierBar(v);
 }
 
-function renderTierBar(dur) {
-  const energy = App.checkin.energy || 3;
-  const blocks = Generator.getBlockDurations(dur, energy);
-  const labels = {lightBlock:'Light block',objManip:'Object manip',meditate:'Meditate',warmup:'Warm-up',skill:'Skill',main:'Main',cooldown:'Cool-down'};
-  const bar = document.getElementById('tier-bar'); bar.innerHTML='';
-  const leg = document.getElementById('tier-legend'); leg.innerHTML='';
-  Object.entries(blocks).forEach(([k,v]) => {
-    if (!v) return;
-    bar.insertAdjacentHTML('beforeend',`<div class="tier-seg" style="flex:${v};background:${TIER_COLORS[k]||'#ccc'}" title="${labels[k]}: ${v}m"></div>`);
-    leg.insertAdjacentHTML('beforeend',`<div class="tier-item"><div class="tier-dot" style="background:${TIER_COLORS[k]}"></div>${labels[k]} ${v}m</div>`);
-  });
-}
-
-function genNextStep() {
-  App.checkin.pain  = document.getElementById('pain-input').value;
-  App.checkin.focus = document.getElementById('focus-input').value;
+function renderThemeList() {
   const low = (App.checkin.sleep>0&&App.checkin.sleep<3)||(App.checkin.energy>0&&App.checkin.energy<3);
   const warn = document.getElementById('gen-warn');
   const msgs = [];
-  if(App.checkin.sleep>0&&App.checkin.sleep<3)  msgs.push('Sleep < 3 — no heavy skill or strength.');
-  if(App.checkin.energy>0&&App.checkin.energy<3) msgs.push('Energy < 3 — reduce volume 30%.');
-  warn.style.display = msgs.length?'block':'none'; warn.textContent = msgs.join(' ');
-
+  if(App.checkin.sleep>0&&App.checkin.sleep<3)  msgs.push('Sleep < 3 — heavy skill and strength not recommended.');
+  if(App.checkin.energy>0&&App.checkin.energy<3) msgs.push('Energy < 3 — volume reduced, lighter blocks expanded.');
+  warn.style.display = msgs.length ? 'block' : 'none';
+  warn.textContent   = msgs.join(' ');
   const THEMES = [
     {id:'strength-a', label:'Strength A',      sub:'Squat · Bench · Pull-up',    weeks:'Wk1: Mon/Wed · Wk2: Fri'},
     {id:'plio-b',     label:'Plio B',           sub:'Deadlift · OHP · Plyometrics',weeks:'Wk1: Fri · Wk2: Mon/Wed'},
@@ -474,28 +475,127 @@ function genNextStep() {
     {id:'rest',       label:'Rest + Recovery',  sub:'Walk · Somatic',             weeks:'Weekend'},
   ];
   const list = document.getElementById('theme-list'); list.innerHTML='';
-  _selectedTheme = null; document.getElementById('gen-go-btn').disabled = true;
   THEMES.forEach(t => {
-    const cfg = Utils.getThemeConfig(t.id);
+    const cfg      = Utils.getThemeConfig(t.id);
     const disabled = low && ['intense','strength-a','plio-b'].includes(t.id);
-    const btn = document.createElement('button'); btn.className='theme-btn'; btn.dataset.id=t.id;
-    if (disabled) btn.classList.add('dimmed');
-    btn.innerHTML=`<div class="theme-dot" style="background:${cfg.color}"></div><div class="theme-body"><div class="theme-label">${t.label}${disabled?' <span class="warn-tag">not recommended</span>':''}</div><div class="theme-sub">${t.sub}</div><div class="theme-weeks">${t.weeks}</div></div>`;
-    btn.onclick = () => { _selectedTheme=t.id; document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); document.getElementById('gen-go-btn').disabled=false; };
+    const btn      = document.createElement('button');
+    btn.className  = 'theme-btn'; btn.dataset.id = t.id;
+    if (disabled)              btn.classList.add('dimmed');
+    if (_selectedTheme===t.id) btn.classList.add('selected');
+    btn.innerHTML  = `<div class="theme-dot" style="background:${cfg.color}"></div><div class="theme-body"><div class="theme-label">${t.label}${disabled?' <span class="warn-tag">not recommended</span>':''}</div><div class="theme-sub">${t.sub}</div><div class="theme-weeks">${t.weeks}</div></div>`;
+    btn.onclick = () => {
+      _selectedTheme = t.id;
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('gen-next-btn').disabled = false;
+    };
     list.appendChild(btn);
   });
-  document.getElementById('gen-checkin').classList.remove('active');
-  document.getElementById('gen-theme').classList.add('active');
 }
 
+// ── BLOCK COMPOSER ─────────────────────────────────────────────
+let _compose = [];
+
+const BLOCK_DEFS = {
+  lightBlock: { label:'Light block',         color:'#1D9E75', min:5,  max:60 },
+  objManip:   { label:'Object manipulation', color:'#7F77DD', min:10, max:40 },
+  meditate:   { label:'Meditate',            color:'#9B59B6', min:5,  max:40 },
+  warmup:     { label:'Warm-up',             color:'#378ADD', min:10, max:20 },
+  skill:      { label:'Skill block',         color:'#185FA5', min:10, max:45 },
+  main:       { label:'Main work',           color:'#D85A30', min:15, max:90 },
+  cooldown:   { label:'Cool-down',           color:'#5F5E5A', min:5,  max:30 },
+};
+
+const THEME_BLOCKS = {
+  'strength-a':  ['lightBlock','meditate','warmup','skill','main','cooldown'],
+  'plio-b':      ['lightBlock','meditate','warmup','skill','main','cooldown'],
+  'z2-movement': ['lightBlock','objManip','meditate','main','cooldown'],
+  'intense':     ['lightBlock','meditate','warmup','skill','main','cooldown'],
+  'z2-flex':     ['lightBlock','meditate','main','cooldown'],
+  'rest':        ['lightBlock','objManip','meditate','main','cooldown'],
+};
+
+function genToCompose() {
+  App.checkin.pain  = document.getElementById('pain-input').value;
+  App.checkin.focus = document.getElementById('focus-input').value;
+  if (!_selectedTheme) return;
+  const dur      = App.checkin.duration;
+  const energy   = App.checkin.energy || 3;
+  const defaults = Generator.getBlockDurations(dur, energy);
+  const keys     = THEME_BLOCKS[_selectedTheme] || Object.keys(BLOCK_DEFS);
+
+  _compose = keys.map(k => {
+    const def = BLOCK_DEFS[k];
+    return { key:k, label:def.label, color:def.color, enabled:true, duration:defaults[k]||def.min, minDur:def.min, maxDur:def.max };
+  });
+
+  renderCompose();
+  document.getElementById('gen-checkin').classList.remove('active');
+  document.getElementById('gen-compose').classList.add('active');
+
+  const cfg   = Utils.getThemeConfig(_selectedTheme);
+  const badge = document.getElementById('compose-theme-badge');
+  badge.textContent  = cfg.label;
+  badge.style.cssText = `background:${cfg.color}20;color:${cfg.color};border:1px solid ${cfg.color}40;font-size:12px;font-weight:500;padding:3px 10px;border-radius:12px`;
+}
+
+function renderCompose() {
+  const container = document.getElementById('compose-blocks');
+  container.innerHTML = '';
+  let total = 0;
+  _compose.forEach(block => {
+    if (block.enabled) total += block.duration;
+    const row = document.createElement('div');
+    row.className = 'compose-row' + (block.enabled ? '' : ' compose-disabled');
+    row.id = 'cr-' + block.key;
+    row.innerHTML = `
+      <div class="compose-left">
+        <button class="compose-toggle${block.enabled?' on':''}" onclick="toggleComposeBlock('${block.key}')">
+          <div class="compose-dot" style="background:${block.enabled?block.color:'var(--border)'}"></div>
+        </button>
+        <span class="compose-label">${block.label}</span>
+      </div>
+      <div class="compose-right${block.enabled?'':' compose-hidden'}">
+        <button class="compose-adj" onclick="adjustBlock('${block.key}',-5)">−</button>
+        <span class="compose-dur" id="cdur-${block.key}">${block.duration}m</span>
+        <button class="compose-adj" onclick="adjustBlock('${block.key}',+5)">+</button>
+      </div>`;
+    container.appendChild(row);
+  });
+  document.getElementById('compose-total').textContent = total + ' min total';
+}
+
+function toggleComposeBlock(key) {
+  const b = _compose.find(x => x.key===key); if (!b) return;
+  b.enabled = !b.enabled; renderCompose();
+}
+
+function adjustBlock(key, delta) {
+  const b = _compose.find(x => x.key===key); if (!b) return;
+  b.duration = Math.max(b.minDur, Math.min(b.maxDur, b.duration + delta));
+  const el = document.getElementById('cdur-'+key); if (el) el.textContent = b.duration + 'm';
+  const total = _compose.filter(x=>x.enabled).reduce((s,x)=>s+x.duration,0);
+  document.getElementById('compose-total').textContent = total + ' min total';
+}
+
+function genNextStep() { genToCompose(); } // compat for startToday
+
 function genBack() {
-  document.getElementById('gen-theme').classList.remove('active');
+  document.getElementById('gen-compose').classList.remove('active');
   document.getElementById('gen-checkin').classList.add('active');
 }
 
 function buildAndStart() {
   if (!_selectedTheme) return;
-  const session = Generator.generate({ theme:_selectedTheme, duration:App.checkin.duration, sleep:App.checkin.sleep, energy:App.checkin.energy, pain:App.checkin.pain, focus:App.checkin.focus, profile:App.profile });
+  const customDurations = {};
+  _compose.forEach(b => { customDurations[b.key] = b.enabled ? b.duration : 0; });
+  const totalDur = _compose.filter(b=>b.enabled).reduce((s,b)=>s+b.duration,0);
+  const session = Generator.generate({
+    theme: _selectedTheme, duration: totalDur,
+    sleep: App.checkin.sleep, energy: App.checkin.energy,
+    pain: App.checkin.pain, focus: App.checkin.focus,
+    profile: App.profile, customDurations,
+  });
   LiveSession.start(session, s => { App.session=s; if(App.screen==='session') renderSessionScreen(); });
   App.session = session;
   document.querySelector('.session-nav').style.display = 'flex';
