@@ -339,23 +339,81 @@ const Generator = {
     return 4;
   },
 
-  getBlockDurations(duration) {
-    const t = this.getTier(duration);
-    // [lightBlock, objManip, meditate, warmup, skill, main, cooldown]
-    const tiers = {
-      1: { lightBlock: 10, objManip: 0,  meditate: 10, warmup: 10, skill: 10, main: 15, cooldown: 5  },
-      2: { lightBlock: 15, objManip: 0,  meditate: 12, warmup: 15, skill: 25, main: 35, cooldown: 15 },
-      3: { lightBlock: 25, objManip: 15, meditate: 15, warmup: 20, skill: 40, main: 55, cooldown: 25 },
-      4: { lightBlock: 55, objManip: 20, meditate: 15, warmup: 20, skill: 60, main: 90, cooldown: 45 },
-    };
-    return tiers[t];
+  // Ceilings — blocks never exceed these regardless of total time
+  _CEILINGS: {
+    lightBlock: 60, objManip: 40, meditate: 40,
+    warmup: 20, skill: 45, main: 90, cooldown: 30,
+  },
+
+  // Base allocations per tier before energy adjustment
+  _BASE: {
+    1: { lightBlock: 10, objManip: 0,  meditate: 10, warmup: 10, skill: 10, main: 15, cooldown: 5  },
+    2: { lightBlock: 15, objManip: 0,  meditate: 12, warmup: 15, skill: 25, main: 35, cooldown: 15 },
+    3: { lightBlock: 25, objManip: 15, meditate: 20, warmup: 20, skill: 40, main: 55, cooldown: 20 },
+    4: { lightBlock: 45, objManip: 25, meditate: 30, warmup: 20, skill: 40, main: 75, cooldown: 25 },
+  },
+
+  getBlockDurations(duration, energy = 3) {
+    const t    = this.getTier(duration);
+    const base = { ...this._BASE[t] };
+    const ceil = this._CEILINGS;
+    const low  = energy > 0 && energy < 3;
+    const high = energy >= 4;
+
+    // Energy adjustments
+    if (low) {
+      base.lightBlock = Math.min(base.lightBlock + 15, ceil.lightBlock);
+      base.meditate   = Math.min(base.meditate   + 10, ceil.meditate);
+      base.objManip   = base.objManip > 0 ? Math.min(base.objManip + 10, ceil.objManip) : base.objManip;
+      base.cooldown   = Math.min(base.cooldown   + 5,  ceil.cooldown);
+      base.skill      = Math.round(base.skill * 0.7);
+      base.main       = Math.round(base.main  * 0.6);
+    }
+
+    // Enforce ceilings
+    Object.keys(base).forEach(k => {
+      if (ceil[k]) base[k] = Math.min(base[k], ceil[k]);
+    });
+
+    // Distribute remaining time — any leftover after ceilings → main first, then light
+    const allocated = Object.values(base).reduce((a,b) => a+b, 0);
+    const leftover  = Math.max(0, duration - allocated);
+    if (leftover > 0) {
+      const mainRoom  = ceil.main  - base.main;
+      const lightRoom = ceil.lightBlock - base.lightBlock;
+      const medRoom   = ceil.meditate   - base.meditate;
+      const toMain    = Math.min(leftover, mainRoom);
+      base.main      += toMain;
+      const rem1      = leftover - toMain;
+      if (rem1 > 0) {
+        const toLight  = Math.min(rem1, lightRoom);
+        base.lightBlock += toLight;
+        const rem2 = rem1 - toLight;
+        if (rem2 > 0) {
+          base.meditate = Math.min(base.meditate + rem2, ceil.meditate);
+        }
+      }
+    }
+
+    // On long low-energy days, swap leftover into light+meditation not main
+    if (low && t >= 3 && leftover > 0) {
+      const stolen = Math.min(Math.round(base.main * 0.2), leftover);
+      base.main    = Math.max(15, base.main - stolen);
+      base.lightBlock = Math.min(base.lightBlock + Math.round(stolen * 0.6), ceil.lightBlock);
+      base.meditate   = Math.min(base.meditate   + Math.round(stolen * 0.4), ceil.meditate);
+    }
+
+    // Round all to nearest 5
+    Object.keys(base).forEach(k => { base[k] = Math.round(base[k] / 5) * 5; });
+
+    return base;
   },
 
   // Main generation function
   // Returns a structured session object ready for the live screen
   generate({ theme, duration, sleep, energy, pain, focus, profile }) {
     const tier      = this.getTier(duration);
-    const durations = this.getBlockDurations(duration);
+    const durations = this.getBlockDurations(duration, energy);
     const lowEnergy = (sleep > 0 && sleep < 3) || (energy > 0 && energy < 3);
     const useExt    = tier >= 3 && !lowEnergy;
 
