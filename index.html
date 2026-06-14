@@ -292,13 +292,37 @@
     </button>
     <div class="collapsible-body collapsed" id="s-data">
       <div class="card" style="margin:0">
-        <button class="btn-ghost" onclick="Utils.exportToFile()">Export backup JSON ↓</button>
-        <label class="btn-ghost" style="cursor:pointer">Import backup JSON ↑
-          <input type="file" accept=".json" style="display:none" onchange="importData(this)">
-        </label>
-        <button class="btn-ghost" style="color:var(--danger);margin-top:.5rem" onclick="signOut()">Sign out</button>
-          <input type="file" accept=".json" style="display:none" onchange="importData(this)">
-        </label>
+
+        <div class="data-action">
+          <div class="data-action-label">Export backup</div>
+          <div class="data-action-sub">Full snapshot of all your data</div>
+          <button class="btn-ghost" onclick="exportBackup()">Export ↓</button>
+        </div>
+
+        <div class="data-action" style="border-top:1px solid var(--border);padding-top:.875rem">
+          <div class="data-action-label">Import backup</div>
+          <div class="data-action-sub">Full restore — overwrites everything. Use for disaster recovery only.</div>
+          <label class="btn-ghost" style="cursor:pointer;color:var(--danger)">Import backup ↑
+            <input type="file" accept=".json" style="display:none" onchange="importBackup(this)">
+          </label>
+        </div>
+
+        <div class="data-action" style="border-top:1px solid var(--border);padding-top:.875rem">
+          <div class="data-action-label">Import DLC</div>
+          <div class="data-action-sub">Adds new exercises, links and images. Never overwrites your existing data.</div>
+          <label class="btn-ghost" style="cursor:pointer;color:var(--accent2)">Import DLC ↑
+            <input type="file" accept=".json" style="display:none" onchange="importDLC(this)">
+          </label>
+        </div>
+
+        <div id="data-status" style="font-size:12px;color:var(--text3);margin-top:.75rem;padding:0 .25rem;display:none"></div>
+
+        <div style="border-top:1px solid var(--border);padding-top:.875rem;margin-top:.875rem">
+          <button class="btn-ghost" onclick="manualSync()">Sync now ↻</button>
+          <div id="sync-status" style="font-size:12px;color:var(--text3);margin:.25rem 0;padding:0 .25rem"></div>
+          <button class="btn-ghost" style="color:var(--danger);margin-top:.25rem" onclick="signOut()">Sign out</button>
+        </div>
+
       </div>
     </div>
   </div>
@@ -1220,7 +1244,151 @@ function renderSettings() {
 function saveSetting(key,val){ App.profile.settings[key]=val; Profile.save(App.profile); }
 function saveEquipment(id,val){ App.profile.equipment[id]=val; Profile.save(App.profile); }
 function saveExerciseState(id,val){ Profile.setExerciseState(App.profile,id,val); }
-function importData(input){ const f=input.files[0]; if(!f)return; Utils.importFromFile(f).then(()=>{ App.profile=Profile.load(); alert('Imported.'); }).catch(()=>alert('Import failed.')); }
+function setDataStatus(msg, isError) {
+  const el = document.getElementById('data-status');
+  if (!el) return;
+  el.textContent   = msg;
+  el.style.color   = isError ? 'var(--danger)' : 'var(--accent2)';
+  el.style.display = msg ? 'block' : 'none';
+}
+
+// ── EXPORT BACKUP ──────────────────────────────────────────────
+function exportBackup() {
+  const data = DB.exportAll();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `movement-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  setDataStatus('Backup exported ✓');
+}
+
+// ── IMPORT BACKUP — full overwrite ─────────────────────────────
+function importBackup(input) {
+  const f = input.files[0]; if (!f) return;
+  if (!confirm('This will overwrite ALL your data with the backup. Are you sure?')) {
+    input.value = ''; return;
+  }
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Write all keys via DB.set so Supabase sync fires
+      Object.entries(data).forEach(([k, v]) => DB.set(k, v));
+      await DB._flush();
+      App.profile = Profile.load();
+      setDataStatus('Backup imported and synced ✓');
+      renderSettings();
+    } catch(err) {
+      setDataStatus('Import failed — invalid file', true);
+    }
+    input.value = '';
+  };
+  reader.readAsText(f);
+}
+
+// ── IMPORT DLC — additive merge, never overwrites ──────────────
+async function importDLC(input) {
+  const f = input.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const dlc = JSON.parse(e.target.result);
+      let addedEx = 0, addedGoals = 0, filledLinks = 0;
+
+      // 1. Merge exercise overrides (library_overrides)
+      if (dlc.library_overrides) {
+        const existing = DB.get('library_overrides') || {};
+        const incoming = dlc.library_overrides;
+        let changed = false;
+        Object.entries(incoming).forEach(([exId, fields]) => {
+          if (!existing[exId]) { existing[exId] = {}; }
+          Object.entries(fields).forEach(([field, val]) => {
+            // Only fill if field is empty/missing in existing
+            if (!existing[exId][field] && val) {
+              existing[exId][field] = val;
+              filledLinks++;
+              changed = true;
+            }
+          });
+        });
+        if (changed) DB.set('library_overrides', existing);
+      }
+
+      // 2. Merge custom exercises (add new ones only, skip existing ids)
+      if (Array.isArray(dlc.custom_exercises)) {
+        const existing = DB.get('custom_exercises') || [];
+        const existingIds = new Set(existing.map(e => e.id));
+        const toAdd = dlc.custom_exercises.filter(e => !existingIds.has(e.id));
+        if (toAdd.length) {
+          DB.set('custom_exercises', [...existing, ...toAdd]);
+          addedEx = toAdd.length;
+        }
+      }
+
+      // 3. Merge custom goals (add new ones only)
+      if (Array.isArray(dlc.custom_goals)) {
+        const existing = DB.get('custom_goals') || [];
+        const existingIds = new Set(existing.map(g => g.id));
+        const toAdd = dlc.custom_goals.filter(g => !existingIds.has(g.id));
+        if (toAdd.length) {
+          DB.set('custom_goals', [...existing, ...toAdd]);
+          addedGoals = toAdd.length;
+        }
+      }
+
+      // 4. Merge goal overrides (same logic — never overwrite existing fields)
+      if (dlc.goal_overrides) {
+        const existing = DB.get('goal_overrides') || {};
+        const incoming = dlc.goal_overrides;
+        let changed = false;
+        Object.entries(incoming).forEach(([goalId, fields]) => {
+          if (!existing[goalId]) { existing[goalId] = {}; }
+          Object.entries(fields).forEach(([field, val]) => {
+            if (!existing[goalId][field] && val) {
+              existing[goalId][field] = val;
+              changed = true;
+            }
+          });
+        });
+        if (changed) DB.set('goal_overrides', existing);
+      }
+
+      // 5. Merge goal milestone overrides (add new milestone arrays only)
+      if (dlc.goal_milestone_overrides) {
+        const existing = DB.get('goal_milestone_overrides') || {};
+        const incoming = dlc.goal_milestone_overrides;
+        let changed = false;
+        Object.entries(incoming).forEach(([goalId, milestones]) => {
+          if (!existing[goalId]) { existing[goalId] = milestones; changed = true; }
+          // Never overwrite existing milestone arrays
+        });
+        if (changed) DB.set('goal_milestone_overrides', existing);
+      }
+
+      // Flush to Supabase
+      await DB._flush();
+
+      const parts = [];
+      if (filledLinks > 0) parts.push(`${filledLinks} links/images added`);
+      if (addedEx > 0)     parts.push(`${addedEx} exercises added`);
+      if (addedGoals > 0)  parts.push(`${addedGoals} goals added`);
+      const summary = parts.length ? parts.join(', ') : 'Nothing new to add';
+      setDataStatus(`DLC imported ✓ — ${summary}`);
+      renderSettings();
+    } catch(err) {
+      console.error('DLC import error:', err);
+      setDataStatus('DLC import failed — invalid file', true);
+    }
+    input.value = '';
+  };
+  reader.readAsText(f);
+}
+
+// Keep for backwards compat
+function importData(input) { importBackup(input); }
 
 // ── EXERCISE EDIT MODAL ────────────────────────────────────────
 let _exEditId = null;
