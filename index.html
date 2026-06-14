@@ -126,8 +126,8 @@
         <span class="dur-unit">min</span>
         <span class="dur-tier" id="dur-tier">medium session</span>
       </div>
-      <input type="range" min="20" max="240" value="90" step="5" id="dur-slider" class="slider" oninput="onDurChange(+this.value)">
-      <div class="dur-axis"><span>20m</span><span>1h</span><span>2h</span><span>3h</span><span>4h</span></div>
+      <input type="range" min="20" max="300" value="90" step="5" id="dur-slider" class="slider" oninput="onDurChange(+this.value)">
+      <div class="dur-axis"><span>20m</span><span>1h</span><span>2h</span><span>3h</span><span>4h</span><span>5h</span></div>
       <div class="tier-bar" id="tier-bar"></div>
       <div class="tier-legend" id="tier-legend"></div>
     </div>
@@ -431,6 +431,8 @@ function setPip(type, val) {
   App.checkin[type] = val;
   document.querySelectorAll(`#${type}-pips .pip`).forEach(p => p.classList.toggle('on', +p.dataset.val <= val));
   document.getElementById(`${type}-label`).textContent = (type==='sleep'?SLEEP_LABELS:ENERGY_LABELS)[val]||'';
+  // Re-render tier bar when energy changes — durations shift
+  if (type === 'energy') renderTierBar(App.checkin.duration);
 }
 
 function onDurChange(v) {
@@ -441,7 +443,8 @@ function onDurChange(v) {
 }
 
 function renderTierBar(dur) {
-  const blocks = Generator.getBlockDurations(dur);
+  const energy = App.checkin.energy || 3;
+  const blocks = Generator.getBlockDurations(dur, energy);
   const labels = {lightBlock:'Light block',objManip:'Object manip',meditate:'Meditate',warmup:'Warm-up',skill:'Skill',main:'Main',cooldown:'Cool-down'};
   const bar = document.getElementById('tier-bar'); bar.innerHTML='';
   const leg = document.getElementById('tier-legend'); leg.innerHTML='';
