@@ -303,3 +303,25 @@ async function boot() {
   App.init();
   renderHome();
 }
+
+// ── MANUAL SYNC ────────────────────────────────────────────────
+async function manualSync() {
+  const status = document.getElementById('sync-status');
+  if (status) { status.textContent = 'Syncing…'; status.style.color = 'var(--text3)'; }
+  try {
+    clearTimeout(DB._flushTimer);
+    await DB._flush();       // push any pending local writes first
+    await DB.pull();         // pull fresh from Supabase
+    App.profile = Profile.load();
+    const time = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    if (status) { status.textContent = `Synced ✓ ${time}`; status.style.color = 'var(--accent2)'; }
+    // Re-render current screen
+    if (App.screen === 'home')     renderHome();
+    if (App.screen === 'goals')    renderGoals();
+    if (App.screen === 'settings') renderSettings();
+    if (App.screen === 'log')      renderLog();
+  } catch(e) {
+    console.error('Sync error:', e);
+    if (status) { status.textContent = 'Sync failed — check connection'; status.style.color = 'var(--danger)'; }
+  }
+}
