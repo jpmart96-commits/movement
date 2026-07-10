@@ -63,10 +63,11 @@ const Profile = {
     goalMilestones: {},
     // Equipment owned: { [equipmentId]: boolean }
     equipment: {},
-    // Current week in cycle (1 or 2)
-    currentWeek: 1,
     // Rest timer overrides per exercise: { [exerciseId]: seconds }
     restOverrides: {},
+    // Exercise ids tracked for weight / estimated-1RM (major compounds only —
+    // toggle from Settings → Exercise library → Edit).
+    trackedLifts: ['squat', 'incline-bench', 'deadlift', 'overhead-press', 'pull-up'],
     // General settings
     settings: {
       weightUnit: 'kg',
@@ -77,6 +78,14 @@ const Profile = {
       defaultRestPower: 120,
       waketime: '06:30',
       breakfastTime: '07:45',
+      // AI session generation — bring-your-own-key. Sent directly from the
+      // browser to Anthropic (anthropic-dangerous-direct-browser-access),
+      // never through any server of ours, since this app has none. Stored
+      // in localStorage like everything else here — fine for a personal,
+      // single-user tool, but never share/host this build publicly with
+      // your key saved.
+      anthropicApiKey: '',
+      aiModel: 'claude-sonnet-5',
     },
   },
 
@@ -158,10 +167,16 @@ const Profile = {
     return map[restGroup] ?? 90;
   },
 
-  toggleWeek(profile) {
-    profile.currentWeek = profile.currentWeek === 1 ? 2 : 1;
+  isTracked(profile, id) {
+    return (profile.trackedLifts || []).includes(id);
+  },
+
+  toggleTracked(profile, id) {
+    const list = profile.trackedLifts || (profile.trackedLifts = []);
+    const idx = list.indexOf(id);
+    if (idx >= 0) list.splice(idx, 1); else list.push(id);
     this.save(profile);
-    return profile.currentWeek;
+    return list.includes(id);
   },
 };
 
@@ -178,7 +193,7 @@ const History = {
 
     // Update index
     const index = DB.get('session_index') || [];
-    index.unshift({ id, date: session.date, theme: session.theme, duration: session.duration });
+    index.unshift({ id, date: session.date, theme: session.theme, duration: session.duration, source: session.source || 'generated' });
     // Keep last 200 sessions in index
     if (index.length > 200) index.pop();
     DB.set('session_index', index);
@@ -317,10 +332,52 @@ const History = {
     return { weight: maxWeight || null, reps: maxReps || null, duration: maxDuration || null };
   },
 
+  // Epley formula — decent approximation for reps in the ~1-10 range.
+  estimateOneRM(weight, reps) {
+    if (!weight || !reps) return null;
+    if (reps === 1) return Math.round(weight * 10) / 10;
+    return Math.round(weight * (1 + reps / 30) * 10) / 10;
+  },
+
+  // Best estimated 1RM ever logged for this exercise, from completed
+  // session history, with the set that produced it.
+  getBestEstimate(exerciseId, limit = 50) {
+    const hist = this.getExerciseHistory(exerciseId, limit);
+    let best = null;
+    hist.forEach(h => {
+      h.sets.forEach(s => {
+        const e1rm = this.estimateOneRM(s.weight, s.reps);
+        if (e1rm && (!best || e1rm > best.e1rm)) {
+          best = { e1rm, weight: s.weight, reps: s.reps, date: h.date };
+        }
+      });
+    });
+    return best;
+  },
+
   deleteSession(id) {
     DB.remove(id);
     const index = (DB.get('session_index') || []).filter(e => e.id !== id);
     DB.set('session_index', index);
+  },
+
+  // Map of exerciseId -> date it last appeared in a session (any block,
+  // whether or not sets were logged). Used to rotate pool-style blocks
+  // (light block, object manipulation, skill work) so the same handful
+  // of exercises don't get picked every single day.
+  getExerciseLastSeenMap(limit = 30) {
+    const index = this.getIndex(limit);
+    const map = {};
+    for (const entry of index) {
+      const session = this.getSession(entry.id);
+      if (!session) continue;
+      session.blocks?.forEach(block => {
+        block.exercises?.forEach(ex => {
+          if (ex.id && !(ex.id in map)) map[ex.id] = session.date;
+        });
+      });
+    }
+    return map;
   },
 };
 
@@ -355,10 +412,21 @@ const Generator = {
 
   getBlockDurations(duration, energy = 3) {
     const t    = this.getTier(duration);
-    const base = { ...this._BASE[t] };
+    const raw  = this._BASE[t];
     const ceil = this._CEILINGS;
     const low  = energy > 0 && energy < 3;
     const high = energy >= 4;
+
+    // Scale the tier's base "shape" proportionally to the actual requested
+    // duration first. Without this, the tier's base minutes (a fixed
+    // lookup table) could exceed — or undershoot — whatever you actually
+    // asked for: tier 3's base alone sums to 195min, so picking 180min
+    // still produced a 195min suggested split. Scaling keeps the relative
+    // proportions between blocks but targets your number.
+    const baseSum = Object.values(raw).reduce((a, b) => a + b, 0);
+    const scale   = baseSum > 0 ? duration / baseSum : 1;
+    const base    = {};
+    Object.keys(raw).forEach(k => { base[k] = raw[k] * scale; });
 
     // Energy adjustments
     if (low) {
@@ -366,8 +434,8 @@ const Generator = {
       base.meditate   = Math.min(base.meditate   + 10, ceil.meditate);
       base.objManip   = base.objManip > 0 ? Math.min(base.objManip + 10, ceil.objManip) : base.objManip;
       base.cooldown   = Math.min(base.cooldown   + 5,  ceil.cooldown);
-      base.skill      = Math.round(base.skill * 0.7);
-      base.main       = Math.round(base.main  * 0.6);
+      base.skill      = base.skill * 0.7;
+      base.main       = base.main  * 0.6;
     }
 
     // Enforce ceilings
@@ -375,38 +443,414 @@ const Generator = {
       if (ceil[k]) base[k] = Math.min(base[k], ceil[k]);
     });
 
-    // Distribute remaining time — any leftover after ceilings → main first, then light
-    const allocated = Object.values(base).reduce((a,b) => a+b, 0);
-    const leftover  = Math.max(0, duration - allocated);
+    // Round to nearest 5 before reconciling against the target, so the
+    // leftover/overshoot math below matches the numbers that actually render.
+    Object.keys(base).forEach(k => { base[k] = Math.max(0, Math.round(base[k] / 5) * 5); });
+
+    // Reconcile rounding + ceiling clamps against the requested total.
+    // Undershoot (duration left unused) tops up main first, then light,
+    // then meditation — same priority as before. Overshoot (still over
+    // budget, usually from a low-energy nudge hitting a ceiling) trims out
+    // of main first since it's the most elastic block, then light, then skill.
+    let leftover = duration - Object.values(base).reduce((a, b) => a + b, 0);
+
     if (leftover > 0) {
-      const mainRoom  = ceil.main  - base.main;
-      const lightRoom = ceil.lightBlock - base.lightBlock;
-      const medRoom   = ceil.meditate   - base.meditate;
-      const toMain    = Math.min(leftover, mainRoom);
-      base.main      += toMain;
-      const rem1      = leftover - toMain;
-      if (rem1 > 0) {
-        const toLight  = Math.min(rem1, lightRoom);
+      const toMain = Math.min(leftover, ceil.main - base.main);
+      base.main   += toMain;
+      leftover    -= toMain;
+      if (leftover > 0) {
+        const toLight    = Math.min(leftover, ceil.lightBlock - base.lightBlock);
         base.lightBlock += toLight;
-        const rem2 = rem1 - toLight;
-        if (rem2 > 0) {
-          base.meditate = Math.min(base.meditate + rem2, ceil.meditate);
-        }
+        leftover         -= toLight;
+      }
+      if (leftover > 0) {
+        base.meditate = Math.min(base.meditate + leftover, ceil.meditate);
+      }
+    } else if (leftover < 0) {
+      let over = -leftover;
+      const trimMain = Math.min(over, Math.max(0, base.main - 10));
+      base.main -= trimMain; over -= trimMain;
+      if (over > 0) {
+        const trimLight  = Math.min(over, base.lightBlock);
+        base.lightBlock -= trimLight; over -= trimLight;
+      }
+      if (over > 0) {
+        const trimSkill = Math.min(over, base.skill);
+        base.skill -= trimSkill; over -= trimSkill;
       }
     }
 
-    // On long low-energy days, swap leftover into light+meditation not main
-    if (low && t >= 3 && leftover > 0) {
-      const stolen = Math.min(Math.round(base.main * 0.2), leftover);
-      base.main    = Math.max(15, base.main - stolen);
+    // On long low-energy days, shift weight from main into light+meditation —
+    // unconditional on tier/energy now rather than gated on leftover existing,
+    // so recovery time is protected even on a tightly-budgeted low-energy day.
+    if (low && t >= 3 && base.main > 15) {
+      const stolen = Math.round(base.main * 0.2);
+      base.main       = Math.max(15, base.main - stolen);
       base.lightBlock = Math.min(base.lightBlock + Math.round(stolen * 0.6), ceil.lightBlock);
       base.meditate   = Math.min(base.meditate   + Math.round(stolen * 0.4), ceil.meditate);
     }
 
-    // Round all to nearest 5
-    Object.keys(base).forEach(k => { base[k] = Math.round(base[k] / 5) * 5; });
+    // Final rounding to nearest 5
+    Object.keys(base).forEach(k => { base[k] = Math.max(0, Math.round(base[k] / 5) * 5); });
 
     return base;
+  },
+
+  // Rough per-exercise time estimate (minutes) — used only to decide how
+  // many exercises fit inside a block's chosen duration. Not a promise of
+  // exact live-session time, since actual sets/reps are logged by hand.
+  _estimateExerciseMinutes(ex) {
+    const rest = ex.restSeconds || 0;
+    switch (ex.logType) {
+      case 'weight+reps': return (3 * (40 + rest)) / 60;              // 3 working sets
+      case 'reps':        return (2 * (30 + Math.min(rest, 30))) / 60; // bodyweight/band, brief rest
+      case 'hold':         return (2 * (30 + rest)) / 60;              // 2 holds
+      case 'cardio':       return 15;                                  // user logs actual time
+      case 'none':
+      default:              return 0;
+    }
+  },
+
+  // Reorders a candidate pool so exercises not seen recently bubble to the
+  // front (never-seen first, then oldest-seen), instead of always reading
+  // the array in its fixed, hardcoded order. Ties (equal or unknown
+  // last-seen date) fall back to the original array order.
+  _orderByRecency(ids, lastSeenMap) {
+    if (!lastSeenMap) return ids;
+    return [...ids].sort((a, b) => {
+      const la = lastSeenMap[a] ? new Date(lastSeenMap[a]).getTime() : -Infinity;
+      const lb = lastSeenMap[b] ? new Date(lastSeenMap[b]).getTime() : -Infinity;
+      if (la !== lb) return la - lb;
+      return ids.indexOf(a) - ids.indexOf(b);
+    });
+  },
+
+  // ── PAIN / INJURY-AWARE GENERATION ──────────────────────────
+  // Deterministic pipeline: free-text check-in note → joint tags with a
+  // severity → excluded/deprioritized exercises → (when a fixed-exercise
+  // block like a cardio pick or sprint main comes up empty) reclaimed time
+  // pushed into skill + object manipulation, biased toward exercises that
+  // still raise heart rate. No AI call — just keyword matching against
+  // EXERCISE_TAGS (data/library.js), which is why it only reacts to
+  // *joints/regions* it recognizes and never invents new information.
+
+  // joint keyword → canonical joint tag used in EXERCISE_TAGS
+  _JOINT_KEYWORDS: {
+    ankle:    'ankle',
+    achilles: 'ankle',
+    knee:     'knee',
+    hip:      'hip',
+    groin:    'hip',
+    back:     'back',
+    spine:    'back',
+    'lower back': 'back',
+    shoulder: 'shoulder',
+    rotator:  'shoulder',
+    elbow:    'elbow',
+    wrist:    'wrist',
+    forearm:  'forearm',
+    grip:     'forearm',
+    neck:     'neck',
+  },
+
+  // Words that push a mentioned joint into the harder "avoid" bucket
+  // (exclude moderate/high-impact work on it) rather than the softer
+  // "caution" bucket (deprioritize, don't exclude).
+  _PAIN_SEVERE_WORDS: [
+    'sprain', 'sprained', 'strain', 'strained', 'tear', 'torn',
+    'injury', 'injured', 'hurt', 'pain', 'sharp', 'swollen', 'swelling',
+    'twisted', 'pulled',
+  ],
+  _PAIN_MILD_WORDS: [
+    'sore', 'soreness', 'tight', 'tightness', 'stiff', 'stiffness',
+    'achy', 'ache', 'tender', 'fatigued', 'tired',
+  ],
+
+  // Parses free text like "left ankle pain from spraining 1 week ago, sore
+  // back and forearms" into { avoid: Set, caution: Set } of joint tags.
+  // A joint mentioned near a severe word (sprain, injury, pain...) lands in
+  // avoid; near only a mild word (sore, tight...) lands in caution. A joint
+  // mentioned with no nearby severity word defaults to caution (better to
+  // mildly deprioritize than ignore it outright).
+  _parsePainTags(painText) {
+    const avoid = new Set();
+    const caution = new Set();
+    if (!painText || typeof painText !== 'string') return { avoid, caution };
+
+    const text = painText.toLowerCase();
+    const hasSevere = this._PAIN_SEVERE_WORDS.some(w => text.includes(w));
+    const hasMild   = this._PAIN_MILD_WORDS.some(w => text.includes(w));
+
+    Object.keys(this._JOINT_KEYWORDS).forEach(keyword => {
+      const idx = text.indexOf(keyword);
+      if (idx === -1) return;
+      const joint = this._JOINT_KEYWORDS[keyword];
+
+      // Look at a window around the mention to judge severity locally
+      // (so "sore back and sprained ankle" doesn't mark both as sprained).
+      const windowStart = Math.max(0, idx - 25);
+      const windowEnd   = Math.min(text.length, idx + keyword.length + 25);
+      const window      = text.slice(windowStart, windowEnd);
+
+      const localSevere = this._PAIN_SEVERE_WORDS.some(w => window.includes(w));
+      const localMild   = this._PAIN_MILD_WORDS.some(w => window.includes(w));
+
+      if (localSevere) avoid.add(joint);
+      else if (localMild) caution.add(joint);
+      else if (hasSevere && !hasMild) avoid.add(joint);
+      else caution.add(joint);
+    });
+
+    // A joint in avoid doesn't need to also sit in caution
+    avoid.forEach(j => caution.delete(j));
+    return { avoid, caution };
+  },
+
+  _tagsFor(id) {
+    return (typeof EXERCISE_TAGS !== 'undefined' && EXERCISE_TAGS[id]) || null;
+  },
+
+  // True if this exercise should be hard-excluded given the avoid set:
+  // any avoided joint loaded at moderate or high impact. Low-impact work
+  // on an avoided joint (gentle CARs, mobility) is left alone — it's
+  // usually fine and sometimes actively useful during recovery.
+  _isPainExcluded(id, painAvoid) {
+    if (!painAvoid || !painAvoid.size) return false;
+    const tags = this._tagsFor(id);
+    if (!tags || !tags.joints.length) return false;
+    const hits = tags.joints.some(j => painAvoid.has(j));
+    return hits && (tags.impact === 'moderate' || tags.impact === 'high');
+  },
+
+  // True if this exercise touches a "caution" joint — used to push it to
+  // the back of a pool's ordering rather than exclude it outright.
+  _isPainCaution(id, painCaution) {
+    if (!painCaution || !painCaution.size) return false;
+    const tags = this._tagsFor(id);
+    if (!tags || !tags.joints.length) return false;
+    return tags.joints.some(j => painCaution.has(j));
+  },
+
+  // ── AI GENERATION SUPPORT ────────────────────────────────────
+  // Free-text requests ("flexibility and yoga for 30 minutes", "floor
+  // movement, balance, and new juggling patterns") map fairly directly onto
+  // the existing category/subcategory taxonomy. Matching locally here,
+  // for free, before any API call means we only ever send the AI a
+  // relevant slice of the ~250-exercise library instead of the whole
+  // thing — the difference between a few thousand tokens and tens of
+  // thousands. Falls back to the full library when nothing matches rather
+  // than guessing wrong.
+  _CATEGORY_KEYWORDS: {
+    'meditat':            { category: 'Meditation' },
+    'breathwork':         { category: 'Meditation', subcategory: 'Breathwork' },
+    'breathing':          { category: 'Meditation', subcategory: 'Breathwork' },
+    'somatic':            { category: 'Somatic' },
+    'nervous system':     { category: 'Somatic' },
+    'gym':                { category: 'Gym' },
+    'strength':           { category: 'Gym' },
+    'weights':            { category: 'Gym' },
+    'lifting':            { category: 'Gym' },
+    'cardio':             { category: 'Cardio' },
+    'run':                { category: 'Cardio', subcategory: 'Run' },
+    'jog':                { category: 'Cardio', subcategory: 'Run' },
+    'bike':               { category: 'Cardio', subcategory: 'Cycling' },
+    'cycling':            { category: 'Cardio', subcategory: 'Cycling' },
+    'power':              { category: 'Power' },
+    'jump':                { category: 'Power', subcategory: 'Jumps' },
+    'sprint':             { category: 'Power', subcategory: 'Sprint' },
+    'throw':               { category: 'Power', subcategory: 'Throws' },
+    'plyo':                { category: 'Power' },
+    'rings':               { category: 'Rings' },
+    'muscle up':           { category: 'Rings', subcategory: 'Skill' },
+    'muscle-up':           { category: 'Rings', subcategory: 'Skill' },
+    'front lever':         { category: 'Rings', subcategory: 'Lever' },
+    'back lever':          { category: 'Rings', subcategory: 'Lever' },
+    'juggling':            { category: 'Object Manipulation', subcategory: 'Juggling' },
+    'juggle':              { category: 'Object Manipulation', subcategory: 'Juggling' },
+    'stick balanc':        { category: 'Object Manipulation', subcategory: 'Stick Balancing' },
+    'indian club':         { category: 'Object Manipulation', subcategory: 'Indian Clubs' },
+    'contact ball':        { category: 'Object Manipulation', subcategory: 'Contact Juggling' },
+    'object manipulation': { category: 'Object Manipulation' },
+    'hang':                { category: 'Body Movement', subcategory: 'Hanging' },
+    'tumbling':            { category: 'Body Movement', subcategory: 'Tumbling' },
+    'cartwheel':           { category: 'Body Movement', subcategory: 'Tumbling' },
+    'roll':                { category: 'Body Movement', subcategory: 'Tumbling' },
+    'ground flow':         { category: 'Body Movement', subcategory: 'Ground Flow' },
+    'floor movement':      { category: 'Body Movement', subcategory: 'Ground Flow' },
+    'floor work':          { category: 'Body Movement', subcategory: 'Ground Flow' },
+    'freestyle':           { category: 'Body Movement', subcategory: 'Flow' },
+    'floreio':             { category: 'Body Movement', subcategory: 'Floreio' },
+    'capoeira':            { category: 'Body Movement', subcategory: 'Floreio' },
+    'handstand':           { category: 'Body Movement', subcategory: 'Handstand' },
+    'arm balanc':          { category: 'Body Movement', subcategory: 'Arm Balancing' },
+    'frog stand':          { category: 'Body Movement', subcategory: 'Arm Balancing' },
+    'inversion':           { category: 'Body Movement', subcategory: 'Inversion' },
+    'headstand':           { category: 'Body Movement', subcategory: 'Inversion' },
+    'animal':              { category: 'Body Movement', subcategory: 'Animal Locomotion' },
+    'crawl':               { category: 'Body Movement', subcategory: 'Animal Locomotion' },
+    'balance':             { category: 'Body Movement', subcategory: 'Balance' },
+    'gymnastics':          { category: 'Body Movement', subcategory: 'Gymnastics Conditioning' },
+    'hollow body':         { category: 'Body Movement', subcategory: 'Gymnastics Conditioning' },
+    'l-sit':               { category: 'Body Movement', subcategory: 'Gymnastics Conditioning' },
+    'l sit':               { category: 'Body Movement', subcategory: 'Gymnastics Conditioning' },
+    'flexibility':         { category: 'Flexibility' },
+    'mobility':            { category: 'Flexibility' },
+    'stretch':             { category: 'Flexibility' },
+    'splits':              { category: 'Flexibility', subcategory: 'Splits' },
+    'pancake':             { category: 'Flexibility', subcategory: 'Splits' },
+    'hip flexor':          { category: 'Flexibility', subcategory: 'Hip' },
+    'hamstring':           { category: 'Flexibility', subcategory: 'Hamstring' },
+    'foam roll':           { category: 'Flexibility', subcategory: 'Self-Massage' },
+    'yoga':                { category: 'Yoga' },
+    'sun salutation':      { category: 'Yoga', subcategory: 'Flow' },
+    'vinyasa':             { category: 'Yoga', subcategory: 'Flow' },
+  },
+
+  // Returns { candidates, matched } — matched is true only when at least one
+  // keyword hit, so callers can tell "deliberately broad" apart from "we
+  // just sent everything because nothing matched."
+  _filterLibraryByIntent(text) {
+    if (!text || typeof text !== 'string') return { candidates: LIBRARY, matched: false };
+    const lower = text.toLowerCase();
+    const categories = new Set();
+    const subcatPairs = new Set(); // "Category::Subcategory"
+
+    Object.keys(this._CATEGORY_KEYWORDS).forEach(keyword => {
+      if (!lower.includes(keyword)) return;
+      const rule = this._CATEGORY_KEYWORDS[keyword];
+      if (rule.subcategory) subcatPairs.add(rule.category + '::' + rule.subcategory);
+      else categories.add(rule.category);
+    });
+
+    if (!categories.size && !subcatPairs.size) return { candidates: LIBRARY, matched: false };
+
+    const candidates = LIBRARY.filter(ex => {
+      if (categories.has(ex.category)) return true;
+      if (subcatPairs.has(ex.category + '::' + ex.subcategory)) return true;
+      return false;
+    });
+
+    // A matched-but-empty result (shouldn't really happen given the
+    // dictionary is built from the real taxonomy) still falls back to the
+    // full library rather than handing the AI nothing to choose from.
+    return candidates.length ? { candidates, matched: true } : { candidates: LIBRARY, matched: false };
+  },
+
+  // Which "group" an exercise belongs to for rotation purposes. Subcategory
+  // is the right granularity for most of the library (e.g. Object
+  // Manipulation splits into Juggling / Stick Balancing / Tennis Ball /
+  // Indian Clubs; Body Movement splits Handstand from Gymnastics
+  // Conditioning) — that's exactly the "juggling yesterday, sticks today"
+  // distinction. Falls back to category, then a single bucket, so ungrouped
+  // pools still work.
+  _groupOf(id) {
+    const lib = LIBRARY.find(e => e.id === id);
+    return lib?.subcategory || lib?.category || '_';
+  },
+
+  // Two-level rotation: order GROUPS by recency (a group's last-seen date is
+  // the most recent last-seen among its members), then order members within
+  // each group by their own recency. This is what lets a block rotate
+  // between movement families (sticks vs juggling, handstand vs core) day
+  // to day instead of just cycling individual exercise ids in place.
+  // Degrades to plain _orderByRecency when there's only one group present.
+  _orderByGroupRecency(ids, lastSeenMap) {
+    if (!lastSeenMap) return ids;
+    const groups = [...new Set(ids.map(id => this._groupOf(id)))];
+    if (groups.length <= 1) return this._orderByRecency(ids, lastSeenMap);
+
+    // A group is "seen" as recently as its most-recently-seen member.
+    const groupLastSeen = {};
+    ids.forEach(id => {
+      const g = this._groupOf(id);
+      const seen = lastSeenMap[id];
+      if (seen && (!groupLastSeen[g] || new Date(seen) > new Date(groupLastSeen[g]))) {
+        groupLastSeen[g] = seen;
+      }
+    });
+
+    const orderedGroups = this._orderByRecency(groups, groupLastSeen);
+    const out = [];
+    orderedGroups.forEach(g => {
+      const members = ids.filter(id => this._groupOf(id) === g);
+      out.push(...this._orderByRecency(members, lastSeenMap));
+    });
+    return out;
+  },
+
+  // Structured (not prose) explanation of what _orderByGroupRecency decided
+  // for a pool, so the UI can say *why* a block looks the way it does
+  // without recomputing rotation logic itself. Returns null when there's
+  // nothing interesting to say (no history yet, or only one group in the
+  // pool). Otherwise: { chosenGroup, deprioritizedGroup, deprioritizedDaysAgo }
+  // — the group that lost out and how long ago it was last trained.
+  _rotationNote(ids, lastSeenMap) {
+    if (!lastSeenMap) return null;
+    const groups = [...new Set(ids.map(id => this._groupOf(id)))];
+    if (groups.length <= 1) return null;
+
+    const groupLastSeen = {};
+    ids.forEach(id => {
+      const g = this._groupOf(id);
+      const seen = lastSeenMap[id];
+      if (seen && (!groupLastSeen[g] || new Date(seen) > new Date(groupLastSeen[g]))) {
+        groupLastSeen[g] = seen;
+      }
+    });
+    if (!Object.keys(groupLastSeen).length) return null; // nothing in this pool has history yet
+
+    const ordered = this._orderByRecency(groups, groupLastSeen);
+    const chosenGroup = ordered[0];
+    const mostRecentGroup = ordered[ordered.length - 1];
+    if (chosenGroup === mostRecentGroup || !groupLastSeen[mostRecentGroup]) return null;
+
+    const days = Math.floor((Date.now() - new Date(groupLastSeen[mostRecentGroup]).getTime()) / 86400000);
+    return { chosenGroup, deprioritizedGroup: mostRecentGroup, deprioritizedDaysAgo: days };
+  },
+
+  // Pick exercises off an ordered candidate list until the estimated time
+  // reaches the block's target duration, instead of always dumping the
+  // whole curated list regardless of how much time was allotted.
+  // Always includes at least one exercise when targetMin > 0.
+  // If lastSeenMap is provided, the pool is rotated group-first (see
+  // _orderByGroupRecency) so pool-style blocks (light/objManip/skill) vary
+  // day to day — both which movement family shows up and which specific
+  // exercise within it — rather than always surfacing the same items.
+  //
+  // painCaution (optional Set of joint tags) pushes exercises that touch a
+  // sore/tight joint to the back of the pool — they're still eligible, just
+  // deprioritized behind safer options. Hard exclusion (avoid) happens one
+  // level up, inside resolveEx, so it applies uniformly everywhere.
+  //
+  // preferRaisesHR (optional bool) is only set when this call is topping up
+  // a block with time reclaimed from a pain-excluded exercise elsewhere
+  // (see _getThemeBlocks) — it stable-sorts raisesHR:true candidates first
+  // so the reclaimed time goes toward something that still keeps HR up.
+  _fitToTime(ids, targetMin, resolveEx, lastSeenMap, painCaution, preferRaisesHR) {
+    const picked = [];
+    if (!targetMin || targetMin <= 0) return picked;
+    let ordered = this._orderByGroupRecency(ids, lastSeenMap);
+
+    if (painCaution && painCaution.size) {
+      const safe = ordered.filter(id => !this._isPainCaution(id, painCaution));
+      const flagged = ordered.filter(id => this._isPainCaution(id, painCaution));
+      ordered = [...safe, ...flagged];
+    }
+    if (preferRaisesHR) {
+      const hr = ordered.filter(id => this._tagsFor(id)?.raisesHR);
+      const rest = ordered.filter(id => !this._tagsFor(id)?.raisesHR);
+      ordered = [...hr, ...rest];
+    }
+
+    let used = 0;
+    for (const id of ordered) {
+      if (used >= targetMin && picked.length > 0) break;
+      const ex = resolveEx(id);
+      if (!ex) continue;
+      picked.push(ex);
+      used += this._estimateExerciseMinutes(ex);
+    }
+    return picked;
   },
 
   // Main generation function
@@ -416,6 +860,8 @@ const Generator = {
     const durations = customDurations || this.getBlockDurations(duration, energy);
     const lowEnergy = (sleep > 0 && sleep < 3) || (energy > 0 && energy < 3);
     const useExt    = tier >= 3 && !lowEnergy;
+    const lastSeenMap = History.getExerciseLastSeenMap(30);
+    const painTags  = this._parsePainTags(pain);
 
     const session = {
       id:        null,          // set on save
@@ -427,33 +873,32 @@ const Generator = {
       energy,
       pain,
       focus,
-      weekCycle: profile.currentWeek,
       status:    'active',      // 'active' | 'completed'
       startedAt: Date.now(),
       completedAt: null,
       notes:     '',
-      blocks:    this._buildBlocks({ theme, tier, durations, lowEnergy, useExt, profile, focus }),
+      blocks:    this._buildBlocks({ theme, tier, durations, lowEnergy, useExt, profile, focus, lastSeenMap, painTags }),
+      painNote:  (painTags.avoid.size || painTags.caution.size)
+        ? { avoid: [...painTags.avoid], caution: [...painTags.caution] }
+        : null,
     };
 
     return session;
   },
 
-  _buildBlocks({ theme, tier, durations, lowEnergy, useExt, profile, focus }) {
-    const blocks = [];
-
-    // Helper: filter exercises by profile state
-    const isEnabled = (id) => {
-      const state = Profile.getExerciseState(profile, id);
-      return state === 'active';
-    };
-
-    const resolveEx = (id) => {
+  // Builds a resolveEx(id) closure — the single funnel every block's
+  // exercise picks pass through, applying profile exclusion and pain-aware
+  // hard exclusion consistently. Factored out so AIGenerator can resolve
+  // AI-picked ids into the exact same exercise-object shape the rest of
+  // the app expects, without duplicating this logic.
+  _resolveExFactory(profile, painAvoid) {
+    return (id) => {
       const ex = LIBRARY.find(e => e.id === id);
       if (!ex) return null;
       const state = Profile.getExerciseState(profile, ex.id);
       if (state === 'excluded') return null;
+      if (this._isPainExcluded(ex.id, painAvoid)) return null;
 
-      // Get last log for placeholder
       const lastLog = History.getLastExerciseLog(ex.id);
       const pr      = History.getPR(ex.id);
       const prog    = History.getProgressionSuggestion(ex.id);
@@ -473,11 +918,19 @@ const Generator = {
         lastLog,
         pr,
         progressionSuggestion: prog.suggest ? prog.message : null,
-        sets:        [],        // filled during live session
+        sets:        [],
         skipped:     false,
         completed:   false,
       };
     };
+  },
+
+  _buildBlocks({ theme, tier, durations, lowEnergy, useExt, profile, focus, lastSeenMap, painTags }) {
+    const blocks = [];
+    const painAvoid   = painTags?.avoid   || new Set();
+    const painCaution = painTags?.caution || new Set();
+
+    const resolveEx = this._resolveExFactory(profile, painAvoid);
 
     // ── LIGHT BLOCK ──────────────────────────────────────────
     const lightExIds = ['dead-hang', 'deep-squat-hold', 'spinal-waves-standing', 'vertical-shake'];
@@ -497,26 +950,37 @@ const Generator = {
       bg:       '#E1F5EE',
       duration: durations.lightBlock,
       note:     'Pre-breakfast. Light load only — non-negotiable.',
-      exercises: lightExIds.map(resolveEx).filter(Boolean),
+      exercises: this._fitToTime(lightExIds, durations.lightBlock, resolveEx, lastSeenMap, painCaution),
+      rotationNote: this._rotationNote(lightExIds, lastSeenMap),
     });
 
-    // ── OBJECT MANIPULATION (tier 3+) ────────────────────────
-    if (tier >= 3) {
-      const objIds = tier === 3
-        ? ['stick-static', 'juggling-cascade', 'tennis-ball-dribble']
-        : ['stick-static', 'stick-walking', 'stick-transfer',
-           'juggling-cascade', 'juggling-variations',
-           'tennis-ball-dribble', 'ball-eye-patched', 'contact-juggling'];
+    // ── OBJECT MANIPULATION (only if you've allocated time to it) ──
+    // objIds/objManipMin are hoisted to _buildBlocks scope (not just this
+    // if-block) so a pain-driven time reallocation from the theme's main
+    // block — computed later, after _getThemeBlocks runs — can top this
+    // block back up even if it started at 0 allotted minutes.
+    const objIds = tier >= 4
+      ? ['stick-static', 'stick-walking', 'stick-transfer',
+         'juggling-cascade', 'juggling-variations',
+         'tennis-ball-dribble', 'ball-eye-patched', 'contact-juggling']
+      : ['stick-static', 'juggling-cascade', 'tennis-ball-dribble'];
+    let objManipMin = durations.objManip;
 
+    // In AI-freeform mode, AIGenerator owns the whole objManip+skill+main
+    // time budget itself and builds its own blocks for it — building a
+    // separate deterministic object-manipulation block here would double
+    // up that time.
+    if (objManipMin > 0 && theme !== 'ai-freeform') {
       blocks.push({
         key:      'objManip',
         label:    'Object manipulation',
         icon:     'circles',
         color:    '#7F77DD',
         bg:       '#EEEDFE',
-        duration: durations.objManip,
+        duration: objManipMin,
         note:     'Activating without loading — sharpen focus before meditation.',
-        exercises: objIds.map(resolveEx).filter(Boolean),
+        exercises: this._fitToTime(objIds, objManipMin, resolveEx, lastSeenMap, painCaution),
+        rotationNote: this._rotationNote(objIds, lastSeenMap),
       });
     }
 
@@ -554,7 +1018,7 @@ const Generator = {
       bg:       '#EEEDFE',
       duration: durations.meditate,
       note:     'Post-breakfast. Fixed slot. Mental rehearsal before skill.',
-      exercises: meditateIds.map(resolveEx).filter(Boolean),
+      exercises: this._fitToTime(meditateIds, durations.meditate, resolveEx, null, painCaution),
     });
 
     // ── WARM-UP (not on rest or z2 days) ─────────────────────
@@ -576,19 +1040,59 @@ const Generator = {
         bg:       '#E1F5EE',
         duration: durations.warmup,
         note:     'CARs + prehab. Never skip.',
-        exercises: warmupIds.map(resolveEx).filter(Boolean),
+        exercises: this._fitToTime(warmupIds, durations.warmup, resolveEx, null, painCaution),
       });
     }
 
     // ── SKILL + MAIN blocks by theme ─────────────────────────
-    const themeBlocks = this._getThemeBlocks({ theme, tier, durations, lowEnergy, useExt, profile, focus, resolveEx });
+    const { blocks: themeBlocks, objManipBoost } = this._getThemeBlocks({
+      theme, tier, durations, lowEnergy, useExt, profile, focus, resolveEx, lastSeenMap,
+      painAvoid, painCaution, objIds,
+    });
     blocks.push(...themeBlocks);
+
+    // A pain-excluded fixed exercise (e.g. a sprint/run main block with an
+    // avoided ankle/knee) can leave real, unspent minutes on the table.
+    // _getThemeBlocks already reclaims most of that into its own skill
+    // block; whatever it hands back here tops up object manipulation too,
+    // per the original "increase skill + object manipulation, still raise
+    // HR" ask — biased toward exercises that still raise heart rate.
+    if (objManipBoost > 0) {
+      objManipMin += objManipBoost;
+      const boostedObjEx = this._fitToTime(objIds, objManipMin, resolveEx, lastSeenMap, painCaution, true);
+      const existingObjBlock = blocks.find(b => b.key === 'objManip');
+      if (existingObjBlock) {
+        existingObjBlock.duration  = objManipMin;
+        existingObjBlock.exercises = boostedObjEx;
+        if (!existingObjBlock.note.includes('reclaimed')) {
+          existingObjBlock.note += ' Extra minutes reclaimed from today’s pain-adjusted plan.';
+        }
+      } else if (boostedObjEx.length) {
+        blocks.push({
+          key:      'objManip',
+          label:    'Object manipulation',
+          icon:     'circles',
+          color:    '#7F77DD',
+          bg:       '#EEEDFE',
+          duration: objManipMin,
+          note:     'Extra time reclaimed from today’s pain-adjusted plan — picked to still raise heart rate.',
+          exercises: boostedObjEx,
+          rotationNote: this._rotationNote(objIds, lastSeenMap),
+        });
+      }
+    }
 
     // ── COOL-DOWN ────────────────────────────────────────────
     const cooldownMap = {
       'strength-a': useExt
         ? ['couch-stretch','hamstring-hang','pancake','middle-splits','shoulder-overhead-stretch','foam-rolling','tre-tremoring','body-scan']
         : ['couch-stretch','hamstring-hang','straightjacket-shake'],
+      'strength-b': useExt
+        ? ['couch-stretch','hamstring-hang','pancake','middle-splits','shoulder-overhead-stretch','foam-rolling','tre-tremoring','body-scan']
+        : ['couch-stretch','hamstring-hang','straightjacket-shake'],
+      'plio-a': useExt
+        ? ['pancake','middle-splits','bridge','couch-stretch','foam-rolling','tre-tremoring','straightjacket-shake','body-scan']
+        : ['pancake','bridge','tre-tremoring'],
       'plio-b': useExt
         ? ['pancake','middle-splits','bridge','couch-stretch','foam-rolling','tre-tremoring','straightjacket-shake','body-scan']
         : ['pancake','bridge','tre-tremoring'],
@@ -615,15 +1119,49 @@ const Generator = {
       bg:       '#F1EFE8',
       duration: durations.cooldown,
       note:     '',
-      exercises: coolIds.map(resolveEx).filter(Boolean),
+      exercises: this._fitToTime(coolIds, durations.cooldown, resolveEx),
     });
 
-    return blocks;
+    // Drop blocks you allocated 0 minutes to (breakfast is a fixed ritual
+    // item, not a duration-controlled block, so it's always kept).
+    return blocks.filter(b => b.key === 'breakfast' || b.exercises.length > 0);
   },
 
-  _getThemeBlocks({ theme, tier, durations, lowEnergy, useExt, profile, focus, resolveEx }) {
+  _getThemeBlocks({ theme, tier, durations, lowEnergy, useExt, profile, focus, resolveEx, lastSeenMap, painAvoid, painCaution, objIds }) {
     const blocks = [];
     const trim = (arr) => lowEnergy ? arr.slice(0, Math.ceil(arr.length * 0.5)) : arr;
+    painAvoid   = painAvoid   || new Set();
+    painCaution = painCaution || new Set();
+    let objManipBoost = 0;
+
+    // Ankle/knee pain (avoided or just sore) is exactly the case the bike
+    // substitution is for — prefer it over ground-impact cardio regardless
+    // of tier, rather than only switching to it on long sessions.
+    const preferBike = ['ankle', 'knee'].some(j => painAvoid.has(j) || painCaution.has(j));
+
+    // When a fixed single-exercise main block (sprint intervals, a walk)
+    // comes up empty because its only exercise was pain-excluded, push its
+    // unused minutes into this theme's skill pool (favoring exercises that
+    // still raise heart rate) and hand the remainder back to _buildBlocks
+    // for object manipulation — mirrors what a coach would actually do:
+    // "no sprints today, so let's get more time on skill work instead."
+    const reclaimIntoSkill = (reclaimedMin, skillIds, currentSkillBlock) => {
+      if (reclaimedMin <= 0) return;
+      const toSkill = Math.round(reclaimedMin * 0.6);
+      objManipBoost += reclaimedMin - toSkill;
+      if (currentSkillBlock && toSkill > 0) {
+        currentSkillBlock.duration += toSkill;
+        currentSkillBlock.exercises = this._fitToTime(
+          skillIds, currentSkillBlock.duration, resolveEx, lastSeenMap, painCaution, true
+        );
+        if (!currentSkillBlock.note.includes('Extra time')) {
+          currentSkillBlock.note = (currentSkillBlock.note ? currentSkillBlock.note + ' ' : '') +
+            'Extra time added — today’s plan swapped out something pain flagged.';
+        }
+      } else {
+        objManipBoost += toSkill;
+      }
+    };
 
     switch (theme) {
 
@@ -640,12 +1178,58 @@ const Generator = {
           : ['squat','incline-bench','pull-up','lateral-raise','toes-to-bar']);
 
         blocks.push(
-          { key:'skill', label:'Skill block', icon:'star',    color:'#378ADD', bg:'#E6F1FB', duration: durations.skill, note:'CNS is fresh — skill work first.', exercises: skillIds.map(resolveEx).filter(Boolean) },
-          { key:'main',  label:'Strength A',  icon:'barbell', color:'#D85A30', bg:'#FAECE7', duration: durations.main,  note:'', exercises: mainIds.map(resolveEx).filter(Boolean) }
+          { key:'skill', label:'Skill block', icon:'star',    color:'#378ADD', bg:'#E6F1FB', duration: durations.skill, note:'CNS is fresh — skill work first.', exercises: this._fitToTime(skillIds, durations.skill, resolveEx, lastSeenMap, painCaution), rotationNote: this._rotationNote(skillIds, lastSeenMap) },
+          { key:'main',  label:'Strength A',  icon:'barbell', color:'#D85A30', bg:'#FAECE7', duration: durations.main,  note:'', exercises: this._fitToTime(mainIds, durations.main, resolveEx, null, painCaution) }
         );
         break;
       }
 
+      // Same skill pool as Strength A — these are meant as two interchangeable
+      // strength days, not a progression, so skill practice stays consistent.
+      case 'strength-b': {
+        const skillIds = trim(useExt
+          ? ['hollow-body-hold','hollow-body-rock','arch-body-hold','tuck-sit',
+             'pike-sit-wall','pike-sit-free','straddle-leg-circles','straddle-leg-raises',
+             'hs-wall-hold','hs-pike-entry','hs-tuck','ring-pull-up','skin-the-cat','l-sit-floor','back-lever']
+          : ['hollow-body-hold','arch-body-hold','pike-sit-wall',
+             'hs-wall-hold','hs-pike-entry','ring-pull-up','skin-the-cat']);
+
+        const mainIds = trim(['deadlift','overhead-press','cable-row','triceps-dip','plank']);
+
+        blocks.push(
+          { key:'skill', label:'Skill block', icon:'star',    color:'#378ADD', bg:'#E6F1FB', duration: durations.skill, note:'CNS is fresh — skill work first.', exercises: this._fitToTime(skillIds, durations.skill, resolveEx, lastSeenMap, painCaution), rotationNote: this._rotationNote(skillIds, lastSeenMap) },
+          { key:'main',  label:'Strength B',  icon:'barbell', color:'#B8451F', bg:'#FAECE7', duration: durations.main,  note:'', exercises: this._fitToTime(mainIds, durations.main, resolveEx, null, painCaution) }
+        );
+        break;
+      }
+
+      // Power/plyo day 1: jumps, throws, unilateral carries, core rotation.
+      case 'plio-a': {
+        const skillIds = trim(useExt
+          ? ['hollow-body-hold','hollow-body-rock','arch-body-hold',
+             'straddle-sit-compression','straddle-leg-circles','straddle-leg-raises','straddle-fold-passive',
+             'hs-pike-entry','hs-tuck','tuck-sit','l-sit-floor',
+             'ring-hold-support','skin-the-cat','ring-dip','back-lever']
+          : ['hollow-body-hold','straddle-sit-compression','straddle-leg-raises',
+             'hs-pike-entry','tuck-sit','ring-hold-support','skin-the-cat']);
+
+        const mainIds = trim(['box-jump','med-ball-slams','kb-swing','ring-push-up','walking-lunge','weighted-crunch','cable-twist']);
+
+        const skillBlock = { key:'skill', label:'Skill block', icon:'star',    color:'#378ADD', bg:'#E6F1FB', duration: durations.skill, note:'CNS is fresh — skill work first.', exercises: this._fitToTime(skillIds, durations.skill, resolveEx, lastSeenMap, painCaution), rotationNote: this._rotationNote(skillIds, lastSeenMap) };
+        const mainEx = this._fitToTime(mainIds, durations.main, resolveEx, null, painCaution);
+        // box-jump is the only high-impact ankle/knee item in this pool —
+        // if it (and everything else) got excluded, reclaim rather than
+        // leave the whole main block empty.
+        if (durations.main > 0 && mainEx.length === 0) reclaimIntoSkill(durations.main, skillIds, skillBlock);
+
+        blocks.push(
+          skillBlock,
+          { key:'main',  label:'Plio A',      icon:'barbell', color:'#7B5FC7', bg:'#F0EEFE', duration: mainEx.length ? durations.main : 0, note:'', exercises: mainEx }
+        );
+        break;
+      }
+
+      // Power/plyo day 2: unilateral strength + mobility under load.
       case 'plio-b': {
         const skillIds = trim(useExt
           ? ['hollow-body-hold','hollow-body-rock','arch-body-hold',
@@ -655,23 +1239,22 @@ const Generator = {
           : ['hollow-body-hold','straddle-sit-compression','straddle-leg-raises',
              'hs-pike-entry','tuck-sit','ring-hold-support','skin-the-cat']);
 
-        const mainIds = trim(useExt
-          ? ['deadlift','overhead-press','cable-row','triceps-dip','plank',
-             'box-jump','kb-swing','bulgarian-split-squat','cossack-squat',
-             'pallof-press','farmers-walk','jefferson-curl']
-          : ['deadlift','overhead-press','cable-row','triceps-dip',
-             'box-jump','kb-swing','cossack-squat']);
+        const mainIds = trim(['cossack-squat','jefferson-curl','shoulder-cars','ankle-mobility','bulgarian-split-squat','single-leg-rdl','half-kneeling-press','farmers-walk','pallof-press']);
 
         blocks.push(
-          { key:'skill', label:'Skill block', icon:'star',    color:'#378ADD', bg:'#E6F1FB', duration: durations.skill, note:'CNS is fresh — skill work first.', exercises: skillIds.map(resolveEx).filter(Boolean) },
-          { key:'main',  label:'Plio B',      icon:'barbell', color:'#533483', bg:'#F0EEFE', duration: durations.main,  note:'', exercises: mainIds.map(resolveEx).filter(Boolean) }
+          { key:'skill', label:'Skill block', icon:'star',    color:'#378ADD', bg:'#E6F1FB', duration: durations.skill, note:'CNS is fresh — skill work first.', exercises: this._fitToTime(skillIds, durations.skill, resolveEx, lastSeenMap, painCaution), rotationNote: this._rotationNote(skillIds, lastSeenMap) },
+          { key:'main',  label:'Plio B',      icon:'barbell', color:'#533483', bg:'#F0EEFE', duration: durations.main,  note:'', exercises: this._fitToTime(mainIds, durations.main, resolveEx, null, painCaution) }
         );
         break;
       }
 
       case 'z2-movement': {
-        const cardioEx = resolveEx(tier >= 3 ? 'z2-cycling' : 'easy-run') || resolveEx('easy-run');
-        if (cardioEx) cardioEx.notes = (tier >= 3 ? '45–60' : '30') + ' min. Nose breathing. Conversational pace.';
+        const cardioId = preferBike ? 'z2-cycling' : (tier >= 3 ? 'z2-cycling' : 'easy-run');
+        const cardioEx = resolveEx(cardioId) || resolveEx('z2-cycling') || resolveEx('easy-run');
+        if (cardioEx) {
+          cardioEx.notes = (tier >= 3 ? '45–60' : '30') + ' min. Nose breathing. Conversational pace.' +
+            (preferBike && cardioEx.id === 'z2-cycling' ? ' Swapped to the bike — easier on the ankle/knee today.' : '');
+        }
 
         const movementIds = trim(useExt
           ? ['rolling-forward','rolling-backward','rolling-side','lizard-crawl',
@@ -679,8 +1262,8 @@ const Generator = {
           : ['rolling-forward','rolling-side','lizard-crawl','ground-flow','freestyle']);
 
         blocks.push(
-          { key:'skill', label:'Zone 2',       icon:'heart-rate', color:'#1A7A4A', bg:'#E1F5EE', duration: durations.skill, note:'Nose breathing throughout. Conversational pace.', exercises: [cardioEx].filter(Boolean) },
-          { key:'main',  label:'Ground flow',  icon:'run',        color:'#1A7A4A', bg:'#E1F5EE', duration: durations.main,  note:'', exercises: movementIds.map(resolveEx).filter(Boolean) }
+          { key:'skill', label:'Zone 2',       icon:'heart-rate', color:'#1A7A4A', bg:'#E1F5EE', duration: durations.skill, note:'Nose breathing throughout. Conversational pace.', exercises: durations.skill > 0 ? [cardioEx].filter(Boolean) : [] },
+          { key:'main',  label:'Ground flow',  icon:'run',        color:'#1A7A4A', bg:'#E1F5EE', duration: durations.main,  note:'', exercises: this._fitToTime(movementIds, durations.main, resolveEx, null, painCaution) }
         );
         break;
       }
@@ -693,14 +1276,24 @@ const Generator = {
         const sprintEx = resolveEx('uphill-sprints');
         if (sprintEx) sprintEx.notes = useExt ? '10×20s / 90s full rest' : '6×20s / 90s full rest';
 
+        const skillBlock = { key:'skill', label:'Power', icon:'bolt', color:'#A32D2D', bg:'#FAE8E8', duration: durations.skill, note:'Maximal intent every rep.', exercises: this._fitToTime(powerIds, durations.skill, resolveEx, lastSeenMap, painCaution), rotationNote: this._rotationNote(powerIds, lastSeenMap) };
+
+        // Sprints are exactly the "no sprints or long run" case — ankle/knee
+        // avoid excludes uphill-sprints via resolveEx (Sprint = high impact),
+        // so reclaim that block's minutes into skill + object manipulation
+        // instead of just showing an empty main block.
+        if (durations.main > 0 && !sprintEx) reclaimIntoSkill(durations.main, powerIds, skillBlock);
+
         blocks.push(
-          { key:'skill', label:'Power',         icon:'bolt',    color:'#A32D2D', bg:'#FAE8E8', duration: durations.skill, note:'Maximal intent every rep.', exercises: powerIds.map(resolveEx).filter(Boolean) },
-          { key:'main',  label:'Sprint / intervals', icon:'run', color:'#A32D2D', bg:'#FAE8E8', duration: durations.main, note:'Full recovery between efforts.', exercises: [sprintEx].filter(Boolean) }
+          skillBlock,
+          { key:'main',  label:'Sprint / intervals', icon:'run', color:'#A32D2D', bg:'#FAE8E8', duration: sprintEx ? durations.main : 0, note:'Full recovery between efforts.', exercises: durations.main > 0 ? [sprintEx].filter(Boolean) : [] }
         );
         break;
       }
 
       case 'z2-flex': {
+        // Already bike-first regardless of pain (z2-flex days are always
+        // low-impact by design), so no preferBike branching needed here.
         const cardioEx = resolveEx('z2-cycling') || resolveEx('easy-run');
         if (cardioEx) cardioEx.notes = (tier >= 3 ? '45–60' : '30') + ' min. Nose breathing.';
 
@@ -710,14 +1303,15 @@ const Generator = {
           : ['pancake','middle-splits','straddle-sit-compression','hamstring-pnf','bridge','front-splits']);
 
         blocks.push(
-          { key:'skill', label:'Zone 2',         icon:'heart-rate', color:'#196F3D', bg:'#E1F5EE', duration: durations.skill, note:'Nose breathing throughout.', exercises: [cardioEx].filter(Boolean) },
-          { key:'main',  label:'Flexibility',    icon:'stretching', color:'#196F3D', bg:'#E1F5EE', duration: durations.main,  note:'Long passive holds. PNF where noted.', exercises: flexIds.map(resolveEx).filter(Boolean) }
+          { key:'skill', label:'Zone 2',         icon:'heart-rate', color:'#196F3D', bg:'#E1F5EE', duration: durations.skill, note:'Nose breathing throughout.', exercises: durations.skill > 0 ? [cardioEx].filter(Boolean) : [] },
+          { key:'main',  label:'Flexibility',    icon:'stretching', color:'#196F3D', bg:'#E1F5EE', duration: durations.main,  note:'Long passive holds. PNF where noted.', exercises: this._fitToTime(flexIds, durations.main, resolveEx, null, painCaution) }
         );
         break;
       }
 
       case 'rest': {
-        const walkEx = {
+        const walkExcluded = this._isPainExcluded('walking', painAvoid);
+        const walkEx = walkExcluded ? null : {
           id:      'walking',
           name:    'Walking / hiking',
           logType: 'cardio',
@@ -733,15 +1327,22 @@ const Generator = {
           ? ['pancake','middle-splits','couch-stretch','bridge','front-splits','hamstring-hang','shoulder-overhead-stretch','freestyle']
           : ['pancake','couch-stretch','bridge','freestyle']);
 
+        const mainBlock = { key:'main', label:'Flexibility', icon:'stretching', color:'#5D6D7E', bg:'#EFF0F1', duration: durations.main, note:'No load. Long holds.', exercises: this._fitToTime(restIds, durations.main, resolveEx, null, painCaution) };
+        if (walkExcluded && durations.skill > 0) {
+          mainBlock.duration += Math.round(durations.skill * 0.6);
+          mainBlock.exercises = this._fitToTime(restIds, mainBlock.duration, resolveEx, null, painCaution);
+          objManipBoost += durations.skill - Math.round(durations.skill * 0.6);
+        }
+
         blocks.push(
-          { key:'skill', label:'Walk / hike',    icon:'walk',    color:'#5D6D7E', bg:'#EFF0F1', duration: durations.skill, note:'No targets. Just move.', exercises: [walkEx] },
-          { key:'main',  label:'Flexibility',    icon:'stretching', color:'#5D6D7E', bg:'#EFF0F1', duration: durations.main, note:'No load. Long holds.', exercises: restIds.map(resolveEx).filter(Boolean) }
+          { key:'skill', label:'Walk / hike', icon:'walk', color:'#5D6D7E', bg:'#EFF0F1', duration: walkEx ? durations.skill : 0, note: walkEx ? 'No targets. Just move.' : '', exercises: durations.skill > 0 ? [walkEx].filter(Boolean) : [] },
+          mainBlock
         );
         break;
       }
     }
 
-    return blocks;
+    return { blocks, objManipBoost };
   },
 
   // Suggest focus adjustments based on stale goals
@@ -752,6 +1353,254 @@ const Generator = {
       return pg && pg.priority === 1;
     });
     return priority1.length > 0 ? priority1 : stale.slice(0, 2);
+  },
+};
+
+
+// ═════════════════════════════════════════════════════════════
+// 4b. AI GENERATION (bring-your-own-key, direct from browser)
+// ═════════════════════════════════════════════════════════════
+// Free-text session generation. Reuses Generator for everything it already
+// does well (block-duration budgeting, light/meditate/warmup/cooldown
+// scaffolding, pain parsing/exclusion, resolveEx) and only asks the model
+// to do the one thing it's actually needed for: picking real exercises
+// (and how to split the "work" time across them) from a pre-filtered,
+// compact candidate list. The model never sees or invents an exercise id
+// that isn't in the payload we sent it, and anything it returns is
+// re-validated against that same list before it's allowed into a session.
+const AIGenerator = {
+  API_URL: 'https://api.anthropic.com/v1/messages',
+  API_VERSION: '2023-06-01',
+
+  // Strip candidates down to only what the model needs to make a good
+  // pick — dropping notes/links/etc. is most of the token savings on top
+  // of the category pre-filter.
+  _compactCandidates(candidates) {
+    return candidates.map(ex => ({
+      id: ex.id,
+      name: ex.name,
+      category: ex.category,
+      subcategory: ex.subcategory,
+      difficulty: ex.difficulty,
+      logType: ex.logType,
+      energy: ex.energy,
+    }));
+  },
+
+  // "id:daysAgo" pairs, candidates only, and only ones actually seen —
+  // gives the model just enough to avoid repeating yesterday's picks
+  // without shipping the full history.
+  _compactRecency(lastSeenMap, candidateIds) {
+    const idSet = new Set(candidateIds);
+    const parts = [];
+    Object.keys(lastSeenMap || {}).forEach(id => {
+      if (!idSet.has(id)) return;
+      const days = Math.floor((Date.now() - new Date(lastSeenMap[id]).getTime()) / 86400000);
+      parts.push(`${id}:${days}d`);
+    });
+    return parts.join(', ');
+  },
+
+  buildPrompt({ freeText, workMinutes, candidates, lastSeenMap, painTags, focus }) {
+    const compact = this._compactCandidates(candidates);
+    const recency = this._compactRecency(lastSeenMap, candidates.map(c => c.id));
+    const avoid   = painTags?.avoid?.size   ? [...painTags.avoid].join(', ')   : 'none';
+    const caution = painTags?.caution?.size ? [...painTags.caution].join(', ') : 'none';
+
+    const system = `You design a single practice-session's "core work" content for a personal movement/skill training app. You are given a fixed time budget and a pool of exercises the user is actually allowed to do today — pick real ids from that pool only, never invent an id, name, or exercise that isn't listed. Return ONLY valid JSON matching this exact shape, no markdown fences, no commentary outside the JSON:
+{
+  "blocks": [
+    { "label": "string, short and specific", "minutes": number, "exerciseIds": ["id", "id"] }
+  ],
+  "rationale": "2-3 sentences, plain conversational coaching voice, explaining why you picked what you picked for today specifically"
+}
+Rules:
+- 1 to 3 blocks total. Most requests only need 1-2.
+- Block minutes must sum to approximately the given total work budget (small rounding is fine, don't pad).
+- Only use exercise ids from the provided candidate list.
+- Prefer exercises not recently trained (see the recency list) when the request doesn't specify otherwise — variety matters more than repeating favorites.
+- If joints are flagged "avoid" or "caution", you won't see excluded exercises in the candidate list at all (already filtered out) — just don't dwell on it, the app handles exclusion separately.
+- Keep the rationale short — 2-3 sentences, not a full essay. The JSON must always be complete and valid; never let the rationale run so long it gets cut off.`;
+
+    const user = `Request: "${freeText}"
+Total work time budget: ${workMinutes} minutes
+Recent training focus note: ${focus || 'none given'}
+Pain check-in — avoid: ${avoid}; caution (go lighter, don't exclude): ${caution}
+Recently trained (id:days ago), candidates only: ${recency || 'no recent history'}
+
+Candidate exercises (id, name, category, subcategory, difficulty 1-5, logType, energy):
+${JSON.stringify(compact)}`;
+
+    return { system, user };
+  },
+
+  async callClaude({ apiKey, model, system, user }) {
+    const res = await fetch(this.API_URL, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': this.API_VERSION,
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model,
+        // Generous headroom above what a 1-3 block session + a short
+        // rationale actually needs (a few hundred tokens in practice).
+        // Anthropic bills by tokens actually generated, not this cap, so
+        // raising it costs nothing unless the model really needs it — it
+        // just stops the response getting cut off mid-JSON on longer
+        // sessions (was 1024, too tight: a long candidate list + a
+        // multi-block session + rationale could blow past it, producing
+        // an unparseable truncated JSON string instead of a clean error).
+        max_tokens: 4096,
+        system,
+        messages: [{ role: 'user', content: user }],
+      }),
+    });
+
+    if (!res.ok) {
+      let detail = '';
+      try { detail = (await res.json())?.error?.message || ''; } catch {}
+      throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
+    }
+
+    const data = await res.json();
+    const text = data?.content?.find(b => b.type === 'text')?.text;
+    if (!text) throw new Error('Anthropic API returned no text content.');
+    // stop_reason 'max_tokens' means the response was cut off mid-generation
+    // — surface that plainly instead of letting it fail as a confusing
+    // "unterminated string" JSON parse error downstream.
+    return { text, truncated: data.stop_reason === 'max_tokens' };
+  },
+
+  // Models sometimes wrap JSON in ```json fences despite instructions not
+  // to — strip those before parsing rather than failing on them.
+  _extractJSON(text, truncated) {
+    const cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (e) {
+      if (truncated) {
+        throw new Error('AI response got cut off before finishing — try again, or ask for a shorter/simpler session.');
+      }
+      throw new Error('Could not parse AI response as JSON: ' + e.message);
+    }
+    if (!parsed || !Array.isArray(parsed.blocks)) {
+      throw new Error('AI response was missing a "blocks" array.');
+    }
+    return parsed;
+  },
+
+  // Re-validates every returned exercise id against the real candidate set
+  // (defense in depth — never trust the model's word that it only used
+  // what it was given) and resolves each into the same exercise-object
+  // shape the rest of the app expects.
+  _mapToBlocks(parsed, candidates, resolveEx) {
+    const candidateIds = new Set(candidates.map(c => c.id));
+    const keyOrder = ['skill', 'main', 'objManip'];
+    const colors = [
+      { color: '#378ADD', bg: '#E6F1FB', icon: 'star' },
+      { color: '#D85A30', bg: '#FAECE7', icon: 'barbell' },
+      { color: '#7F77DD', bg: '#EEEDFE', icon: 'circles' },
+    ];
+
+    const blocks = parsed.blocks
+      .slice(0, 3)
+      .map((b, i) => {
+        const validIds = (b.exerciseIds || []).filter(id => candidateIds.has(id));
+        const exercises = validIds.map(resolveEx).filter(Boolean);
+        if (!exercises.length) return null;
+        const style = colors[i] || colors[colors.length - 1];
+        return {
+          key:      keyOrder[i] || `aiWork${i}`,
+          label:    b.label || 'AI-picked work',
+          icon:     style.icon,
+          color:    style.color,
+          bg:       style.bg,
+          duration: Math.max(5, Math.round(Number(b.minutes) || 0)),
+          note:     'Picked by AI for today\'s request.',
+          exercises,
+          aiGenerated: true,
+        };
+      })
+      .filter(Boolean);
+
+    if (!blocks.length) throw new Error('AI response had no usable exercises after validation.');
+    return blocks;
+  },
+
+  // Full pipeline: local filter → prompt → API call → validate → assemble
+  // a session in the exact shape Generator.generate() produces, so it can
+  // drop straight into the existing compose screen.
+  async generateSession({ freeText, duration, sleep, energy, pain, focus, profile }) {
+    const apiKey = profile?.settings?.anthropicApiKey;
+    if (!apiKey) throw new Error('Add an Anthropic API key in Settings → AI generation first.');
+    const model = profile?.settings?.aiModel || 'claude-sonnet-5';
+
+    const tier      = Generator.getTier(duration);
+    const durations = Generator.getBlockDurations(duration, energy);
+    const lastSeenMap = History.getExerciseLastSeenMap(30);
+    const painTags  = Generator._parsePainTags(pain);
+    const painAvoid = painTags.avoid;
+
+    const workMinutes = durations.objManip + durations.skill + durations.main;
+
+    const { candidates: rawCandidates } = Generator._filterLibraryByIntent(freeText);
+    // Drop anything already excluded (profile or pain) before it ever
+    // reaches the model — saves tokens and guarantees the model can't
+    // pick something that would just get filtered out anyway.
+    const resolveEx = Generator._resolveExFactory(profile, painAvoid);
+    const candidates = rawCandidates.filter(ex => {
+      if (Profile.getExerciseState(profile, ex.id) === 'excluded') return false;
+      if (Generator._isPainExcluded(ex.id, painAvoid)) return false;
+      return true;
+    });
+    if (!candidates.length) {
+      throw new Error('No exercises matched that request after filtering — try different wording.');
+    }
+
+    const { system, user } = this.buildPrompt({ freeText, workMinutes, candidates, lastSeenMap, painTags, focus });
+    const { text: responseText, truncated } = await this.callClaude({ apiKey, model, system, user });
+    const parsed = this._extractJSON(responseText, truncated);
+    const workBlocks = this._mapToBlocks(parsed, candidates, resolveEx);
+
+    const lowEnergy = (sleep > 0 && sleep < 3) || (energy > 0 && energy < 3);
+    const useExt    = tier >= 3 && !lowEnergy;
+    const scaffold  = Generator._buildBlocks({
+      theme: 'ai-freeform', tier, durations, lowEnergy, useExt, profile, focus, lastSeenMap, painTags,
+    });
+
+    // Scaffold gives light/breakfast/meditate/warmup/cooldown; splice the
+    // AI's work blocks in between warmup and cooldown (or before cooldown
+    // if warmup was somehow absent).
+    const cooldownIdx = scaffold.findIndex(b => b.key === 'cooldown');
+    const blocks = cooldownIdx === -1
+      ? [...scaffold, ...workBlocks]
+      : [...scaffold.slice(0, cooldownIdx), ...workBlocks, ...scaffold.slice(cooldownIdx)];
+
+    return {
+      id: null,
+      date: new Date().toISOString(),
+      theme: 'ai-freeform',
+      themeLabel: freeText,
+      duration,
+      tier,
+      sleep,
+      energy,
+      pain,
+      focus,
+      status: 'active',
+      startedAt: Date.now(),
+      completedAt: null,
+      notes: '',
+      blocks,
+      aiRationale: parsed.rationale || null,
+      painNote: (painTags.avoid.size || painTags.caution.size)
+        ? { avoid: [...painTags.avoid], caution: [...painTags.caution] }
+        : null,
+    };
   },
 };
 
@@ -842,34 +1691,21 @@ const Timer = {
 
 const LiveSession = {
   _session: null,
-  _currentBlockIdx: 0,
-  _currentExIdx: 0,
-  _currentSetIdx: 0,
   _onUpdate: null,
 
   start(session, onUpdate) {
     this._session = session;
-    this._currentBlockIdx = 0;
-    this._currentExIdx = 0;
-    this._currentSetIdx = 0;
     this._onUpdate = onUpdate;
     Timer.stopAll();
   },
 
   getSession() { return this._session; },
 
-  getCurrentBlock() {
-    return this._session?.blocks[this._currentBlockIdx] || null;
-  },
-
-  getCurrentExercise() {
-    const block = this.getCurrentBlock();
-    return block?.exercises[this._currentExIdx] || null;
-  },
-
-  // Log a set for the current exercise
-  logSet({ weight, reps, duration, note, completed = true }) {
-    const ex = this._getExercise(this._currentBlockIdx, this._currentExIdx);
+  // Log a set for a specific exercise (block/exercise index — the session
+  // screen renders every exercise at once, so the caller always knows
+  // exactly which one it's logging against).
+  logSet(blockIdx, exIdx, { weight, reps, duration, note, completed = true }) {
+    const ex = this._getExercise(blockIdx, exIdx);
     if (!ex) return;
 
     const set = {
@@ -920,8 +1756,8 @@ const LiveSession = {
   },
 
   // Log cardio exercise
-  logCardio({ durationMin, durationSec, appleFitnessLink, note }) {
-    const ex = this._getExercise(this._currentBlockIdx, this._currentExIdx);
+  logCardio(blockIdx, exIdx, { durationMin, durationSec, appleFitnessLink, note }) {
+    const ex = this._getExercise(blockIdx, exIdx);
     if (!ex) return;
     ex.cardioLog = {
       duration: durationMin * 60 + (durationSec || 0),
@@ -1007,15 +1843,6 @@ const Utils = {
     return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
   },
 
-  // Today's suggested theme based on cycle and day of week
-  getTodayTheme(profile) {
-    const dow = new Date().getDay(); // 0=Sun, 1=Mon, ...
-    // Map Sunday=6, Monday=0, ...
-    const dayIdx = dow === 0 ? 6 : dow - 1;
-    const week = profile.currentWeek === 1 ? WEEKLY_CYCLE.week1 : WEEKLY_CYCLE.week2;
-    return week[dayIdx] || week[6];
-  },
-
   // Days since a date string
   daysSince(iso) {
     if (!iso) return null;
@@ -1054,11 +1881,14 @@ const Utils = {
   getThemeConfig(themeId) {
     const configs = {
       'strength-a':   { label: 'Strength A',       color: '#185FA5', icon: 'barbell' },
+      'strength-b':   { label: 'Strength B',       color: '#0E4A85', icon: 'barbell' },
+      'plio-a':       { label: 'Plio A',            color: '#7B5FC7', icon: 'barbell' },
       'plio-b':       { label: 'Plio B',            color: '#533483', icon: 'barbell' },
       'z2-movement':  { label: 'Z2 + Movement',     color: '#1A7A4A', icon: 'run'     },
       'intense':      { label: 'Intense',           color: '#A32D2D', icon: 'bolt'    },
       'z2-flex':      { label: 'Z2 + Flexibility',  color: '#196F3D', icon: 'run'     },
       'rest':         { label: 'Rest + Recovery',   color: '#5D6D7E', icon: 'moon'    },
+      'ai-freeform':  { label: 'AI session',        color: '#378ADD', icon: 'star'    },
     };
     return configs[themeId] || { label: themeId, color: '#888', icon: 'activity' };
   },

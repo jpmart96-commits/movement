@@ -61,16 +61,11 @@
 <main id="screen-home" class="screen active">
   <header class="screen-header">
     <h1 class="logo">Movement</h1>
-    <div class="week-toggle" onclick="toggleWeek()">
-      <span id="week-label">Week 1</span>
-      <svg viewBox="0 0 24 24" width="14"><path d="M7 16l-4-4 4-4M17 8l4 4-4 4"/></svg>
-    </div>
   </header>
   <section class="card today-card">
     <div class="today-day" id="today-day">Monday</div>
-    <div class="today-theme" id="today-theme">Strength A</div>
-    <div class="today-sub" id="today-sub"></div>
-    <button class="btn-primary" onclick="startToday()">Start today's session ↗</button>
+    <button class="btn-primary" onclick="startToday()">Start a session ↗</button>
+    <button class="btn-ghost" style="margin-top:.5rem" onclick="openManualLogModal()">Log a past session</button>
   </section>
   <section class="card active-session-banner" id="active-banner" style="display:none">
     <div class="banner-label">Session in progress</div>
@@ -121,24 +116,39 @@
       <input type="text" id="pain-input" class="text-input" placeholder="e.g. left shoulder, none">
     </div>
     <div class="card">
-      <div class="field-label">Time available</div>
-      <div class="dur-display-row">
-        <span class="dur-val" id="dur-val">90</span>
-        <span class="dur-unit">min</span>
-        <span class="dur-tier" id="dur-tier">medium session</span>
-      </div>
-      <input type="range" min="20" max="300" value="90" step="5" id="dur-slider" class="slider" oninput="onDurChange(+this.value)">
-      <div class="dur-axis"><span>20m</span><span>1h</span><span>2h</span><span>3h</span><span>4h</span><span>5h</span></div>
-    </div>
-    <div class="card">
       <div class="field-label">Focus today <span class="opt">optional</span></div>
       <input type="text" id="focus-input" class="text-input" placeholder="e.g. handstand, rings">
+    </div>
+    <div class="card">
+      <div class="field-label">Total time</div>
+      <div class="filter-tabs" style="margin-bottom:.75rem">
+        <button class="filter-tab active" id="dur-mode-slider" onclick="setDurMode('slider')">Slider</button>
+        <button class="filter-tab" id="dur-mode-finish" onclick="setDurMode('finish')">Finish time</button>
+      </div>
+      <div id="dur-slider-wrap">
+        <div class="dur-slider-val"><span class="dur-val" id="dur-slider-label">90</span><span class="dur-unit">min</span></div>
+        <input type="range" id="dur-slider" class="dur-slider" min="15" max="240" step="5" value="90" oninput="onDurSliderInput(this.value)">
+      </div>
+      <div id="dur-finish-wrap" style="display:none">
+        <input type="time" id="dur-finish-input" class="text-input" onchange="onDurFinishInput(this.value)" oninput="onDurFinishInput(this.value)">
+        <div class="pip-label" id="dur-finish-computed">— min from now</div>
+      </div>
     </div>
     <!-- Theme inline in step 1 -->
     <div class="section-label" style="margin-top:.25rem">Day theme</div>
     <div class="warn-box" id="gen-warn" style="display:none"></div>
     <div id="theme-list"></div>
     <button class="btn-primary" id="gen-next-btn" onclick="genToCompose()" disabled>Compose session ↗</button>
+
+    <div class="section-label" style="margin-top:1.25rem;display:flex;align-items:center;gap:.5rem">
+      <span style="flex:1;border-top:1px solid var(--border)"></span>or<span style="flex:1;border-top:1px solid var(--border)"></span>
+    </div>
+    <div class="card">
+      <div class="field-label">Tell me what you want <span class="opt">AI generation</span></div>
+      <textarea id="ai-freetext" class="text-input" rows="3" placeholder="e.g. today I just want flexibility and yoga for 30 minutes"></textarea>
+      <div class="pip-label" id="ai-status" style="display:none;margin-top:.5rem"></div>
+      <button class="btn-primary" id="ai-generate-btn" style="margin-top:.75rem" onclick="genWithAI()">Generate with AI ↗</button>
+    </div>
   </div>
 
   <!-- Step 2: Block composer -->
@@ -147,10 +157,16 @@
     <div class="compose-header">
       <div>
         <div class="section-label">Session blocks</div>
-        <div class="compose-total" id="compose-total">0 min total</div>
+        <div class="compose-total-row">
+          <span class="dur-val" id="compose-total-val">0</span>
+          <span class="dur-unit">min</span>
+          <span class="dur-tier" id="compose-total-tier"></span>
+        </div>
       </div>
       <div class="compose-theme-badge" id="compose-theme-badge"></div>
     </div>
+    <div class="dur-visual-track"><div class="dur-visual-fill" id="compose-total-fill"></div></div>
+    <div id="compose-rationale"></div>
     <div id="compose-blocks"></div>
     <button class="btn-primary" style="margin-top:.5rem" onclick="buildAndStart()">Generate session ↗</button>
   </div>
@@ -236,8 +252,17 @@
     <div id="cal-detail-body"></div>
   </div>
 
+  <!-- Tracked lifts -->
+  <div id="tracked-lifts-section" style="display:none">
+    <div class="section-label" style="margin-top:1rem">Tracked lifts</div>
+    <div id="tracked-lifts-list"></div>
+  </div>
+
   <!-- Session list -->
-  <div class="section-label" style="margin-top:1rem">Sessions</div>
+  <div class="section-label" style="margin-top:1rem;display:flex;align-items:center;justify-content:space-between">
+    <span>Sessions</span>
+    <button class="btn-ghost" style="padding:.375rem .75rem;font-size:12px" onclick="openManualLogModal()">+ Log session</button>
+  </div>
   <div id="history-list"></div>
 
   <!-- Session detail modal -->
@@ -245,6 +270,14 @@
     <div class="modal" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeSessionModal()">✕</button>
       <div id="session-modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Lift history modal -->
+  <div class="modal-backdrop" id="lift-modal-backdrop" style="display:none" onclick="closeLiftHistory()">
+    <div class="modal modal-tall" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeLiftHistory()">✕</button>
+      <div id="lift-modal-content"></div>
     </div>
   </div>
 </main>
@@ -283,6 +316,31 @@
     </button>
     <div class="collapsible-body collapsed" id="s-library">
       <div id="exercise-state-list"></div>
+    </div>
+  </div>
+
+  <div class="collapsible-section">
+    <button class="collapsible-header" onclick="toggleSection('s-ai')">
+      <span>AI generation</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
+    </button>
+    <div class="collapsible-body collapsed" id="s-ai">
+      <div class="card" style="margin:0">
+        <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:.375rem">
+          <span>Anthropic API key</span>
+          <input type="password" class="text-input" id="ai-api-key" placeholder="sk-ant-..." onchange="saveSetting('anthropicApiKey', this.value.trim())">
+        </div>
+        <div class="pip-label" style="margin:.25rem 0 .75rem">
+          Stored only on this device (localStorage), sent directly to Anthropic when you use "Tell me what you want" on the Generate screen. Never shared anywhere else. Get a key at
+          <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.
+        </div>
+        <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:.375rem;border-top:1px solid var(--border);padding-top:.75rem">
+          <span>Model</span>
+          <input type="text" class="text-input" id="ai-model" placeholder="claude-sonnet-5" onchange="saveSetting('aiModel', this.value.trim())">
+        </div>
+        <div class="pip-label" style="margin:.25rem 0 0">
+          Default is a good balance of quality and cost (roughly a few cents per session). Use "claude-haiku-4-5-20251001" for the cheapest option.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -339,6 +397,14 @@
   </div>
 </div>
 
+<!-- Manual session log modal (global) — log a session you did without the generator -->
+<div class="modal-backdrop" id="manual-log-backdrop" style="display:none" onclick="closeManualLogModal()">
+  <div class="modal modal-tall" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeManualLogModal()">✕</button>
+    <div id="manual-log-content"></div>
+  </div>
+</div>
+
 <script src="data/library.js"></script>
 <script src="js/app.js"></script>
 <script src="js/custom.js"></script>
@@ -357,7 +423,7 @@ function navTo(screen) {
   App.screen = screen;
   document.getElementById('fab').style.display = screen === 'settings' ? 'flex' : 'none';
   if (screen === 'home')     renderHome();
-  if (screen === 'generate') renderThemeList();
+  if (screen === 'generate') { renderThemeList(); initGenerateDuration(); }
   if (screen === 'goals')    renderGoals();
   if (screen === 'log')      renderLog();
   if (screen === 'settings') renderSettings();
@@ -379,23 +445,8 @@ function escAttr(s) {
 // HOME
 // ─────────────────────────────────────────────────────────────
 function renderHome() {
-  const profile = App.profile;
-  const today   = Utils.getTodayTheme(profile);
-  const cfg     = Utils.getThemeConfig(today.theme);
-  const days    = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  document.getElementById('week-label').textContent  = 'Week ' + profile.currentWeek;
-  document.getElementById('today-day').textContent   = days[new Date().getDay()];
-  document.getElementById('today-theme').textContent = cfg.label;
-  document.getElementById('today-theme').style.color  = cfg.color;
-  const subMap = {
-    'strength-a':  'Squat · Bench · Pull-up · Skill block',
-    'plio-b':      'Deadlift · OHP · Plyometrics · Skill block',
-    'z2-movement': 'Zone 2 · Ground flow · Object manipulation',
-    'intense':     'Sprints · Power · Intervals',
-    'z2-flex':     'Zone 2 · Splits · Pancake · Bridge',
-    'rest':        'Walk · Stretch · Somatic',
-  };
-  document.getElementById('today-sub').textContent = subMap[today.theme] || '';
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  document.getElementById('today-day').textContent = days[new Date().getDay()];
 
   const banner = document.getElementById('active-banner');
   if (LiveSession.getSession()) {
@@ -440,24 +491,13 @@ function sessionRow(s) {
   const cfg = Utils.getThemeConfig(s.theme);
   return `<div class="card session-row" onclick="openSessionModal('${s.id}')">
     <div class="sr-dot" style="background:${cfg.color}"></div>
-    <div class="sr-body"><div class="sr-theme">${cfg.label}</div><div class="sr-date">${Utils.formatDate(s.date)}</div></div>
+    <div class="sr-body"><div class="sr-theme">${cfg.label}${s.source==='manual'?'<span class="sr-badge">Manual</span>':''}</div><div class="sr-date">${Utils.formatDate(s.date)}</div></div>
     <div class="sr-dur">${s.duration}m</div>
   </div>`;
 }
 
-function toggleWeek() { Profile.toggleWeek(App.profile); renderHome(); }
-
 function startToday() {
-  const today = Utils.getTodayTheme(App.profile);
-  _selectedTheme = today.theme;
-  // Pre-select theme button if on generate screen, then go to compose
   navTo('generate');
-  // Small delay to let the screen render first
-  setTimeout(() => {
-    renderThemeList();
-    document.getElementById('gen-next-btn').disabled = false;
-    genToCompose();
-  }, 50);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -469,17 +509,72 @@ const TIER_LABELS   = {1:'quick session',2:'medium session',3:'full session',4:'
 const TIER_COLORS   = {lightBlock:'#1D9E75',objManip:'#7F77DD',meditate:'#7F77DD',warmup:'#378ADD',skill:'#185FA5',main:'#D85A30',cooldown:'#5F5E5A'};
 let _selectedTheme  = null;
 
+// ── TOTAL TIME (step 1) ─────────────────────────────────────────
+// Two ways to set the total session duration: drag a minutes slider, or
+// pick a clock "finish by" time and let the device's current time derive
+// the duration. Either way it lands in App.checkin.duration, which seeds
+// the block composer in step 2.
+let _durMode = 'slider';
+
+function initGenerateDuration() {
+  if (!App.checkin.duration) App.checkin.duration = 90;
+  const slider = document.getElementById('dur-slider');
+  if (slider) slider.value = App.checkin.duration;
+  const label = document.getElementById('dur-slider-label');
+  if (label) label.textContent = App.checkin.duration;
+
+  // Default the finish-time field to "now + current duration" so switching
+  // into that mode starts from something sensible rather than blank.
+  const target = new Date(Date.now() + App.checkin.duration * 60000);
+  const hh = String(target.getHours()).padStart(2, '0');
+  const mm = String(target.getMinutes()).padStart(2, '0');
+  const finishInput = document.getElementById('dur-finish-input');
+  if (finishInput && !finishInput.value) finishInput.value = `${hh}:${mm}`;
+  updateDurFinishComputed();
+}
+
+function setDurMode(mode) {
+  _durMode = mode;
+  document.getElementById('dur-mode-slider').classList.toggle('active', mode === 'slider');
+  document.getElementById('dur-mode-finish').classList.toggle('active', mode === 'finish');
+  document.getElementById('dur-slider-wrap').style.display = mode === 'slider' ? 'block' : 'none';
+  document.getElementById('dur-finish-wrap').style.display = mode === 'finish' ? 'block' : 'none';
+  if (mode === 'finish') onDurFinishInput(document.getElementById('dur-finish-input').value);
+  else onDurSliderInput(document.getElementById('dur-slider').value);
+}
+
+function onDurSliderInput(val) {
+  App.checkin.duration = +val;
+  document.getElementById('dur-slider-label').textContent = val;
+}
+
+// Diffs the chosen clock time against the device's current time. If the
+// target time has already passed today (e.g. setting an early-morning
+// finish time late at night), assume tomorrow rather than a negative
+// duration. Clamped to the same 15–240min range as the slider.
+function onDurFinishInput(val) {
+  if (!val) return;
+  const [h, m] = val.split(':').map(Number);
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(h, m, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  let mins = Math.round((target - now) / 60000);
+  mins = Math.max(15, Math.min(240, Math.round(mins / 5) * 5));
+  App.checkin.duration = mins;
+  updateDurFinishComputed();
+}
+
+function updateDurFinishComputed() {
+  const el = document.getElementById('dur-finish-computed');
+  if (el) el.textContent = `${App.checkin.duration} min from now`;
+}
+
 function setPip(type, val) {
   App.checkin[type] = val;
   document.querySelectorAll(`#${type}-pips .pip`).forEach(p => p.classList.toggle('on', +p.dataset.val <= val));
   document.getElementById(`${type}-label`).textContent = (type==='sleep'?SLEEP_LABELS:ENERGY_LABELS)[val]||'';
   if (type === 'energy') renderThemeList();
-}
-
-function onDurChange(v) {
-  App.checkin.duration = v;
-  document.getElementById('dur-val').textContent  = v;
-  document.getElementById('dur-tier').textContent = TIER_LABELS[Generator.getTier(v)];
 }
 
 function renderThemeList() {
@@ -490,30 +585,45 @@ function renderThemeList() {
   if(App.checkin.energy>0&&App.checkin.energy<3) msgs.push('Energy < 3 — volume reduced, lighter blocks expanded.');
   warn.style.display = msgs.length ? 'block' : 'none';
   warn.textContent   = msgs.join(' ');
-  const THEMES = [
-    {id:'strength-a', label:'Strength A',      sub:'Squat · Bench · Pull-up',    weeks:'Wk1: Mon/Wed · Wk2: Fri'},
-    {id:'plio-b',     label:'Plio B',           sub:'Deadlift · OHP · Plyometrics',weeks:'Wk1: Fri · Wk2: Mon/Wed'},
-    {id:'z2-movement',label:'Z2 + Movement',    sub:'Zone 2 · Ground flow',       weeks:'Tue both weeks'},
-    {id:'intense',    label:'Intense',          sub:'Sprints · Power',            weeks:'Wed both weeks'},
-    {id:'z2-flex',    label:'Z2 + Flexibility', sub:'Zone 2 · Long stretch',      weeks:'Thu both weeks'},
-    {id:'rest',       label:'Rest + Recovery',  sub:'Walk · Somatic',             weeks:'Weekend'},
+  const THEMES = {
+    'strength-a': { label:'Strength A',      sub:'Squat · Bench · Pull-up' },
+    'strength-b': { label:'Strength B',      sub:'Deadlift · OHP · Row' },
+    'plio-a':     { label:'Plio A',          sub:'Box jump · Ball slams' },
+    'plio-b':     { label:'Plio B',          sub:'Cossack squat · Bulgarian' },
+    'z2-movement':{ label:'Z2 Movement',     sub:'Zone 2 · Ground flow' },
+    'z2-flex':    { label:'Z2 Flex',         sub:'Zone 2 · Long stretch' },
+    'intense':    { label:'Intense',         sub:'Sprints · Power' },
+    'rest':       { label:'Rest + Recovery', sub:'Walk · Somatic' },
+  };
+  // Rows of 2 render as side-by-side columns; rows of 1 stay full width.
+  const ROWS = [
+    ['strength-a','strength-b'],
+    ['plio-a','plio-b'],
+    ['z2-movement','z2-flex'],
+    ['intense'],
+    ['rest'],
   ];
   const list = document.getElementById('theme-list'); list.innerHTML='';
-  THEMES.forEach(t => {
-    const cfg      = Utils.getThemeConfig(t.id);
-    const disabled = low && ['intense','strength-a','plio-b'].includes(t.id);
-    const btn      = document.createElement('button');
-    btn.className  = 'theme-btn'; btn.dataset.id = t.id;
-    if (disabled)              btn.classList.add('dimmed');
-    if (_selectedTheme===t.id) btn.classList.add('selected');
-    btn.innerHTML  = `<div class="theme-dot" style="background:${cfg.color}"></div><div class="theme-body"><div class="theme-label">${t.label}${disabled?' <span class="warn-tag">not recommended</span>':''}</div><div class="theme-sub">${t.sub}</div><div class="theme-weeks">${t.weeks}</div></div>`;
-    btn.onclick = () => {
-      _selectedTheme = t.id;
-      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      document.getElementById('gen-next-btn').disabled = false;
-    };
-    list.appendChild(btn);
+  ROWS.forEach(rowIds => {
+    const row = document.createElement('div'); row.className = 'theme-row';
+    rowIds.forEach(id => {
+      const t        = THEMES[id];
+      const cfg      = Utils.getThemeConfig(id);
+      const disabled = low && ['intense','strength-a','strength-b','plio-a','plio-b'].includes(id);
+      const btn      = document.createElement('button');
+      btn.className  = 'theme-btn'; btn.dataset.id = id;
+      if (disabled)            btn.classList.add('dimmed');
+      if (_selectedTheme===id) btn.classList.add('selected');
+      btn.innerHTML  = `<div class="theme-dot" style="background:${cfg.color}"></div><div class="theme-body"><div class="theme-label">${t.label}${disabled?' <span class="warn-tag">not recommended</span>':''}</div><div class="theme-sub">${t.sub}</div></div>`;
+      btn.onclick = () => {
+        _selectedTheme = id;
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('gen-next-btn').disabled = false;
+      };
+      row.appendChild(btn);
+    });
+    list.appendChild(row);
   });
 }
 
@@ -521,36 +631,34 @@ function renderThemeList() {
 let _compose = [];
 
 const BLOCK_DEFS = {
-  lightBlock: { label:'Light block',         color:'#1D9E75', min:5,  max:60 },
-  objManip:   { label:'Object manipulation', color:'#7F77DD', min:10, max:40 },
-  meditate:   { label:'Meditate',            color:'#9B59B6', min:5,  max:40 },
-  warmup:     { label:'Warm-up',             color:'#378ADD', min:10, max:20 },
-  skill:      { label:'Skill block',         color:'#185FA5', min:10, max:45 },
-  main:       { label:'Main work',           color:'#D85A30', min:15, max:90 },
-  cooldown:   { label:'Cool-down',           color:'#5F5E5A', min:5,  max:30 },
+  lightBlock: { label:'Light block',         color:'#1D9E75', min:0, max:60 },
+  objManip:   { label:'Object manipulation', color:'#7F77DD', min:0, max:40 },
+  meditate:   { label:'Meditate',            color:'#9B59B6', min:0, max:40 },
+  warmup:     { label:'Warm-up',             color:'#378ADD', min:0, max:20 },
+  skill:      { label:'Skill block',         color:'#185FA5', min:0, max:45 },
+  main:       { label:'Main work',           color:'#D85A30', min:0, max:90 },
+  cooldown:   { label:'Cool-down',           color:'#5F5E5A', min:0, max:30 },
 };
 
-const THEME_BLOCKS = {
-  'strength-a':  ['lightBlock','meditate','warmup','skill','main','cooldown'],
-  'plio-b':      ['lightBlock','meditate','warmup','skill','main','cooldown'],
-  'z2-movement': ['lightBlock','objManip','meditate','main','cooldown'],
-  'intense':     ['lightBlock','meditate','warmup','skill','main','cooldown'],
-  'z2-flex':     ['lightBlock','meditate','main','cooldown'],
-  'rest':        ['lightBlock','objManip','meditate','main','cooldown'],
-};
+// Fallback seed if step 1's total-time picker somehow wasn't set. Normally
+// the suggested split below is seeded from App.checkin.duration (the
+// slider or finish-time value from step 1) — the user then freely adjusts
+// every block afterward; the total re-derives live from those edits.
+const COMPOSE_SEED_DURATION = 90;
+const COMPOSE_MAX_VISUAL    = 300; // scale for the total-time visual bar
 
 function genToCompose() {
   App.checkin.pain  = document.getElementById('pain-input').value;
   App.checkin.focus = document.getElementById('focus-input').value;
   if (!_selectedTheme) return;
-  const dur      = App.checkin.duration;
-  const energy   = App.checkin.energy || 3;
-  const defaults = Generator.getBlockDurations(dur, energy);
-  const keys     = THEME_BLOCKS[_selectedTheme] || Object.keys(BLOCK_DEFS);
+  const energy       = App.checkin.energy || 3;
+  const seedDuration = App.checkin.duration || COMPOSE_SEED_DURATION;
+  const defaults     = Generator.getBlockDurations(seedDuration, energy);
+  const keys         = Object.keys(BLOCK_DEFS); // all block types, regardless of theme
 
   _compose = keys.map(k => {
     const def = BLOCK_DEFS[k];
-    return { key:k, label:def.label, color:def.color, enabled:true, duration:defaults[k]||def.min, minDur:def.min, maxDur:def.max };
+    return { key:k, label:def.label, color:def.color, enabled:true, duration:defaults[k]??def.min, minDur:def.min, maxDur:def.max };
   });
 
   renderCompose();
@@ -566,9 +674,7 @@ function genToCompose() {
 function renderCompose() {
   const container = document.getElementById('compose-blocks');
   container.innerHTML = '';
-  let total = 0;
   _compose.forEach(block => {
-    if (block.enabled) total += block.duration;
     const row = document.createElement('div');
     row.className = 'compose-row' + (block.enabled ? '' : ' compose-disabled');
     row.id = 'cr-' + block.key;
@@ -581,12 +687,12 @@ function renderCompose() {
       </div>
       <div class="compose-right${block.enabled?'':' compose-hidden'}">
         <button class="compose-adj" onclick="adjustBlock('${block.key}',-5)">−</button>
-        <span class="compose-dur" id="cdur-${block.key}">${block.duration}m</span>
+        <span class="compose-dur" id="cdur-${block.key}" onclick="editBlockDur('${block.key}')">${block.duration}m</span>
         <button class="compose-adj" onclick="adjustBlock('${block.key}',+5)">+</button>
       </div>`;
     container.appendChild(row);
   });
-  document.getElementById('compose-total').textContent = total + ' min total';
+  updateComposeTotal();
 }
 
 function toggleComposeBlock(key) {
@@ -598,8 +704,168 @@ function adjustBlock(key, delta) {
   const b = _compose.find(x => x.key===key); if (!b) return;
   b.duration = Math.max(b.minDur, Math.min(b.maxDur, b.duration + delta));
   const el = document.getElementById('cdur-'+key); if (el) el.textContent = b.duration + 'm';
+  updateComposeTotal();
+}
+
+// Tapping the "15m" duration readout swaps it for a plain number input
+// (just the digits — no "m") so you can type an exact value instead of
+// stepping ±5 at a time. Commits on blur or Enter, clamped to the block's
+// min/max, then reverts back to the "Xm" display.
+function editBlockDur(key) {
+  const b  = _compose.find(x => x.key === key); if (!b) return;
+  const el = document.getElementById('cdur-' + key);
+  if (!el || el.tagName === 'INPUT') return; // already editing
+
+  const input = document.createElement('input');
+  input.type      = 'number';
+  input.inputMode = 'numeric';
+  input.className = 'compose-dur-input';
+  input.id        = 'cdur-' + key;
+  input.value     = b.duration;
+  input.min       = b.minDur;
+  input.max       = b.maxDur;
+
+  let committed = false;
+  const commit = () => {
+    if (committed) return;
+    committed = true;
+    let v = parseInt(input.value, 10);
+    if (isNaN(v)) v = b.duration;
+    b.duration = Math.max(b.minDur, Math.min(b.maxDur, v));
+    renderCompose();
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') { committed = true; renderCompose(); }
+  });
+
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+}
+
+// Total time is a live readout derived from each enabled block's duration —
+// it reflects step 1's slider/finish-time choice at first (via the seeded
+// split above), then tracks whatever you edit here afterward.
+function updateComposeTotal() {
   const total = _compose.filter(x=>x.enabled).reduce((s,x)=>s+x.duration,0);
-  document.getElementById('compose-total').textContent = total + ' min total';
+  document.getElementById('compose-total-val').textContent  = total;
+  document.getElementById('compose-total-tier').textContent = total > 0 ? TIER_LABELS[Generator.getTier(total)] : 'no time selected';
+  const pct = Math.max(0, Math.min(100, Math.round((total / COMPOSE_MAX_VISUAL) * 100)));
+  document.getElementById('compose-total-fill').style.width = pct + '%';
+  renderSessionRationale();
+}
+
+// ── TODAY'S PLAN (rationale) ────────────────────────────────────
+// Runs a throwaway preview generation off the current compose durations
+// so we can explain, in plain language, what the generator picked and why
+// — using the real exercise names and the rotation reasoning Generator
+// already computed (block.rotationNote), rather than guessing at it here.
+// Re-runs whenever the compose durations change so it stays accurate.
+function renderSessionRationale() {
+  const wrap = document.getElementById('compose-rationale');
+  if (!wrap) return;
+  if (!_selectedTheme || !_compose.length) { wrap.innerHTML = ''; return; }
+
+  const customDurations = {};
+  _compose.forEach(b => { customDurations[b.key] = b.enabled ? b.duration : 0; });
+  const totalDur = _compose.filter(b => b.enabled).reduce((s, b) => s + b.duration, 0);
+  if (!totalDur) { wrap.innerHTML = ''; return; }
+
+  const preview = Generator.generate({
+    theme: _selectedTheme, duration: totalDur,
+    sleep: App.checkin.sleep, energy: App.checkin.energy,
+    pain: App.checkin.pain, focus: App.checkin.focus,
+    profile: App.profile, customDurations,
+  });
+
+  wrap.innerHTML = `<div class="section-label">Today's plan</div><div class="card rationale-card">${buildRationaleText(preview)}</div>`;
+}
+
+// One sentence explaining a rotation decision, e.g. "Since you did Juggling
+// 1d ago, object manipulation today leans into Stick Balancing: ...". Only
+// returns something when Generator actually deprioritized a group (i.e.
+// there's a real "why" to report) — otherwise null so the caller can fall
+// back to a plain listing.
+function rotationSentence(block, label) {
+  if (!block?.rotationNote?.deprioritizedGroup || !block.exercises?.length) return null;
+  const { chosenGroup, deprioritizedGroup, deprioritizedDaysAgo } = block.rotationNote;
+  const names = block.exercises.map(e => e.name).join(', ');
+  const when  = deprioritizedDaysAgo === 0 ? 'today' : `${deprioritizedDaysAgo}d ago`;
+  return `Since you trained ${deprioritizedGroup} ${when}, ${label} today leans into ${chosenGroup}: ${names}.`;
+}
+
+// Leads the rationale with what the pain/injury check-in changed, so that
+// story reads first — "here's why today looks different" — before the
+// normal rotation/plan sentences. Built entirely from session.painNote
+// (set by Generator._parsePainTags) and the block notes Generator already
+// attaches when it swaps cardio to the bike or reclaims minutes from an
+// excluded exercise, so nothing here re-derives pain logic itself.
+function painSentence(session) {
+  const note = session.painNote;
+  if (!note || (!note.avoid.length && !note.caution.length)) return null;
+
+  const parts = [];
+  if (note.avoid.length)   parts.push(`easing off ${note.avoid.join('/')}`);
+  if (note.caution.length) parts.push(`going lighter on ${note.caution.join('/')}`);
+  let sentence = `Based on today's check-in, ${parts.join(' and ')}.`;
+
+  const swapped = session.blocks.some(b => b.exercises?.some(e => e.notes?.includes('Swapped to the bike')));
+  if (swapped) sentence += ' Cardio is on the bike instead of running today.';
+
+  const reclaimed = session.blocks.some(b => b.note?.includes('Extra time added'));
+  const boostedObj = session.blocks.some(b => b.key === 'objManip' && b.note?.includes('reclaimed'));
+  if (reclaimed || boostedObj) {
+    sentence += ' Skipped the higher-impact main work and put that time into skill and object manipulation instead — still enough to raise your heart rate, easier on the joint that\'s bothering you.';
+  }
+
+  return sentence;
+}
+
+function buildRationaleText(session) {
+  const cfg   = Utils.getThemeConfig(session.theme);
+  const light = session.blocks.find(b => b.key === 'lightBlock');
+  const obj   = session.blocks.find(b => b.key === 'objManip');
+  const skill = session.blocks.find(b => b.key === 'skill');
+  const main  = session.blocks.find(b => b.key === 'main');
+  const warm  = session.blocks.find(b => b.key === 'warmup');
+
+  const sentences = [];
+
+  const pain = painSentence(session);
+  if (pain) sentences.push(pain);
+
+  const objSentence   = rotationSentence(obj, 'object manipulation');
+  const skillSentence = rotationSentence(skill, 'the skill block');
+  if (objSentence)   sentences.push(objSentence);
+  if (skillSentence) sentences.push(skillSentence);
+
+  // Plain listing fallback when there's no rotation story yet (little or
+  // no history) — still names what's actually in the block.
+  if (!objSentence && obj?.exercises?.length) {
+    sentences.push(`${obj.duration}m of object manipulation: ${obj.exercises.map(e => e.name).join(', ')}.`);
+  }
+  if (!skillSentence && skill?.exercises?.length) {
+    sentences.push(`${skill.duration}m of skill work: ${skill.exercises.map(e => e.name).join(', ')}.`);
+  }
+
+  if (light?.exercises?.length) {
+    sentences.push(`Light block: ${light.exercises.map(e => e.name).join(', ')}.`);
+  }
+
+  if (warm?.exercises?.length) {
+    sentences.push(`Warm-up covers ${warm.exercises.map(e => e.name).join(', ')} ahead of ${cfg.label.toLowerCase()}.`);
+  }
+
+  if (main?.exercises?.length) {
+    sentences.push(`Main work: ${main.exercises.map(e => e.name).join(', ')}.`);
+  } else if (main?.duration) {
+    sentences.push(`Main work is ${main.duration}m of ${cfg.label.toLowerCase()}.`);
+  }
+
+  if (!sentences.length) return 'No blocks selected yet.';
+  return sentences.join(' ');
 }
 
 function genNextStep() { genToCompose(); } // compat for startToday
@@ -620,10 +886,55 @@ function buildAndStart() {
     pain: App.checkin.pain, focus: App.checkin.focus,
     profile: App.profile, customDurations,
   });
+  _startSession(session);
+}
+
+// Shared by both the deterministic composer (buildAndStart) and the AI
+// free-text path (genWithAI) — hands a finished session object off to
+// LiveSession and switches screens.
+function _startSession(session) {
   LiveSession.start(session, s => { App.session=s; if(App.screen==='session') renderSessionScreen(); });
   App.session = session;
   document.querySelector('.session-nav').style.display = 'flex';
   navTo('session');
+}
+
+// AI free-text generation path — bypasses the deterministic theme/composer
+// flow entirely. AIGenerator.generateSession() already returns a complete,
+// ready-to-run session (scaffold blocks + AI-picked work blocks), so this
+// just wires up the loading/error UI around that async call.
+async function genWithAI() {
+  const freeText = document.getElementById('ai-freetext').value.trim();
+  const statusEl = document.getElementById('ai-status');
+  const btn      = document.getElementById('ai-generate-btn');
+  if (!freeText) {
+    statusEl.style.display = 'block';
+    statusEl.textContent = 'Describe what you want first.';
+    return;
+  }
+
+  App.checkin.pain  = document.getElementById('pain-input').value;
+  App.checkin.focus = document.getElementById('focus-input').value;
+
+  btn.disabled = true;
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'Generating with AI…';
+
+  try {
+    const session = await AIGenerator.generateSession({
+      freeText,
+      duration: App.checkin.duration || COMPOSE_SEED_DURATION,
+      sleep: App.checkin.sleep, energy: App.checkin.energy,
+      pain: App.checkin.pain, focus: App.checkin.focus,
+      profile: App.profile,
+    });
+    statusEl.style.display = 'none';
+    btn.disabled = false;
+    _startSession(session);
+  } catch (err) {
+    statusEl.textContent = err.message || 'AI generation failed — try again.';
+    btn.disabled = false;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -640,6 +951,13 @@ function renderSessionScreen() {
   document.getElementById('sh-progress').textContent = `${prog.done}/${prog.total}`;
   document.getElementById('sh-elapsed').textContent  = prog.elapsed + 'm';
   const container = document.getElementById('session-blocks'); container.innerHTML='';
+  if (session.aiRationale) {
+    const rCard = document.createElement('div');
+    rCard.className = 'card rationale-card';
+    rCard.style.marginBottom = '.75rem';
+    rCard.textContent = session.aiRationale;
+    container.appendChild(rCard);
+  }
   session.blocks.forEach((block, bIdx) => {
     const done = block.exercises.filter(e=>e.completed||e.skipped).length;
     const wrap = document.createElement('div'); wrap.className='block-wrap'; wrap.id=`block-${bIdx}`;
@@ -658,6 +976,17 @@ function renderSessionScreen() {
   });
 }
 
+// Best estimated 1RM for a tracked lift: combines completed-session history
+// with any sets already logged in the current (unsaved) live session.
+function liveBestEstimate(ex) {
+  let best = History.getBestEstimate(ex.id);
+  (ex.sets||[]).forEach(s => {
+    const e1rm = History.estimateOneRM(s.weight, s.reps);
+    if (e1rm && (!best || e1rm > best.e1rm)) best = { e1rm, weight: s.weight, reps: s.reps, date: 'today' };
+  });
+  return best;
+}
+
 function buildExerciseEl(ex, bIdx, eIdx) {
   const wrap = document.createElement('div');
   wrap.className = `ex-wrap${ex.completed?' ex-done':''}${ex.skipped?' ex-skipped':''}`;
@@ -665,7 +994,13 @@ function buildExerciseEl(ex, bIdx, eIdx) {
   const lastLog = ex.lastLog;
   let logHtml = '';
   if (ex.logType==='weight+reps') {
-    logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si)).join('')}</div>
+    const lastWeightHint = lastLog?.lastWeight ? `<div class="last-hint-row">Last time: <strong>${lastLog.lastWeight}kg × ${lastLog.lastReps||'?'}</strong></div>` : '';
+    let estHint = '';
+    if (Profile.isTracked(App.profile, ex.id)) {
+      const best = liveBestEstimate(ex);
+      if (best) estHint = `<div class="est-hint-row">Est. 1RM <strong>${best.e1rm}kg</strong> <span class="est-hint-sub">(${best.weight}kg × ${best.reps})</span></div>`;
+    }
+    logHtml=`${lastWeightHint}${estHint}<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si)).join('')}</div>
       <div class="add-set-row">
         <input type="number" class="num-in" id="w-${bIdx}-${eIdx}" placeholder="${lastLog?.lastWeight||'kg'}" min="0" step="2.5">
         <span class="mul">×</span>
@@ -711,26 +1046,26 @@ const _sw={};let _swActive=null;
 function toggleStopwatch(b,e){
   const key=`${b}-${e}`,btn=document.getElementById(`sw-${b}-${e}`);
   if(_swActive&&_swActive!==key){Timer.stopStopwatch();_sw[_swActive]={running:false};const[pb,pe]=_swActive.split('-');const ob=document.getElementById(`sw-${pb}-${pe}`);if(ob)ob.textContent='▶ Start';_swActive=null;}
-  if(_sw[key]?.running){const el=Timer.stopStopwatch();_sw[key]={running:false};btn.textContent=`▶ ${Utils.formatMMSS(el)}`;LiveSession.logSet({duration:el,completed:true});refreshExercise(b,e);_swActive=null;}
+  if(_sw[key]?.running){const el=Timer.stopStopwatch();_sw[key]={running:false};btn.textContent=`▶ ${Utils.formatMMSS(el)}`;LiveSession.logSet(b,e,{duration:el,completed:true});refreshExercise(b,e);_swActive=null;}
   else{_sw[key]={running:true};_swActive=key;btn.textContent='⏹ 0:00';Timer.startStopwatch(s=>{if(btn)btn.textContent=`⏹ ${Timer.format(s)}`;});}
 }
 
 function logSet(b,e){
   const w=parseFloat(document.getElementById(`w-${b}-${e}`)?.value)||null,r=parseInt(document.getElementById(`r-${b}-${e}`)?.value)||null;
-  const res=LiveSession.logSet({weight:w,reps:r,completed:true});refreshExercise(b,e);
+  const res=LiveSession.logSet(b,e,{weight:w,reps:r,completed:true});refreshExercise(b,e);
   if(res?.startRest){const ex=LiveSession.getSession().blocks[b].exercises[e];showRest(ex.restSeconds);}
   const wi=document.getElementById(`w-${b}-${e}`),ri=document.getElementById(`r-${b}-${e}`);
   if(wi)wi.value='';if(ri)ri.value='';
 }
 function logReps(b,e){
   const r=parseInt(document.getElementById(`r-${b}-${e}`)?.value)||null;
-  const res=LiveSession.logSet({reps:r,completed:true});refreshExercise(b,e);
+  const res=LiveSession.logSet(b,e,{reps:r,completed:true});refreshExercise(b,e);
   if(res?.startRest){const ex=LiveSession.getSession().blocks[b].exercises[e];showRest(ex.restSeconds);}
   const ri=document.getElementById(`r-${b}-${e}`);if(ri)ri.value='';
 }
 function logCardio(b,e){
   const m=parseInt(document.getElementById(`cd-m-${b}-${e}`)?.value)||0,s=parseInt(document.getElementById(`cd-s-${b}-${e}`)?.value)||0,link=document.getElementById(`cd-link-${b}-${e}`)?.value||'';
-  LiveSession.logCardio({durationMin:m,durationSec:s,appleFitnessLink:link});refreshExercise(b,e);
+  LiveSession.logCardio(b,e,{durationMin:m,durationSec:s,appleFitnessLink:link});refreshExercise(b,e);
 }
 function toggleExerciseDone(b,e){const ex=LiveSession.getSession()?.blocks[b]?.exercises[e];if(!ex)return;if(ex.completed)ex.completed=false;else LiveSession.markExerciseDone(b,e);refreshBlock(b);}
 function skipExercise(b,e){LiveSession.skipExercise(b,e);refreshBlock(b);}
@@ -1106,7 +1441,70 @@ let _calYear=new Date().getFullYear(), _calMonth=new Date().getMonth();
 
 function renderLog() {
   renderCalendar();
+  renderTrackedLifts();
   document.getElementById('history-list').innerHTML = History.getIndex(50).map(sessionRow).join('') || '<div class="empty-state">No sessions logged yet.</div>';
+}
+
+// ── TRACKED LIFTS — weight / est. 1RM progress ──────────────────
+function renderTrackedLifts() {
+  const section = document.getElementById('tracked-lifts-section');
+  const ids = App.profile.trackedLifts || [];
+  if (!section || !ids.length) { if (section) section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  const allEx = Custom.getAllExercises();
+  document.getElementById('tracked-lifts-list').innerHTML = ids.map(id => {
+    const ex = allEx.find(e => e.id === id);
+    if (!ex) return '';
+    const best = History.getBestEstimate(id);
+    const last = History.getLastExerciseLog(id);
+    return `<div class="card lift-row" onclick="openLiftHistory('${id}')">
+      <div class="lift-row-main">
+        <div class="lift-name">${ex.name}</div>
+        ${last?.lastWeight
+          ? `<div class="lift-sub">Last: ${last.lastWeight}kg × ${last.lastReps||'?'} · ${Utils.formatDate(last.date)}</div>`
+          : '<div class="lift-sub">No sets logged yet</div>'}
+      </div>
+      ${best ? `<div class="lift-est"><div class="lift-est-val">${best.e1rm}kg</div><div class="lift-est-lbl">est. 1RM</div></div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function openLiftHistory(id) {
+  const allEx = Custom.getAllExercises();
+  const ex = allEx.find(e => e.id === id);
+  if (!ex) return;
+
+  const hist = History.getExerciseHistory(id, 100); // most recent first
+  const best = History.getBestEstimate(id);
+
+  let html = `<div class="modal-title">${ex.name}</div>`;
+  html += `<div class="lift-hist-summary">${best
+    ? `Est. 1RM <strong>${best.e1rm}kg</strong><span class="lift-hist-summary-sub"> (${best.weight}kg × ${best.reps} on ${Utils.formatDate(best.date)})</span>`
+    : 'No sets logged yet.'}</div>`;
+
+  const rows = hist.map(h => {
+    const weighted = (h.sets || []).filter(s => s.weight && s.reps);
+    if (!weighted.length) return '';
+    const sessionBest = weighted.reduce((a, s) => {
+      const e1rm = History.estimateOneRM(s.weight, s.reps);
+      return (!a || e1rm > a.e1rm) ? { e1rm, weight: s.weight, reps: s.reps } : a;
+    }, null);
+    return `<div class="lift-hist-row">
+      <div class="lift-hist-date">${Utils.formatDate(h.date)}</div>
+      <div class="lift-hist-sets">${weighted.map(s => `${s.weight}kg×${s.reps}`).join(', ')}</div>
+      ${sessionBest ? `<div class="lift-hist-e1rm">${sessionBest.e1rm}kg e1RM</div>` : ''}
+    </div>`;
+  }).filter(Boolean).join('');
+
+  html += rows ? `<div class="lift-hist-list">${rows}</div>` : '<div class="empty-state">No weight logged for this exercise yet.</div>';
+
+  document.getElementById('lift-modal-content').innerHTML = html;
+  document.getElementById('lift-modal-backdrop').style.display = 'flex';
+}
+
+function closeLiftHistory() {
+  document.getElementById('lift-modal-backdrop').style.display = 'none';
 }
 
 function renderCalendar() {
@@ -1149,7 +1547,7 @@ function calNext(){ if(_calMonth===11){_calMonth=0;_calYear++;}else _calMonth++;
 function openSessionModal(id) {
   const session=History.getSession(id); if(!session) return;
   const cfg=Utils.getThemeConfig(session.theme);
-  let html=`<div class="modal-theme" style="color:${cfg.color}">${cfg.label}</div><div class="modal-date">${Utils.formatDate(session.date)} · ${session.duration}m</div>${session.notes?`<div class="modal-note">${session.notes}</div>`:''}<div class="modal-blocks">`;
+  let html=`<div class="modal-theme" style="color:${cfg.color}">${cfg.label}${session.source==='manual'?'<span class="sr-badge">Manual</span>':''}</div><div class="modal-date">${Utils.formatDate(session.date)} · ${session.duration}m</div>${session.notes?`<div class="modal-note">${session.notes}</div>`:''}<div class="modal-blocks">`;
   session.blocks?.forEach(block=>{
     const logged=block.exercises?.filter(e=>e.sets?.length||e.completed||e.cardioLog);
     if(!logged?.length) return;
@@ -1169,6 +1567,207 @@ function closeSessionModal(){ document.getElementById('session-modal-backdrop').
 function deleteSession(id){ if(!confirm('Delete?'))return; History.deleteSession(id); closeSessionModal(); renderLog(); }
 
 // ─────────────────────────────────────────────────────────────
+// MANUAL SESSION LOG — record a session you did without the generator.
+// Saved through the same History.saveSession() path and schema as a
+// generated session, so exercise spacing, last-weight cache, and
+// progression suggestions all pick it up exactly like the real thing.
+// ─────────────────────────────────────────────────────────────
+let _ml = { exercises: [] };
+
+const _ML_THEME_IDS = ['strength-a','strength-b','plio-a','plio-b','z2-movement','intense','z2-flex','rest'];
+
+function openManualLogModal() {
+  _ml = { exercises: [] };
+  const today = new Date().toISOString().slice(0,10);
+  const themeOptions = _ML_THEME_IDS.map(id => `<option value="${id}">${Utils.getThemeConfig(id).label}</option>`).join('');
+
+  document.getElementById('manual-log-content').innerHTML = `
+    <div class="modal-title">Log a past session</div>
+
+    <div class="field-label">Date</div>
+    <input type="date" class="text-input" id="ml-date" value="${today}" max="${today}">
+
+    <div class="field-label" style="margin-top:.75rem">Theme <span class="opt">helps the generator space future sessions</span></div>
+    <select class="text-input" id="ml-theme">${themeOptions}<option value="other">Other / unstructured</option></select>
+
+    <div class="field-label" style="margin-top:.75rem">Duration (min)</div>
+    <input type="number" class="text-input" id="ml-duration" min="1" max="600" placeholder="e.g. 45">
+
+    <div class="field-label" style="margin-top:.75rem">Exercises done <span class="opt">optional — type to search</span></div>
+    <div id="ml-ex-list"></div>
+    <div style="position:relative">
+      <input type="text" class="text-input" id="ml-ex-search" placeholder="Search exercises…" oninput="onManualExSearch(this.value)" autocomplete="off">
+      <div class="feed-dropdown" id="ml-ex-dropdown" style="display:none"></div>
+    </div>
+
+    <div class="field-label" style="margin-top:.75rem">Notes</div>
+    <textarea class="text-input" id="ml-notes" rows="2" placeholder="What did you do, how'd it go…"></textarea>
+
+    <div style="display:flex;gap:8px;margin-top:1.25rem">
+      <button class="btn-primary" style="flex:1" onclick="saveManualLog()">Save session</button>
+    </div>`;
+
+  document.getElementById('manual-log-backdrop').style.display = 'flex';
+}
+
+function closeManualLogModal() {
+  document.getElementById('manual-log-backdrop').style.display = 'none';
+}
+
+function onManualExSearch(query) {
+  const drop = document.getElementById('ml-ex-dropdown');
+  if (!query.trim()) { drop.style.display = 'none'; return; }
+  const q = query.toLowerCase();
+  const already = new Set(_ml.exercises.map(e => e.id));
+  const matches = Custom.getAllExercises()
+    .filter(e => !already.has(e.id) && (e.name.toLowerCase().includes(q) || (e.subcategory||'').toLowerCase().includes(q) || e.category.toLowerCase().includes(q)))
+    .slice(0, 8);
+  if (!matches.length) { drop.style.display = 'none'; return; }
+  drop.innerHTML = matches.map(e =>
+    `<div class="feed-option" onclick="addManualExercise('${e.id}')">
+      <span class="fo-name">${e.name}</span>
+      <span class="fo-sub">${e.category}${e.subcategory ? ' · '+e.subcategory : ''}</span>
+    </div>`
+  ).join('');
+  drop.style.display = 'block';
+}
+
+function addManualExercise(id) {
+  if (_ml.exercises.find(e => e.id === id)) return;
+  const ex = Custom.getAllExercises().find(e => e.id === id);
+  if (!ex) return;
+  const sets = ex.logType === 'none' ? [] : [{ weight: null, reps: null, duration: null }];
+  _ml.exercises.push({
+    id: ex.id, name: ex.name, category: ex.category, subcategory: ex.subcategory,
+    logType: ex.logType, restGroup: ex.restGroup, notes: ex.notes, link: ex.link,
+    sets, completed: ex.logType === 'none',
+  });
+  document.getElementById('ml-ex-search').value = '';
+  document.getElementById('ml-ex-dropdown').style.display = 'none';
+  renderManualExList();
+}
+
+function removeManualExercise(idx) {
+  _ml.exercises.splice(idx, 1);
+  renderManualExList();
+}
+
+function addManualSet(exIdx) {
+  _ml.exercises[exIdx].sets.push({ weight: null, reps: null, duration: null });
+  renderManualExList();
+}
+
+function removeManualSet(exIdx, setIdx) {
+  _ml.exercises[exIdx].sets.splice(setIdx, 1);
+  renderManualExList();
+}
+
+function updateManualSet(exIdx, setIdx, field, value) {
+  const set = _ml.exercises[exIdx]?.sets[setIdx];
+  if (!set) return;
+  set[field] = value === '' ? null : Number(value);
+}
+
+function toggleManualDone(exIdx) {
+  const ex = _ml.exercises[exIdx];
+  ex.completed = !ex.completed;
+  renderManualExList();
+}
+
+function renderManualExList() {
+  const wrap = document.getElementById('ml-ex-list');
+  wrap.innerHTML = _ml.exercises.map((ex, exIdx) => {
+    let setsHtml = '';
+    if (ex.logType === 'weight+reps') {
+      setsHtml = ex.sets.map((s, si) => `
+        <div class="ml-set-row">
+          <input type="number" class="num-input" placeholder="kg" value="${s.weight ?? ''}" onchange="updateManualSet(${exIdx},${si},'weight',this.value)">
+          <input type="number" class="num-input" placeholder="reps" value="${s.reps ?? ''}" onchange="updateManualSet(${exIdx},${si},'reps',this.value)">
+          <button class="btn-xs danger" onclick="removeManualSet(${exIdx},${si})">✕</button>
+        </div>`).join('');
+    } else if (ex.logType === 'reps') {
+      setsHtml = ex.sets.map((s, si) => `
+        <div class="ml-set-row">
+          <input type="number" class="num-input" placeholder="reps" value="${s.reps ?? ''}" onchange="updateManualSet(${exIdx},${si},'reps',this.value)">
+          <button class="btn-xs danger" onclick="removeManualSet(${exIdx},${si})">✕</button>
+        </div>`).join('');
+    } else if (ex.logType === 'hold' || ex.logType === 'cardio') {
+      setsHtml = ex.sets.map((s, si) => `
+        <div class="ml-set-row">
+          <input type="number" class="num-input" placeholder="seconds" value="${s.duration ?? ''}" onchange="updateManualSet(${exIdx},${si},'duration',this.value)">
+          <button class="btn-xs danger" onclick="removeManualSet(${exIdx},${si})">✕</button>
+        </div>`).join('');
+    }
+    const addSetBtn  = ex.logType !== 'none' ? `<button class="btn-ghost" style="padding:.25rem .625rem;font-size:12px" onclick="addManualSet(${exIdx})">+ Add set</button>` : '';
+    const doneToggle = ex.logType === 'none' ? `<button class="btn-ghost" style="padding:.25rem .625rem;font-size:12px" onclick="toggleManualDone(${exIdx})">${ex.completed ? '✓ Done' : 'Mark done'}</button>` : '';
+    return `<div class="ml-ex-card">
+      <div class="ml-ex-card-head">
+        <span>${ex.name}<span class="ml-ex-sub">${ex.category}${ex.subcategory ? ' · '+ex.subcategory : ''}</span></span>
+        <button onclick="removeManualExercise(${exIdx})" aria-label="Remove">✕</button>
+      </div>
+      ${setsHtml}
+      <div class="ml-ex-actions">${addSetBtn}${doneToggle}</div>
+    </div>`;
+  }).join('');
+}
+
+function saveManualLog() {
+  const dateVal     = document.getElementById('ml-date').value;
+  const theme       = document.getElementById('ml-theme').value;
+  const durationVal = +document.getElementById('ml-duration').value;
+  const notes       = document.getElementById('ml-notes').value;
+
+  if (!dateVal) { alert('Pick a date.'); return; }
+  if (!durationVal || durationVal <= 0) { alert('Enter a duration.'); return; }
+
+  // Keep the picked date but stamp it with the current time-of-day, so a
+  // session logged for today still sorts correctly against anything else
+  // logged today.
+  const now = new Date();
+  const d = new Date(dateVal + 'T00:00:00');
+  d.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
+  const exercises = _ml.exercises.map(ex => {
+    const loggedSets = (ex.sets || [])
+      .filter(s => s && (s.weight || s.reps || s.duration))
+      .map((s, i) => ({
+        idx: i + 1, weight: s.weight || null, reps: s.reps || null, duration: s.duration || null,
+        note: '', completed: true, loggedAt: d.getTime(),
+      }));
+    return {
+      id: ex.id, name: ex.name, category: ex.category, subcategory: ex.subcategory,
+      logType: ex.logType, restGroup: ex.restGroup, notes: ex.notes, link: ex.link,
+      sets: loggedSets, skipped: false,
+      completed: ex.completed || loggedSets.length > 0,
+    };
+  });
+
+  const session = {
+    id: null,
+    date: d.toISOString(),
+    theme,
+    duration: durationVal,
+    tier: Generator.getTier(durationVal),
+    sleep: null, energy: null, pain: '', focus: null,
+    status: 'completed',
+    startedAt: d.getTime(),
+    completedAt: d.getTime(),
+    notes,
+    source: 'manual',
+    painNote: null,
+    blocks: [{
+      key: 'manual', label: 'Logged manually', icon: 'edit', color: '#5D6D7E', bg: '#EEF0F2',
+      duration: durationVal, note: '', exercises,
+    }],
+  };
+
+  History.saveSession(session);
+  closeManualLogModal();
+  if (App.screen === 'log')  renderLog();
+  if (App.screen === 'home') renderHome();
+}
+
+// ─────────────────────────────────────────────────────────────
 // SETTINGS
 // ─────────────────────────────────────────────────────────────
 function toggleSection(id) {
@@ -1185,6 +1784,8 @@ function renderSettings() {
   document.getElementById('rest-skill').value  = s.defaultRestSkill;
   document.getElementById('rest-prehab').value = s.defaultRestPrehab;
   document.getElementById('rest-power').value  = s.defaultRestPower;
+  document.getElementById('ai-api-key').value  = s.anthropicApiKey || '';
+  document.getElementById('ai-model').value    = s.aiModel || 'claude-sonnet-5';
 
   document.getElementById('equipment-list').innerHTML = EQUIPMENT.map(e =>
     `<label class="setting-row toggle-row">
@@ -1217,13 +1818,16 @@ function renderSettings() {
               ${subEx.map(ex => {
                 const ov = Overrides.get(ex.id);
                 const hasMedia = !!(ov?.link || ov?.imageUrl || ex.link);
+                const isTracked = Profile.isTracked(App.profile, ex.id);
                 return `<div class="ex-state-row">
                   <span class="ex-state-name">
                     ${ex.name}
                     ${ex.isCustom ? '<span class="custom-tag">custom</span>' : ''}
                     ${hasMedia ? '<span class="media-tag">▶</span>' : ''}
+                    ${isTracked ? '<span class="tracked-tag">📈 tracked</span>' : ''}
                   </span>
                   <div style="display:flex;gap:6px;align-items:center">
+                    <button class="btn-xs" onclick="openExView('${ex.id}')">View</button>
                     <button class="btn-xs" onclick="openExEdit('${ex.id}')">Edit</button>
                     <select class="state-select" onchange="saveExerciseState('${ex.id}',this.value)">
                       <option value="active"   ${Profile.getExerciseState(App.profile,ex.id)==='active'  ?'selected':''}>Active</option>
@@ -1390,6 +1994,104 @@ async function importDLC(input) {
 // Keep for backwards compat
 function importData(input) { importBackup(input); }
 
+// ── EXERCISE VIEW MODAL (read-only) ─────────────────────────────
+let _exViewId = null;
+
+function buildExPhotoPlaceholder() {
+  const el = document.createElement('div');
+  el.className = 'ex-view-photo-empty';
+  el.innerHTML = 'No photo yet<span>Tap Edit to add an image or GIF</span>';
+  return el;
+}
+
+function openExView(id) {
+  _exViewId = id;
+  const allEx = Custom.getAllExercises();
+  const base  = allEx.find(e => e.id === id);
+  if (!base) return;
+  const ex = base.isCustom ? base : Overrides.apply(base);
+
+  document.getElementById('ex-view-name').textContent = ex.name;
+
+  const state      = Profile.getExerciseState(App.profile, id);
+  const stateLabel = { active: 'Active', notyet: 'Not yet', excluded: 'Excluded' }[state] || state;
+  // Priority: a user-pasted image/gif override > a built-in photo shipped with
+  // the exercise > a thumbnail auto-derived from the YouTube link.
+  const photo = ex.imageUrl || ex.image || '';
+  const thumb = photo || Overrides.thumbFromYouTube(ex.link) || '';
+  const lastLog = History.getLastExerciseLog(id);
+  const pr      = History.getPR(id);
+
+  const body = document.getElementById('ex-view-body');
+  body.innerHTML = '';
+
+  if (thumb) {
+    const img = document.createElement('img'); img.src = thumb; img.className = 'ex-view-photo';
+    img.alt = ex.name;
+    img.onerror = () => { img.remove(); body.prepend(buildExPhotoPlaceholder()); };
+    body.appendChild(img);
+  } else {
+    body.appendChild(buildExPhotoPlaceholder());
+  }
+
+  const detail = (label, value) => {
+    if (!value) return;
+    const row = document.createElement('div'); row.className = 'ex-view-row';
+    row.innerHTML = `<span class="ex-view-label">${label}</span><span class="ex-view-value">${value}</span>`;
+    body.appendChild(row);
+  };
+
+  detail('State', stateLabel);
+  detail('Category', [ex.category, ex.subcategory].filter(Boolean).join(' · '));
+  detail('Difficulty', ex.difficulty ? '★'.repeat(ex.difficulty) + '☆'.repeat(Math.max(0, 5 - ex.difficulty)) : '');
+  detail('Energy', ex.energy);
+  detail('Log type', ex.logType);
+  detail('Rest group', ex.restGroup);
+  detail('Frequency', ex.frequency);
+  detail('Equipment', (ex.equipment || []).join(', '));
+  detail('Goals', (ex.goals || []).map(gId => GOALS.find(g => g.id === gId)?.name || gId).join(', '));
+
+  const prParts = [];
+  if (pr?.weight)   prParts.push(`${pr.weight}kg`);
+  if (pr?.reps)     prParts.push(`${pr.reps} reps`);
+  if (pr?.duration) prParts.push(Utils.formatDuration(pr.duration));
+  detail('Personal best', prParts.join(' · '));
+  if (Profile.isTracked(App.profile, id)) {
+    const best = History.getBestEstimate(id);
+    detail('Est. 1RM', best ? `${best.e1rm}kg <span class="ex-view-value-sub">(${best.weight}kg × ${best.reps})</span>` : '');
+  }
+  detail('Last logged', lastLog ? Utils.formatDate(lastLog.date) : '');
+
+  if (ex.notes) {
+    const wrap = document.createElement('div'); wrap.className = 'ex-view-block';
+    wrap.innerHTML = `<div class="field-label">Notes / cues</div><div class="ex-view-text">${ex.notes}</div>`;
+    body.appendChild(wrap);
+  }
+  if (ex.instructions) {
+    const wrap = document.createElement('div'); wrap.className = 'ex-view-block';
+    wrap.innerHTML = `<div class="field-label">Instructions</div><div class="ex-view-text">${ex.instructions}</div>`;
+    body.appendChild(wrap);
+  }
+  if (ex.link) {
+    const wrap = document.createElement('div'); wrap.className = 'ex-view-block';
+    wrap.innerHTML = `<a href="${ex.link}" target="_blank" rel="noopener" class="ex-view-link">▶ Watch video</a>`;
+    body.appendChild(wrap);
+  }
+
+  document.getElementById('ex-view-backdrop').style.display = 'flex';
+}
+
+function switchToExEdit() {
+  const id = _exViewId;
+  closeExView();
+  if (id) openExEdit(id);
+}
+
+function closeExView() {
+  document.getElementById('ex-view-backdrop').style.display = 'none';
+  _exViewId = null;
+}
+
 // ── EXERCISE EDIT MODAL ────────────────────────────────────────
 let _exEditId = null;
 
@@ -1408,7 +2110,7 @@ function openExEdit(id) {
   const restGroups = ['strength-heavy','strength-acc','skill','prehab','power','flexibility','somatic','meditation','cardio'];
 
   // Auto thumb from YouTube link
-  const thumb = ex.imageUrl || Overrides.thumbFromYouTube(ex.link) || '';
+  const thumb = ex.imageUrl || ex.image || Overrides.thumbFromYouTube(ex.link) || '';
 
   const body = document.getElementById('ex-edit-body');
   body.innerHTML = '';
@@ -1444,6 +2146,18 @@ function openExEdit(id) {
     if (ex.restGroup === r) opt.selected = true; restSel.appendChild(opt);
   });
   row('Rest group', restSel);
+
+  // Track weight / est. 1RM (only meaningful for weight+reps exercises)
+  if (ex.logType === 'weight+reps') {
+    const trackWrap = document.createElement('label'); trackWrap.className = 'setting-row toggle-row';
+    trackWrap.style.marginBottom = '.875rem';
+    const trackSpan = document.createElement('span'); trackSpan.textContent = 'Track weight / Est. 1RM';
+    const trackCb = document.createElement('input'); trackCb.type = 'checkbox'; trackCb.id = 'exe-tracked';
+    trackCb.checked = Profile.isTracked(App.profile, id);
+    trackWrap.appendChild(trackSpan);
+    trackWrap.appendChild(trackCb);
+    body.appendChild(trackWrap);
+  }
 
   // Notes / cues
   const notesEl = document.createElement('textarea'); notesEl.className = 'text-input'; notesEl.id = 'exe-notes';
@@ -1511,6 +2225,14 @@ function saveExEdit() {
   // Save state separately (profile, not override)
   const newState = document.getElementById('exe-state')?.value;
   if (newState) Profile.setExerciseState(App.profile, _exEditId, newState);
+
+  // Save tracked-lift toggle (profile, not override) — only present for
+  // weight+reps exercises
+  const trackedEl = document.getElementById('exe-tracked');
+  if (trackedEl) {
+    const nowTracked = Profile.isTracked(App.profile, _exEditId);
+    if (trackedEl.checked !== nowTracked) Profile.toggleTracked(App.profile, _exEditId);
+  }
 
   if (base.isCustom) {
     Custom.updateExercise(_exEditId, data);
@@ -1599,7 +2321,6 @@ function closeExerciseModal(){ document.getElementById('ex-modal-backdrop').styl
 // INIT
 // ─────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  onDurChange(90);
   boot().catch(e => { console.error('Boot error:', e); AuthUI.show(); });
 });
 setInterval(() => {
@@ -1619,6 +2340,18 @@ setInterval(() => {
       <button class="modal-close" onclick="closeGoalRing()">✕</button>
     </div>
     <div class="goal-ring-grid" id="goal-ring-grid"></div>
+  </div>
+</div>
+
+<!-- Exercise view modal (read-only) -->
+<div class="modal-backdrop centered" id="ex-view-backdrop" style="display:none" onclick="closeExView()">
+  <div class="modal modal-card modal-tall" onclick="event.stopPropagation()">
+    <div class="ex-edit-header">
+      <div class="ex-edit-name" id="ex-view-name"></div>
+      <button class="modal-close" onclick="closeExView()">✕</button>
+    </div>
+    <div id="ex-view-body"></div>
+    <button class="btn-primary" style="margin-top:.75rem" onclick="switchToExEdit()">Edit</button>
   </div>
 </div>
 
