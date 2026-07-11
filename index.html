@@ -1000,7 +1000,7 @@ function buildExerciseEl(ex, bIdx, eIdx) {
       const best = liveBestEstimate(ex);
       if (best) estHint = `<div class="est-hint-row">Est. 1RM <strong>${best.e1rm}kg</strong> <span class="est-hint-sub">(${best.weight}kg × ${best.reps})</span></div>`;
     }
-    logHtml=`${lastWeightHint}${estHint}<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si)).join('')}</div>
+    logHtml=`${lastWeightHint}${estHint}<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si,bIdx,eIdx)).join('')}</div>
       <div class="add-set-row">
         <input type="number" class="num-in" id="w-${bIdx}-${eIdx}" placeholder="${lastLog?.lastWeight||'kg'}" min="0" step="2.5">
         <span class="mul">×</span>
@@ -1008,10 +1008,12 @@ function buildExerciseEl(ex, bIdx, eIdx) {
         <button class="log-btn" onclick="logSet(${bIdx},${eIdx})">Log</button>
       </div>${ex.progressionSuggestion?`<div class="prog-hint">⬆ ${ex.progressionSuggestion}</div>`:''}`;
   } else if (ex.logType==='hold') {
-    const dur=ex.sets?.[0]?.duration;
-    logHtml=`<div class="hold-row">${dur?`<span class="hold-result">${Utils.formatMMSS(dur)}</span>`:''}<button class="sw-btn" id="sw-${bIdx}-${eIdx}" onclick="toggleStopwatch(${bIdx},${eIdx})">▶ Start</button>${lastLog?.lastDuration?`<span class="last-hint">last: ${Utils.formatMMSS(lastLog.lastDuration)}</span>`:''}</div>`;
+    // Every stopwatch stop logs a new set (see toggleStopwatch) — show all
+    // of them, each deletable, instead of only ever displaying the first.
+    logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si,bIdx,eIdx)).join('')}</div>
+      <div class="hold-row"><button class="sw-btn" id="sw-${bIdx}-${eIdx}" onclick="toggleStopwatch(${bIdx},${eIdx})">▶ Start</button>${lastLog?.lastDuration?`<span class="last-hint">last: ${Utils.formatMMSS(lastLog.lastDuration)}</span>`:''}</div>`;
   } else if (ex.logType==='reps') {
-    logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si)).join('')}</div>
+    logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si,bIdx,eIdx)).join('')}</div>
       <div class="add-set-row"><input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" min="0"><button class="log-btn" onclick="logReps(${bIdx},${eIdx})">Log</button></div>`;
   } else if (ex.logType==='cardio') {
     const c=ex.cardioLog;
@@ -1040,13 +1042,14 @@ function buildExerciseEl(ex, bIdx, eIdx) {
   return wrap;
 }
 
-function setRow(s,si){return`<div class="set-row"><span class="set-num">${si+1}</span>${s.weight?`<span class="set-weight">${s.weight}kg</span>`:''} ${s.reps?`<span class="set-reps">× ${s.reps}</span>`:''} ${s.duration?`<span class="set-reps">${Utils.formatMMSS(s.duration)}</span>`:''}</div>`;}
+function setRow(s,si,b,e){return`<div class="set-row"><span class="set-num">${si+1}</span>${s.weight?`<span class="set-weight">${s.weight}kg</span>`:''} ${s.reps?`<span class="set-reps">× ${s.reps}</span>`:''} ${s.duration?`<span class="set-reps">${Utils.formatMMSS(s.duration)}</span>`:''}<button class="set-del" onclick="removeSet(${b},${e},${si})" aria-label="Delete set">✕</button></div>`;}
+function removeSet(b,e,si){LiveSession.removeSet(b,e,si);refreshExercise(b,e);}
 
 const _sw={};let _swActive=null;
 function toggleStopwatch(b,e){
   const key=`${b}-${e}`,btn=document.getElementById(`sw-${b}-${e}`);
   if(_swActive&&_swActive!==key){Timer.stopStopwatch();_sw[_swActive]={running:false};const[pb,pe]=_swActive.split('-');const ob=document.getElementById(`sw-${pb}-${pe}`);if(ob)ob.textContent='▶ Start';_swActive=null;}
-  if(_sw[key]?.running){const el=Timer.stopStopwatch();_sw[key]={running:false};btn.textContent=`▶ ${Utils.formatMMSS(el)}`;LiveSession.logSet(b,e,{duration:el,completed:true});refreshExercise(b,e);_swActive=null;}
+  if(_sw[key]?.running){const el=Timer.stopStopwatch();_sw[key]={running:false};LiveSession.logSet(b,e,{duration:el,completed:true});refreshExercise(b,e);_swActive=null;}
   else{_sw[key]={running:true};_swActive=key;btn.textContent='⏹ 0:00';Timer.startStopwatch(s=>{if(btn)btn.textContent=`⏹ ${Timer.format(s)}`;});}
 }
 

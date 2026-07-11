@@ -1697,9 +1697,31 @@ const LiveSession = {
     this._session = session;
     this._onUpdate = onUpdate;
     Timer.stopAll();
+    this._persist();
   },
 
   getSession() { return this._session; },
+
+  // Restore an in-progress session that survived a reload — phone locked
+  // mid-exercise, PWA got evicted from memory while backgrounded, tab got
+  // killed, etc. Mirrors start(), minus the "new session" setup, since the
+  // saved object already has all logged sets/completion state.
+  restore(onUpdate) {
+    const saved = DB.get('active_session');
+    if (!saved || saved.status !== 'active') return null;
+    this._session = saved;
+    this._onUpdate = onUpdate;
+    return saved;
+  },
+
+  // Snapshot the in-progress session to localStorage so nothing is lost if
+  // the page gets unloaded before "Complete session" is tapped. Cheap
+  // (local write only — this key isn't synced to Supabase, see sync.js
+  // _syncKey), so it's called after every mutation below rather than
+  // throttled.
+  _persist() {
+    if (this._session) DB.set('active_session', this._session);
+  },
 
   // Log a set for a specific exercise (block/exercise index — the session
   // screen renders every exercise at once, so the caller always knows
@@ -1719,6 +1741,7 @@ const LiveSession = {
     };
     ex.sets = ex.sets || [];
     ex.sets.push(set);
+    this._persist();
     this._onUpdate && this._onUpdate(this._session);
 
     // Auto-start rest timer if exercise has rest
@@ -1733,6 +1756,7 @@ const LiveSession = {
     const ex = this._getExercise(blockIdx, exIdx);
     if (ex) {
       ex.completed = true;
+      this._persist();
       this._onUpdate && this._onUpdate(this._session);
     }
   },
@@ -1742,6 +1766,7 @@ const LiveSession = {
     const ex = this._getExercise(blockIdx, exIdx);
     if (ex) {
       ex.skipped = true;
+      this._persist();
       this._onUpdate && this._onUpdate(this._session);
     }
   },
@@ -1751,6 +1776,7 @@ const LiveSession = {
     const ex = this._getExercise(blockIdx, exIdx);
     if (ex) {
       ex.sessionNote = note;
+      this._persist();
       this._onUpdate && this._onUpdate(this._session);
     }
   },
@@ -1765,6 +1791,7 @@ const LiveSession = {
       note: note || '',
     };
     ex.completed = true;
+    this._persist();
     this._onUpdate && this._onUpdate(this._session);
   },
 
@@ -1772,8 +1799,21 @@ const LiveSession = {
   setSessionNote(note) {
     if (this._session) {
       this._session.notes = note;
+      this._persist();
       this._onUpdate && this._onUpdate(this._session);
     }
+  },
+
+  // Remove a previously logged set — mis-tapped weight, stopped the
+  // stopwatch by accident, etc. Renumbers the remaining sets so idx stays
+  // contiguous (1, 2, 3…) for display.
+  removeSet(blockIdx, exIdx, setIdx) {
+    const ex = this._getExercise(blockIdx, exIdx);
+    if (!ex || !ex.sets || !ex.sets[setIdx]) return;
+    ex.sets.splice(setIdx, 1);
+    ex.sets.forEach((s, i) => { s.idx = i + 1; });
+    this._persist();
+    this._onUpdate && this._onUpdate(this._session);
   },
 
   // Complete the session
@@ -1784,6 +1824,7 @@ const LiveSession = {
     Timer.stopAll();
     const id = History.saveSession(this._session);
     this._session.id = id;
+    DB.remove('active_session');
     return id;
   },
 
@@ -1791,6 +1832,7 @@ const LiveSession = {
   discard() {
     Timer.stopAll();
     this._session = null;
+    DB.remove('active_session');
   },
 
   _getExercise(blockIdx, exIdx) {
