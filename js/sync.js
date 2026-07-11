@@ -259,12 +259,18 @@ async function authSubmit() {
       await Auth.signIn(email, password);
       await DB.pull();
       AuthUI.hide();
-      App.init(); renderHome();
+      App.init();
+      const restored = LiveSession.restore(s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
+      if (restored) App.session = restored;
+      renderHome();
     } else {
       await Auth.signIn(email, password);
       await DB.pull();
       AuthUI.hide();
-      App.init(); renderHome();
+      App.init();
+      const restored = LiveSession.restore(s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
+      if (restored) App.session = restored;
+      renderHome();
     }
   } catch(e) {
     AuthUI.setError(e.message || 'Something went wrong. Try again.');
@@ -301,6 +307,12 @@ async function boot() {
   await DB.pull();
   AuthUI.hide();
   App.init();
+  // Restore an in-progress session that survived a reload (phone locked
+  // mid-exercise, backgrounded PWA got evicted, etc.) instead of silently
+  // losing it. renderHome() below picks this up via LiveSession.getSession()
+  // and shows the "Session in progress" banner + nav tab.
+  const restored = LiveSession.restore(s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
+  if (restored) App.session = restored;
   renderHome();
 }
 
