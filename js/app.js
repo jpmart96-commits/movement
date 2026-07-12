@@ -193,7 +193,7 @@ const History = {
 
     // Update index
     const index = DB.get('session_index') || [];
-    index.unshift({ id, date: session.date, theme: session.theme, duration: session.duration, source: session.source || 'generated' });
+    index.unshift({ id, date: session.date, theme: session.theme, themes: session.themes, duration: session.duration, source: session.source || 'generated' });
     // Keep last 200 sessions in index
     if (index.length > 200) index.pop();
     DB.set('session_index', index);
@@ -378,6 +378,67 @@ const History = {
       });
     }
     return map;
+  },
+
+  // The six muscle-group buckets used by EXERCISE_TAGS[id].muscle (see
+  // data/library.js) and by the "Muscle distribution" card on the Log
+  // screen. Order matches the hexagon's clockwise layout starting at
+  // the top: Back, Chest, Core, Shoulders, Arms, Legs.
+  MUSCLE_GROUPS: ['back', 'chest', 'core', 'shoulders', 'arms', 'legs'],
+
+  // Hard-set / volume distribution across muscle groups for the last
+  // `days` days, plus the same-length window immediately before it —
+  // mirrors what Hevy's "Muscle distribution" screen shows, so the Log
+  // page can render a current-vs-previous radar chart and stat deltas.
+  //
+  // Only exercises with a non-null EXERCISE_TAGS[id].muscle count toward
+  // the hexagon (mobility/breathwork/skill practice has no meaningful
+  // resistance stimulus to a specific muscle group and is excluded — see
+  // the comment above EXERCISE_TAGS in data/library.js). Sets and volume
+  // totals, however, count every logged set regardless of muscle tag, so
+  // they still reflect the whole session.
+  //
+  // Returns { current, previous }, each shaped:
+  //   { muscles: {back,chest,core,shoulders,arms,legs}, workouts, durationMin, volumeKg, sets }
+  getMuscleDistribution(days = 30) {
+    const zeroMuscles = () => Object.fromEntries(this.MUSCLE_GROUPS.map(m => [m, 0]));
+    const zeroPeriod = () => ({ muscles: zeroMuscles(), workouts: 0, durationMin: 0, volumeKg: 0, sets: 0 });
+    const out = { current: zeroPeriod(), previous: zeroPeriod() };
+
+    const DAY = 86400000;
+    const now = Date.now();
+    const curStart = now - days * DAY;
+    const prevStart = now - days * 2 * DAY;
+
+    // session_index is capped at 200 entries (see saveSession) — plenty
+    // for any realistic 30/60/90-day comparison window.
+    const index = this.getIndex(200);
+    index.forEach(entry => {
+      const t = new Date(entry.date).getTime();
+      const which = t >= curStart ? 'current' : (t >= prevStart ? 'previous' : null);
+      if (!which) return;
+
+      const session = this.getSession(entry.id);
+      if (!session) return;
+
+      out[which].workouts++;
+      out[which].durationMin += session.duration || 0;
+
+      session.blocks?.forEach(block => {
+        block.exercises?.forEach(ex => {
+          if (!ex.sets?.length) return;
+          const tags = (typeof EXERCISE_TAGS !== 'undefined' && EXERCISE_TAGS[ex.id]) || null;
+          const muscle = tags?.muscle;
+          ex.sets.forEach(s => {
+            out[which].sets++;
+            if (muscle) out[which].muscles[muscle]++;
+            if (s.weight && s.reps) out[which].volumeKg += s.weight * s.reps;
+          });
+        });
+      });
+    });
+
+    return out;
   },
 };
 
@@ -855,7 +916,8 @@ const Generator = {
 
   // Main generation function
   // Returns a structured session object ready for the live screen
-  generate({ theme, duration, sleep, energy, pain, focus, profile, customDurations }) {
+  // `themes` is an array of selected modality tag ids, e.g. ['strength-a','skill','z2'].
+  generate({ themes, duration, sleep, energy, pain, focus, profile, customDurations, blockOrder }) {
     const tier      = this.getTier(duration);
     const durations = customDurations || this.getBlockDurations(duration, energy);
     const lowEnergy = (sleep > 0 && sleep < 3) || (energy > 0 && energy < 3);
@@ -866,7 +928,7 @@ const Generator = {
     const session = {
       id:        null,          // set on save
       date:      new Date().toISOString(),
-      theme,
+      themes,
       duration,
       tier,
       sleep,
@@ -877,7 +939,7 @@ const Generator = {
       startedAt: Date.now(),
       completedAt: null,
       notes:     '',
-      blocks:    this._buildBlocks({ theme, tier, durations, lowEnergy, useExt, profile, focus, lastSeenMap, painTags }),
+      blocks:    this._buildBlocks({ themes, tier, durations, lowEnergy, useExt, profile, focus, lastSeenMap, painTags, blockOrder }),
       painNote:  (painTags.avoid.size || painTags.caution.size)
         ? { avoid: [...painTags.avoid], caution: [...painTags.caution] }
         : null,
@@ -925,10 +987,46 @@ const Generator = {
     };
   },
 
-  _buildBlocks({ theme, tier, durations, lowEnergy, useExt, profile, focus, lastSeenMap, painTags }) {
+  // Builds an ExerciseInstance from an already-picked exercise object
+  // (a LIBRARY entry or a custom exercise — both share the same shape),
+  // without the profile-exclusion/pain-exclusion filtering _resolveExFactory
+  // applies. Used for one-off mid-session additions (e.g. "Add random
+  // exercise") where the user explicitly chose the exercise rather than
+  // the generator picking it, so those exclusions shouldn't silently veto it.
+  buildExerciseInstance(ex, profile) {
+    if (!ex) return null;
+    const lastLog = History.getLastExerciseLog(ex.id);
+    const pr      = History.getPR(ex.id);
+    const prog    = History.getProgressionSuggestion(ex.id);
+    return {
+      id:          ex.id,
+      name:        ex.name,
+      category:    ex.category,
+      subcategory: ex.subcategory,
+      energy:      ex.energy,
+      logType:     ex.logType,
+      restGroup:   ex.restGroup,
+      restSeconds: Profile.getRestDefault(profile, ex.restGroup),
+      notes:       ex.notes,
+      link:        ex.link,
+      state:       Profile.getExerciseState(profile, ex.id),
+      lastLog,
+      pr,
+      progressionSuggestion: prog.suggest ? prog.message : null,
+      sets:        [],
+      skipped:     false,
+      completed:   false,
+    };
+  },
+
+  // Accepts either `themes` (new — array of modality tag ids) or a legacy
+  // single `theme` string (still used internally by AIGenerator's
+  // 'ai-freeform' path) — normalized to `themeList` below.
+  _buildBlocks({ theme, themes, tier, durations, lowEnergy, useExt, profile, focus, lastSeenMap, painTags, blockOrder }) {
     const blocks = [];
     const painAvoid   = painTags?.avoid   || new Set();
     const painCaution = painTags?.caution || new Set();
+    const themeList   = themes || (theme ? [theme] : []);
 
     const resolveEx = this._resolveExFactory(profile, painAvoid);
 
@@ -970,7 +1068,7 @@ const Generator = {
     // time budget itself and builds its own blocks for it — building a
     // separate deterministic object-manipulation block here would double
     // up that time.
-    if (objManipMin > 0 && theme !== 'ai-freeform') {
+    if (objManipMin > 0 && !themeList.includes('ai-freeform')) {
       blocks.push({
         key:      'objManip',
         label:    'Object manipulation',
@@ -985,25 +1083,32 @@ const Generator = {
     }
 
     // ── BREAKFAST ────────────────────────────────────────────
-    blocks.push({
-      key:      'breakfast',
-      label:    'Breakfast',
-      icon:     'coffee',
-      color:    '#BA7517',
-      bg:       '#FAEEDA',
-      duration: 0,
-      note:     'Eat. No heavy loading before this settles.',
-      exercises: [{
-        id:      'breakfast',
-        name:    'Eat + digest',
-        logType: 'none',
-        notes:   'Buffer between light block and work. Non-negotiable.',
-        sets:    [],
-        completed: false,
-        skipped:   false,
-        link:    null,
-      }],
-    });
+    // A real, duration-controlled composer row now (rather than a fixed
+    // 0-minute ritual step). `durations.breakfast` comes from the composer
+    // for normal sessions; the ai-freeform scaffold never sets it, so it
+    // falls back to a sensible default buffer instead of disappearing.
+    const breakfastMin = durations.breakfast ?? 15;
+    if (breakfastMin > 0) {
+      blocks.push({
+        key:      'breakfast',
+        label:    'Breakfast',
+        icon:     'coffee',
+        color:    '#BA7517',
+        bg:       '#FAEEDA',
+        duration: breakfastMin,
+        note:     'Eat. No heavy loading before this settles.',
+        exercises: [{
+          id:      'breakfast',
+          name:    'Eat + digest',
+          logType: 'none',
+          notes:   'Buffer between light block and work. Non-negotiable.',
+          sets:    [],
+          completed: false,
+          skipped:   false,
+          link:    null,
+        }],
+      });
+    }
 
     // ── MEDITATE ─────────────────────────────────────────────
     const meditateIds = tier >= 3
@@ -1021,8 +1126,9 @@ const Generator = {
       exercises: this._fitToTime(meditateIds, durations.meditate, resolveEx, null, painCaution),
     });
 
-    // ── WARM-UP (not on rest or z2 days) ─────────────────────
-    const skipWarmup = ['rest', 'z2-movement', 'z2-flex'].includes(theme);
+    // ── WARM-UP (skipped only when every selected tag is low-intensity) ──
+    const LOW_INTENSITY_TAGS = ['rest', 'z2', 'movement', 'flexibility'];
+    const skipWarmup = themeList.length > 0 && themeList.every(t => LOW_INTENSITY_TAGS.includes(t));
     if (!skipWarmup) {
       const warmupIds = useExt
         ? ['shoulder-cars', 'hip-cars', 'wrist-cars', 'wrist-prep',
@@ -1044,9 +1150,9 @@ const Generator = {
       });
     }
 
-    // ── SKILL + MAIN blocks by theme ─────────────────────────
-    const { blocks: themeBlocks, objManipBoost } = this._getThemeBlocks({
-      theme, tier, durations, lowEnergy, useExt, profile, focus, resolveEx, lastSeenMap,
+    // ── ONE BLOCK PER SELECTED MODALITY TAG ───────────────────
+    const { blocks: themeBlocks, objManipBoost } = this._getModalityBlocks({
+      themes: themeList, tier, durations, lowEnergy, useExt, profile, focus, resolveEx, lastSeenMap,
       painAvoid, painCaution, objIds,
     });
     blocks.push(...themeBlocks);
@@ -1083,34 +1189,10 @@ const Generator = {
     }
 
     // ── COOL-DOWN ────────────────────────────────────────────
-    const cooldownMap = {
-      'strength-a': useExt
-        ? ['couch-stretch','hamstring-hang','pancake','middle-splits','shoulder-overhead-stretch','foam-rolling','tre-tremoring','body-scan']
-        : ['couch-stretch','hamstring-hang','straightjacket-shake'],
-      'strength-b': useExt
-        ? ['couch-stretch','hamstring-hang','pancake','middle-splits','shoulder-overhead-stretch','foam-rolling','tre-tremoring','body-scan']
-        : ['couch-stretch','hamstring-hang','straightjacket-shake'],
-      'plio-a': useExt
-        ? ['pancake','middle-splits','bridge','couch-stretch','foam-rolling','tre-tremoring','straightjacket-shake','body-scan']
-        : ['pancake','bridge','tre-tremoring'],
-      'plio-b': useExt
-        ? ['pancake','middle-splits','bridge','couch-stretch','foam-rolling','tre-tremoring','straightjacket-shake','body-scan']
-        : ['pancake','bridge','tre-tremoring'],
-      'z2-movement': useExt
-        ? ['body-tapping','feldenkrais','straightjacket-shake','body-scan']
-        : ['body-tapping','straightjacket-shake'],
-      'intense': useExt
-        ? ['tre-tremoring','vertical-shake','straightjacket-shake','couch-stretch','hamstring-hang','foam-rolling','body-scan']
-        : ['tre-tremoring','vertical-shake','body-scan'],
-      'z2-flex': useExt
-        ? ['foam-rolling','tre-tremoring','yoga-nidra']
-        : ['foam-rolling','body-scan'],
-      'rest': useExt
-        ? ['yoga-nidra','body-scan']
-        : ['body-scan'],
-    };
-
-    const coolIds = cooldownMap[theme] || ['body-scan'];
+    // Merge cooldown pools from every selected tag (deduped) — a session
+    // combining e.g. Strength A + Skill gets both tags' wind-down options.
+    const coolIdsRaw = [...new Set(themeList.flatMap(t => this._MODALITY_COOLDOWN[t] || []))];
+    const coolIds = coolIdsRaw.length ? coolIdsRaw : ['body-scan'];
     blocks.push({
       key:      'cooldown',
       label:    'Cool-down',
@@ -1122,14 +1204,79 @@ const Generator = {
       exercises: this._fitToTime(coolIds, durations.cooldown, resolveEx),
     });
 
-    // Drop blocks you allocated 0 minutes to (breakfast is a fixed ritual
-    // item, not a duration-controlled block, so it's always kept).
-    return blocks.filter(b => b.key === 'breakfast' || b.exercises.length > 0);
+    // Drop blocks you allocated 0 minutes to.
+    const built = blocks.filter(b => b.exercises.length > 0);
+
+    // ── APPLY COMPOSER ORDER ─────────────────────────────────
+    // `blockOrder` is the list of block keys in the order the user chose
+    // in the composer (session blocks composer supports free reordering,
+    // including where Breakfast falls in the sequence). Any built block
+    // whose key isn't listed (shouldn't normally happen) keeps its
+    // built-in position by sorting to the end, stably.
+    if (Array.isArray(blockOrder) && blockOrder.length) {
+      const orderIndex = new Map(blockOrder.map((k, i) => [k, i]));
+      built.forEach((b, i) => { b.__origIdx = i; });
+      built.sort((a, b) => {
+        const ai = orderIndex.has(a.key) ? orderIndex.get(a.key) : blockOrder.length + a.__origIdx;
+        const bi = orderIndex.has(b.key) ? orderIndex.get(b.key) : blockOrder.length + b.__origIdx;
+        return ai - bi;
+      });
+      built.forEach(b => { delete b.__origIdx; });
+    }
+
+    return built;
   },
 
-  _getThemeBlocks({ theme, tier, durations, lowEnergy, useExt, profile, focus, resolveEx, lastSeenMap, painAvoid, painCaution, objIds }) {
+  // Which library exercises currently carry a given modality tag — read
+  // live off each exercise's `modality` field (data/library.js), with any
+  // user override applied first. This is what makes tag editing from
+  // Settings → Exercise library → Edit → Modality tags actually take
+  // effect in generation, instead of a hardcoded list living in this file.
+  _poolForTag(tag) {
+    return LIBRARY.filter(ex => {
+      const ov = Overrides.get(ex.id);
+      const modality = ov?.modality || ex.modality || [];
+      return modality.includes(tag);
+    }).map(ex => ex.id);
+  },
+
+  _MODALITY_COOLDOWN: {
+    'strength-a': ['couch-stretch','hamstring-hang','pancake','middle-splits','shoulder-overhead-stretch','foam-rolling','tre-tremoring','body-scan'],
+    'strength-b': ['couch-stretch','hamstring-hang','pancake','middle-splits','shoulder-overhead-stretch','foam-rolling','tre-tremoring','body-scan'],
+    'plio-a':     ['pancake','middle-splits','bridge','couch-stretch','foam-rolling','tre-tremoring','straightjacket-shake','body-scan'],
+    'plio-b':     ['pancake','middle-splits','bridge','couch-stretch','foam-rolling','tre-tremoring','straightjacket-shake','body-scan'],
+    'skill':      ['couch-stretch','hamstring-hang','pancake','middle-splits','shoulder-overhead-stretch','foam-rolling','tre-tremoring','body-scan'],
+    'z2':         ['body-tapping','feldenkrais','straightjacket-shake','body-scan'],
+    'movement':   ['body-tapping','feldenkrais','straightjacket-shake','body-scan'],
+    'flexibility':['foam-rolling','tre-tremoring','yoga-nidra','body-scan'],
+    'power':      ['tre-tremoring','vertical-shake','straightjacket-shake','couch-stretch','hamstring-hang','foam-rolling','body-scan'],
+    'intervals':  ['foam-rolling','tre-tremoring','body-tapping','straightjacket-shake','body-scan'],
+    'rest':       ['yoga-nidra','body-scan'],
+  },
+
+  _MODALITY_CONFIG: {
+    'strength-a': { label: 'Strength A', icon: 'barbell',    color: '#D85A30', bg: '#FAECE7' },
+    'strength-b': { label: 'Strength B', icon: 'barbell',    color: '#B8451F', bg: '#FAECE7' },
+    'plio-a':     { label: 'Plio A',     icon: 'barbell',    color: '#7B5FC7', bg: '#F0EEFE' },
+    'plio-b':     { label: 'Plio B',     icon: 'barbell',    color: '#533483', bg: '#F0EEFE' },
+    'skill':      { label: 'Skill',      icon: 'star',       color: '#378ADD', bg: '#E6F1FB' },
+    'z2':         { label: 'Zone 2',     icon: 'heart-rate', color: '#1A7A4A', bg: '#E1F5EE' },
+    'movement':   { label: 'Movement',   icon: 'run',        color: '#178F5A', bg: '#E1F5EE' },
+    'flexibility':{ label: 'Flexibility',icon: 'stretching', color: '#196F3D', bg: '#E1F5EE' },
+    'power':      { label: 'Power',      icon: 'bolt',       color: '#A32D2D', bg: '#FAE8E8' },
+    'intervals':  { label: 'Intervals',  icon: 'heart-rate', color: '#C0392B', bg: '#FAE8E8' },
+    'rest':       { label: 'Rest',       icon: 'walk',       color: '#5D6D7E', bg: '#EFF0F1' },
+  },
+
+  // Builds one block per selected modality tag (each with its own
+  // independently-sized duration from `durations[tagId]`), replacing the
+  // old single-theme switch. Static-pool tags reuse the same
+  // rotation/pain-caution machinery every other block uses; z2/intervals/
+  // rest keep their previous dynamic, non-pool logic since they were never
+  // plain fit-to-time picks (cardio choice, a single fixed prescription,
+  // a synthetic no-target activity).
+  _getModalityBlocks({ themes, tier, durations, lowEnergy, useExt, profile, focus, resolveEx, lastSeenMap, painAvoid, painCaution, objIds }) {
     const blocks = [];
-    const trim = (arr) => lowEnergy ? arr.slice(0, Math.ceil(arr.length * 0.5)) : arr;
     painAvoid   = painAvoid   || new Set();
     painCaution = painCaution || new Set();
     let objManipBoost = 0;
@@ -1139,208 +1286,60 @@ const Generator = {
     // of tier, rather than only switching to it on long sessions.
     const preferBike = ['ankle', 'knee'].some(j => painAvoid.has(j) || painCaution.has(j));
 
-    // When a fixed single-exercise main block (sprint intervals, a walk)
-    // comes up empty because its only exercise was pain-excluded, push its
-    // unused minutes into this theme's skill pool (favoring exercises that
-    // still raise heart rate) and hand the remainder back to _buildBlocks
-    // for object manipulation — mirrors what a coach would actually do:
-    // "no sprints today, so let's get more time on skill work instead."
-    const reclaimIntoSkill = (reclaimedMin, skillIds, currentSkillBlock) => {
-      if (reclaimedMin <= 0) return;
-      const toSkill = Math.round(reclaimedMin * 0.6);
-      objManipBoost += reclaimedMin - toSkill;
-      if (currentSkillBlock && toSkill > 0) {
-        currentSkillBlock.duration += toSkill;
-        currentSkillBlock.exercises = this._fitToTime(
-          skillIds, currentSkillBlock.duration, resolveEx, lastSeenMap, painCaution, true
-        );
-        if (!currentSkillBlock.note.includes('Extra time')) {
-          currentSkillBlock.note = (currentSkillBlock.note ? currentSkillBlock.note + ' ' : '') +
-            'Extra time added — today’s plan swapped out something pain flagged.';
-        }
-      } else {
-        objManipBoost += toSkill;
-      }
-    };
+    (themes || []).forEach(tag => {
+      const dur = durations?.[tag];
+      const cfg = this._MODALITY_CONFIG[tag];
+      if (!cfg) return; // unrecognized/legacy tag (e.g. 'ai-freeform') — no static block
+      if (!dur || dur <= 0) return;
 
-    switch (theme) {
-
-      case 'strength-a': {
-        const skillIds = trim(useExt
-          ? ['hollow-body-hold','hollow-body-rock','arch-body-hold','tuck-sit',
-             'pike-sit-wall','pike-sit-free','straddle-leg-circles','straddle-leg-raises',
-             'hs-wall-hold','hs-pike-entry','hs-tuck','ring-pull-up','skin-the-cat','l-sit-floor','back-lever']
-          : ['hollow-body-hold','arch-body-hold','pike-sit-wall',
-             'hs-wall-hold','hs-pike-entry','ring-pull-up','skin-the-cat']);
-
-        const mainIds = trim(useExt
-          ? ['squat','incline-bench','pull-up','lateral-raise','toes-to-bar','ring-row','hip-thrust']
-          : ['squat','incline-bench','pull-up','lateral-raise','toes-to-bar']);
-
-        blocks.push(
-          { key:'skill', label:'Skill block', icon:'star',    color:'#378ADD', bg:'#E6F1FB', duration: durations.skill, note:'CNS is fresh — skill work first.', exercises: this._fitToTime(skillIds, durations.skill, resolveEx, lastSeenMap, painCaution), rotationNote: this._rotationNote(skillIds, lastSeenMap) },
-          { key:'main',  label:'Strength A',  icon:'barbell', color:'#D85A30', bg:'#FAECE7', duration: durations.main,  note:'', exercises: this._fitToTime(mainIds, durations.main, resolveEx, null, painCaution) }
-        );
-        break;
-      }
-
-      // Same skill pool as Strength A — these are meant as two interchangeable
-      // strength days, not a progression, so skill practice stays consistent.
-      case 'strength-b': {
-        const skillIds = trim(useExt
-          ? ['hollow-body-hold','hollow-body-rock','arch-body-hold','tuck-sit',
-             'pike-sit-wall','pike-sit-free','straddle-leg-circles','straddle-leg-raises',
-             'hs-wall-hold','hs-pike-entry','hs-tuck','ring-pull-up','skin-the-cat','l-sit-floor','back-lever']
-          : ['hollow-body-hold','arch-body-hold','pike-sit-wall',
-             'hs-wall-hold','hs-pike-entry','ring-pull-up','skin-the-cat']);
-
-        const mainIds = trim(['deadlift','overhead-press','cable-row','triceps-dip','plank']);
-
-        blocks.push(
-          { key:'skill', label:'Skill block', icon:'star',    color:'#378ADD', bg:'#E6F1FB', duration: durations.skill, note:'CNS is fresh — skill work first.', exercises: this._fitToTime(skillIds, durations.skill, resolveEx, lastSeenMap, painCaution), rotationNote: this._rotationNote(skillIds, lastSeenMap) },
-          { key:'main',  label:'Strength B',  icon:'barbell', color:'#B8451F', bg:'#FAECE7', duration: durations.main,  note:'', exercises: this._fitToTime(mainIds, durations.main, resolveEx, null, painCaution) }
-        );
-        break;
-      }
-
-      // Power/plyo day 1: jumps, throws, unilateral carries, core rotation.
-      case 'plio-a': {
-        const skillIds = trim(useExt
-          ? ['hollow-body-hold','hollow-body-rock','arch-body-hold',
-             'straddle-sit-compression','straddle-leg-circles','straddle-leg-raises','straddle-fold-passive',
-             'hs-pike-entry','hs-tuck','tuck-sit','l-sit-floor',
-             'ring-hold-support','skin-the-cat','ring-dip','back-lever']
-          : ['hollow-body-hold','straddle-sit-compression','straddle-leg-raises',
-             'hs-pike-entry','tuck-sit','ring-hold-support','skin-the-cat']);
-
-        const mainIds = trim(['box-jump','med-ball-slams','kb-swing','ring-push-up','walking-lunge','weighted-crunch','cable-twist']);
-
-        const skillBlock = { key:'skill', label:'Skill block', icon:'star',    color:'#378ADD', bg:'#E6F1FB', duration: durations.skill, note:'CNS is fresh — skill work first.', exercises: this._fitToTime(skillIds, durations.skill, resolveEx, lastSeenMap, painCaution), rotationNote: this._rotationNote(skillIds, lastSeenMap) };
-        const mainEx = this._fitToTime(mainIds, durations.main, resolveEx, null, painCaution);
-        // box-jump is the only high-impact ankle/knee item in this pool —
-        // if it (and everything else) got excluded, reclaim rather than
-        // leave the whole main block empty.
-        if (durations.main > 0 && mainEx.length === 0) reclaimIntoSkill(durations.main, skillIds, skillBlock);
-
-        blocks.push(
-          skillBlock,
-          { key:'main',  label:'Plio A',      icon:'barbell', color:'#7B5FC7', bg:'#F0EEFE', duration: mainEx.length ? durations.main : 0, note:'', exercises: mainEx }
-        );
-        break;
-      }
-
-      // Power/plyo day 2: unilateral strength + mobility under load.
-      case 'plio-b': {
-        const skillIds = trim(useExt
-          ? ['hollow-body-hold','hollow-body-rock','arch-body-hold',
-             'straddle-sit-compression','straddle-leg-circles','straddle-leg-raises','straddle-fold-passive',
-             'hs-pike-entry','hs-tuck','tuck-sit','l-sit-floor',
-             'ring-hold-support','skin-the-cat','ring-dip','back-lever']
-          : ['hollow-body-hold','straddle-sit-compression','straddle-leg-raises',
-             'hs-pike-entry','tuck-sit','ring-hold-support','skin-the-cat']);
-
-        const mainIds = trim(['cossack-squat','jefferson-curl','shoulder-cars','ankle-mobility','bulgarian-split-squat','single-leg-rdl','half-kneeling-press','farmers-walk','pallof-press']);
-
-        blocks.push(
-          { key:'skill', label:'Skill block', icon:'star',    color:'#378ADD', bg:'#E6F1FB', duration: durations.skill, note:'CNS is fresh — skill work first.', exercises: this._fitToTime(skillIds, durations.skill, resolveEx, lastSeenMap, painCaution), rotationNote: this._rotationNote(skillIds, lastSeenMap) },
-          { key:'main',  label:'Plio B',      icon:'barbell', color:'#533483', bg:'#F0EEFE', duration: durations.main,  note:'', exercises: this._fitToTime(mainIds, durations.main, resolveEx, null, painCaution) }
-        );
-        break;
-      }
-
-      case 'z2-movement': {
+      if (tag === 'z2') {
         const cardioId = preferBike ? 'z2-cycling' : (tier >= 3 ? 'z2-cycling' : 'easy-run');
         const cardioEx = resolveEx(cardioId) || resolveEx('z2-cycling') || resolveEx('easy-run');
         if (cardioEx) {
           cardioEx.notes = (tier >= 3 ? '45–60' : '30') + ' min. Nose breathing. Conversational pace.' +
             (preferBike && cardioEx.id === 'z2-cycling' ? ' Swapped to the bike — easier on the ankle/knee today.' : '');
         }
-
-        const movementIds = trim(useExt
-          ? ['rolling-forward','rolling-backward','rolling-side','lizard-crawl',
-             'frog-hop','scorpion-walk','ground-flow','brachiation','cartwheel','freestyle']
-          : ['rolling-forward','rolling-side','lizard-crawl','ground-flow','freestyle']);
-
-        blocks.push(
-          { key:'skill', label:'Zone 2',       icon:'heart-rate', color:'#1A7A4A', bg:'#E1F5EE', duration: durations.skill, note:'Nose breathing throughout. Conversational pace.', exercises: durations.skill > 0 ? [cardioEx].filter(Boolean) : [] },
-          { key:'main',  label:'Ground flow',  icon:'run',        color:'#1A7A4A', bg:'#E1F5EE', duration: durations.main,  note:'', exercises: this._fitToTime(movementIds, durations.main, resolveEx, null, painCaution) }
-        );
-        break;
+        blocks.push({ key: tag, label: cfg.label, icon: cfg.icon, color: cfg.color, bg: cfg.bg, duration: cardioEx ? dur : 0, note: 'Nose breathing throughout. Conversational pace.', exercises: cardioEx ? [cardioEx] : [] });
+        return;
       }
 
-      case 'intense': {
-        const powerIds = trim(useExt
-          ? ['med-ball-slams','med-ball-rotational','broad-jump','depth-jump']
-          : ['med-ball-slams','med-ball-rotational','broad-jump']);
-
-        const sprintEx = resolveEx('uphill-sprints');
-        if (sprintEx) sprintEx.notes = useExt ? '10×20s / 90s full rest' : '6×20s / 90s full rest';
-
-        const skillBlock = { key:'skill', label:'Power', icon:'bolt', color:'#A32D2D', bg:'#FAE8E8', duration: durations.skill, note:'Maximal intent every rep.', exercises: this._fitToTime(powerIds, durations.skill, resolveEx, lastSeenMap, painCaution), rotationNote: this._rotationNote(powerIds, lastSeenMap) };
-
-        // Sprints are exactly the "no sprints or long run" case — ankle/knee
-        // avoid excludes uphill-sprints via resolveEx (Sprint = high impact),
-        // so reclaim that block's minutes into skill + object manipulation
-        // instead of just showing an empty main block.
-        if (durations.main > 0 && !sprintEx) reclaimIntoSkill(durations.main, powerIds, skillBlock);
-
-        blocks.push(
-          skillBlock,
-          { key:'main',  label:'Sprint / intervals', icon:'run', color:'#A32D2D', bg:'#FAE8E8', duration: sprintEx ? durations.main : 0, note:'Full recovery between efforts.', exercises: durations.main > 0 ? [sprintEx].filter(Boolean) : [] }
-        );
-        break;
+      if (tag === 'intervals') {
+        // Cardio work/rest cycling — same exercise pool as Z2 (bike/run),
+        // distinguished from Z2 by prescription (on/off effort) rather than
+        // conversational steady-state. Uphill sprints live under Power now.
+        const cardioId = preferBike ? 'z2-cycling' : (tier >= 3 ? 'z2-cycling' : 'easy-run');
+        const cardioEx = resolveEx(cardioId) || resolveEx('z2-cycling') || resolveEx('easy-run');
+        if (cardioEx) {
+          const work = useExt ? '3 min' : '2 min';
+          const rest = useExt ? '2 min' : '90s';
+          cardioEx.notes = `Intervals: ${work} hard / ${rest} easy, repeat for ${dur} min.` +
+            (preferBike && cardioEx.id === 'z2-cycling' ? ' Swapped to the bike — easier on the ankle/knee today.' : '');
+        }
+        blocks.push({ key: tag, label: cfg.label, icon: cfg.icon, color: cfg.color, bg: cfg.bg, duration: cardioEx ? dur : 0, note: 'Push the work intervals — recover fully on the easy ones.', exercises: cardioEx ? [cardioEx] : [] });
+        return;
       }
 
-      case 'z2-flex': {
-        // Already bike-first regardless of pain (z2-flex days are always
-        // low-impact by design), so no preferBike branching needed here.
-        const cardioEx = resolveEx('z2-cycling') || resolveEx('easy-run');
-        if (cardioEx) cardioEx.notes = (tier >= 3 ? '45–60' : '30') + ' min. Nose breathing.';
-
-        const flexIds = trim(useExt
-          ? ['pancake','middle-splits','straddle-sit-compression','straddle-fold-passive',
-             'hamstring-pnf','bridge','front-splits','couch-stretch-weighted','pancake-good-morning','jefferson-curl']
-          : ['pancake','middle-splits','straddle-sit-compression','hamstring-pnf','bridge','front-splits']);
-
-        blocks.push(
-          { key:'skill', label:'Zone 2',         icon:'heart-rate', color:'#196F3D', bg:'#E1F5EE', duration: durations.skill, note:'Nose breathing throughout.', exercises: durations.skill > 0 ? [cardioEx].filter(Boolean) : [] },
-          { key:'main',  label:'Flexibility',    icon:'stretching', color:'#196F3D', bg:'#E1F5EE', duration: durations.main,  note:'Long passive holds. PNF where noted.', exercises: this._fitToTime(flexIds, durations.main, resolveEx, null, painCaution) }
-        );
-        break;
-      }
-
-      case 'rest': {
+      if (tag === 'rest') {
         const walkExcluded = this._isPainExcluded('walking', painAvoid);
         const walkEx = walkExcluded ? null : {
-          id:      'walking',
-          name:    'Walking / hiking',
-          logType: 'cardio',
-          energy:  'Low',
-          restGroup: 'cardio',
-          restSeconds: 0,
-          notes:   'Main rest day activity. No targets.',
-          link:    null,
-          sets:    [], completed: false, skipped: false,
+          id: 'walking', name: 'Walking / hiking', logType: 'cardio', energy: 'Low',
+          restGroup: 'cardio', restSeconds: 0, notes: 'No targets. Just move.', link: null,
+          sets: [], completed: false, skipped: false,
         };
-
-        const restIds = trim(useExt
-          ? ['pancake','middle-splits','couch-stretch','bridge','front-splits','hamstring-hang','shoulder-overhead-stretch','freestyle']
-          : ['pancake','couch-stretch','bridge','freestyle']);
-
-        const mainBlock = { key:'main', label:'Flexibility', icon:'stretching', color:'#5D6D7E', bg:'#EFF0F1', duration: durations.main, note:'No load. Long holds.', exercises: this._fitToTime(restIds, durations.main, resolveEx, null, painCaution) };
-        if (walkExcluded && durations.skill > 0) {
-          mainBlock.duration += Math.round(durations.skill * 0.6);
-          mainBlock.exercises = this._fitToTime(restIds, mainBlock.duration, resolveEx, null, painCaution);
-          objManipBoost += durations.skill - Math.round(durations.skill * 0.6);
-        }
-
-        blocks.push(
-          { key:'skill', label:'Walk / hike', icon:'walk', color:'#5D6D7E', bg:'#EFF0F1', duration: walkEx ? durations.skill : 0, note: walkEx ? 'No targets. Just move.' : '', exercises: durations.skill > 0 ? [walkEx].filter(Boolean) : [] },
-          mainBlock
-        );
-        break;
+        if (walkExcluded) objManipBoost += dur;
+        blocks.push({ key: tag, label: cfg.label, icon: cfg.icon, color: cfg.color, bg: cfg.bg, duration: walkEx ? dur : 0, note: walkEx ? 'No targets. Just move.' : '', exercises: walkEx ? [walkEx] : [] });
+        return;
       }
-    }
+
+      // Static-pool tags: strength-a/b, plio-a/b, skill, movement, flexibility, power
+      const pool = this._poolForTag(tag);
+      const exercises = this._fitToTime(pool, dur, resolveEx, lastSeenMap, painCaution);
+      blocks.push({
+        key: tag, label: cfg.label, icon: cfg.icon, color: cfg.color, bg: cfg.bg,
+        duration: dur, note: '', exercises,
+        rotationNote: this._rotationNote(pool, lastSeenMap),
+      });
+    });
 
     return { blocks, objManipBoost };
   },
@@ -1782,11 +1781,12 @@ const LiveSession = {
   },
 
   // Log cardio exercise
-  logCardio(blockIdx, exIdx, { durationMin, durationSec, appleFitnessLink, note }) {
+  logCardio(blockIdx, exIdx, { durationMin, durationSec, distanceKm, appleFitnessLink, note }) {
     const ex = this._getExercise(blockIdx, exIdx);
     if (!ex) return;
     ex.cardioLog = {
       duration: durationMin * 60 + (durationSec || 0),
+      distanceKm: distanceKm || null,
       appleFitnessLink: appleFitnessLink || '',
       note: note || '',
     };
@@ -1814,6 +1814,48 @@ const LiveSession = {
     ex.sets.forEach((s, i) => { s.idx = i + 1; });
     this._persist();
     this._onUpdate && this._onUpdate(this._session);
+  },
+
+  // Fully remove an exercise from a block — distinct from skipExercise(),
+  // which just soft-hides it (kept for history/progress accounting).
+  // Splices the block's exercises array, so every exercise after this one
+  // shifts down an index — callers must re-render the whole session/block
+  // afterward rather than patching the single row that used to live here.
+  removeExercise(blockIdx, exIdx) {
+    const block = this._session?.blocks?.[blockIdx];
+    if (!block || !block.exercises?.[exIdx]) return;
+    block.exercises.splice(exIdx, 1);
+    this._persist();
+    this._onUpdate && this._onUpdate(this._session);
+  },
+
+  // Add an already-built ExerciseInstance (see Generator.buildExerciseInstance)
+  // to the end of a block. Used for "Add random exercise".
+  addExercise(blockIdx, ex) {
+    const block = this._session?.blocks?.[blockIdx];
+    if (!block || !ex) return;
+    block.exercises.push(ex);
+    this._persist();
+    this._onUpdate && this._onUpdate(this._session);
+  },
+
+  // Finds (or lazily creates) a catch-all block for exercises added
+  // mid-session that don't share a category with any existing block.
+  // Returns the block's index.
+  ensureExtraBlock() {
+    if (!this._session) return -1;
+    let idx = this._session.blocks.findIndex(b => b.key === 'extra');
+    if (idx === -1) {
+      this._session.blocks.push({
+        key: 'extra', label: 'Extra exercises', icon: 'circles',
+        color: '#6B6B6B', bg: '#EFEFEF', duration: 0,
+        note: 'Added mid-session.', exercises: [],
+      });
+      idx = this._session.blocks.length - 1;
+      this._persist();
+      this._onUpdate && this._onUpdate(this._session);
+    }
+    return idx;
   },
 
   // Complete the session
@@ -1885,6 +1927,17 @@ const Utils = {
     return `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
   },
 
+  // Format total minutes as "Xh Ymin" (used by the muscle distribution
+  // card's Duration stat, where session.duration values get summed).
+  formatHoursMin(totalMin) {
+    const m = Math.round(totalMin || 0);
+    const h = Math.floor(m / 60);
+    const rem = m % 60;
+    if (h === 0) return `${rem}min`;
+    if (rem === 0) return `${h}h`;
+    return `${h}h ${rem}min`;
+  },
+
   // Days since a date string
   daysSince(iso) {
     if (!iso) return null;
@@ -1922,17 +1975,51 @@ const Utils = {
   // Get theme display config
   getThemeConfig(themeId) {
     const configs = {
-      'strength-a':   { label: 'Strength A',       color: '#185FA5', icon: 'barbell' },
-      'strength-b':   { label: 'Strength B',       color: '#0E4A85', icon: 'barbell' },
-      'plio-a':       { label: 'Plio A',            color: '#7B5FC7', icon: 'barbell' },
-      'plio-b':       { label: 'Plio B',            color: '#533483', icon: 'barbell' },
-      'z2-movement':  { label: 'Z2 + Movement',     color: '#1A7A4A', icon: 'run'     },
-      'intense':      { label: 'Intense',           color: '#A32D2D', icon: 'bolt'    },
-      'z2-flex':      { label: 'Z2 + Flexibility',  color: '#196F3D', icon: 'run'     },
-      'rest':         { label: 'Rest + Recovery',   color: '#5D6D7E', icon: 'moon'    },
-      'ai-freeform':  { label: 'AI session',        color: '#378ADD', icon: 'star'    },
+      // Selectable modality tags (Generate screen multi-select)
+      'strength-a':   { label: 'Strength A',       color: '#185FA5', icon: 'barbell'    },
+      'strength-b':   { label: 'Strength B',       color: '#0E4A85', icon: 'barbell'    },
+      'plio-a':       { label: 'Plio A',            color: '#7B5FC7', icon: 'barbell'    },
+      'plio-b':       { label: 'Plio B',            color: '#533483', icon: 'barbell'    },
+      'skill':        { label: 'Skill',             color: '#378ADD', icon: 'star'       },
+      'z2':           { label: 'Zone 2',            color: '#1A7A4A', icon: 'run'        },
+      'movement':     { label: 'Movement',          color: '#178F5A', icon: 'run'        },
+      'flexibility':  { label: 'Flexibility',       color: '#196F3D', icon: 'stretching' },
+      'power':        { label: 'Power',             color: '#A32D2D', icon: 'bolt'       },
+      'intervals':    { label: 'Intervals',         color: '#C0392B', icon: 'heart-rate' },
+      'rest':         { label: 'Rest + Recovery',   color: '#5D6D7E', icon: 'moon'       },
+      'ai-freeform':  { label: 'AI session',        color: '#378ADD', icon: 'star'       },
+      // Legacy theme ids — retired from the picker, kept here only so old
+      // saved sessions (from before the multi-select tag system) still
+      // render a sensible label/color/icon in history and the calendar.
+      'z2-movement':  { label: 'Z2 + Movement',     color: '#1A7A4A', icon: 'run'        },
+      'intense':      { label: 'Intense',           color: '#A32D2D', icon: 'bolt'       },
+      'z2-flex':      { label: 'Z2 + Flexibility',  color: '#196F3D', icon: 'run'        },
     };
     return configs[themeId] || { label: themeId, color: '#888', icon: 'activity' };
+  },
+
+  // ── Session theme helpers (support both new multi-tag sessions and
+  // legacy single-theme sessions) ─────────────────────────────────
+  // New sessions store `themes: string[]`; sessions saved before this
+  // feature only have a single `theme` string. Both shapes may also show up
+  // in the lightweight session-index entries (History.getIndex), not just
+  // full session records, so these helpers accept either.
+  getSessionThemeIds(session) {
+    if (!session) return [];
+    if (Array.isArray(session.themes) && session.themes.length) return session.themes;
+    if (session.theme) return [session.theme];
+    return [];
+  },
+
+  getSessionLabel(session) {
+    const ids = this.getSessionThemeIds(session);
+    if (!ids.length) return 'Session';
+    return ids.map(id => this.getThemeConfig(id).label).join(' + ');
+  },
+
+  getSessionColor(session) {
+    const ids = this.getSessionThemeIds(session);
+    return ids.length ? this.getThemeConfig(ids[0]).color : '#888';
   },
 };
 

@@ -491,6 +491,12 @@ textarea.text-input { resize: vertical; min-height: 72px; }
 }
 .ex-name a svg { stroke: currentColor; fill: none; stroke-width: 1.75; flex-shrink: 0; }
 .ex-notes { font-size: 12px; color: var(--text2); margin-top: 2px; }
+.ex-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
 .ex-skip-btn {
   background: none;
   border: none;
@@ -501,6 +507,17 @@ textarea.text-input { resize: vertical; min-height: 72px; }
   line-height: 1;
   flex-shrink: 0;
 }
+.ex-remove-btn {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 .25rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.ex-remove-btn:hover { color: var(--danger); }
 
 .ex-log {
   padding: .375rem .75rem .5rem;
@@ -681,6 +698,34 @@ textarea.text-input { resize: vertical; min-height: 72px; }
 .modal-ex-name     { font-size: 14px; font-weight: 500; }
 .modal-set         { font-size: 13px; color: var(--text2); margin-left: .75rem; }
 
+/* ── IN-APP VIDEO WATCH ──────────────────────────────────── */
+.watch-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #000;
+}
+.watch-frame.watch-vertical {
+  aspect-ratio: 9 / 16;
+  max-height: 70dvh;
+  margin: 0 auto;
+}
+.watch-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.watch-frame blockquote.instagram-media,
+.watch-frame blockquote.tiktok-embed {
+  margin: 0 !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
 /* ── SETTINGS SCREEN ─────────────────────────────────────── */
 .setting-row {
   display: flex;
@@ -744,6 +789,68 @@ textarea.text-input { resize: vertical; min-height: 72px; }
 .custom-tag { font-size:10px; background:color-mix(in srgb,var(--accent) 15%,var(--bg)); color:var(--accent); padding:1px 5px; border-radius:8px; }
 .tracked-tag { font-size:10px; background:color-mix(in srgb,var(--accent2) 15%,var(--bg)); color:var(--accent2); padding:1px 5px; border-radius:8px; margin-left:4px; }
 .state-select { padding:.3rem .5rem; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--bg3); color:var(--text); font-size:12px; }
+
+/* ── "TO TRY" INBOX ───────────────────────────────────────── */
+.idea-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: .625rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.idea-row:last-child { border-bottom: none; }
+.idea-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.idea-name {
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.idea-cat-tag {
+  font-size: 10px;
+  background: color-mix(in srgb, var(--accent) 15%, var(--bg));
+  color: var(--accent);
+  padding: 1px 5px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.idea-extracted-tag {
+  background: color-mix(in srgb, var(--accent2) 15%, var(--bg));
+  color: var(--accent2);
+}
+.idea-date {
+  font-size: 11px;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+.idea-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.idea-row-actions a.btn-xs { text-decoration: none; }
+
+/* Modality tag checkboxes in the exercise Edit screen */
+.modality-tag-grid { display:flex; flex-wrap:wrap; gap:6px; }
+.modality-chip {
+  display:flex; align-items:center; gap:5px;
+  padding:5px 10px; border-radius:14px;
+  border:1px solid var(--border); background:var(--bg3);
+  font-size:12px; color:var(--text2); cursor:pointer;
+}
+.modality-chip input[type=checkbox] { width:14px; height:14px; accent-color:var(--accent); margin:0; }
+.modality-chip:has(input:checked) { background:color-mix(in srgb,var(--accent) 15%,var(--bg)); color:var(--accent); border-color:var(--accent); }
 
 /* ── CALENDAR ─────────────────────────────────────────────── */
 .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem; }
@@ -857,6 +964,15 @@ textarea.text-input { resize: vertical; min-height: 72px; }
 .feed-option { padding:.625rem .875rem; cursor:pointer; border-bottom:1px solid var(--border); transition:background .1s; }
 .feed-option:last-child { border-bottom:none; }
 .feed-option:hover { background:var(--bg3); }
+
+/* ── ADD EXERCISE TO SESSION MODAL ──────────────────────────── */
+.add-ex-results {
+  margin-top: .75rem;
+  max-height: 55vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
 
 /* ── MANUAL SESSION LOG ──────────────────────────────────── */
 .ml-ex-card {
@@ -1108,6 +1224,57 @@ textarea.text-input { resize: vertical; min-height: 72px; }
   transition: opacity .15s;
 }
 .compose-row.compose-disabled { opacity: .45; }
+.compose-row.compose-dragging {
+  opacity: .6;
+  background: var(--bg3);
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+
+.compose-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.compose-drag-handle {
+  flex-shrink: 0;
+  width: 20px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text3);
+  font-size: 16px;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;  /* let pointermove drive dragging instead of scroll */
+  user-select: none;
+  -webkit-user-select: none;
+}
+.compose-drag-handle:active { cursor: grabbing; color: var(--text); }
+
+/* While a row is being dragged, suppress text selection / scroll-chaining
+   across the whole composer so the drag stays smooth on touch. */
+body.compose-drag-active { overscroll-behavior: none; }
+
+.compose-reorder {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.compose-move {
+  width: 20px; height: 16px;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-size: 9px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+.compose-move:hover:not(:disabled) { color: var(--text); }
+.compose-move:disabled { opacity: .25; cursor: default; }
 
 .compose-left {
   display: flex;
@@ -1161,6 +1328,14 @@ textarea.text-input { resize: vertical; min-height: 72px; }
 }
 .compose-adj:active { background: var(--bg2); }
 
+.compose-zero {
+  width: 24px; height: 24px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+}
+.compose-zero:disabled { opacity: .35; cursor: default; }
+
 .compose-dur {
   font-size: 14px;
   font-weight: 500;
@@ -1169,6 +1344,30 @@ textarea.text-input { resize: vertical; min-height: 72px; }
   color: var(--text2);
   cursor: pointer;
   border-bottom: 1px dashed var(--border);
+}
+
+.streak-circles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: .5rem 0 1rem;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.streak-dot {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0,0,0,.25);
+}
+.streak-dot:last-child {
+  width: 30px; height: 30px;
+  font-size: 11px;
+  box-shadow: 0 0 0 2px var(--bg2), 0 0 0 3.5px var(--text);
 }
 
 .rationale-card {
@@ -1214,6 +1413,20 @@ textarea.text-input { resize: vertical; min-height: 72px; }
 .lift-est  { text-align: right; flex-shrink: 0; }
 .lift-est-val { font-size: 15px; font-weight: 600; color: var(--accent2); }
 .lift-est-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .04em; }
+
+/* ── MUSCLE DISTRIBUTION (Log screen) ───────────────────────── */
+.muscle-radar-empty { text-align: center; padding: 1.5rem 0; color: var(--text3); font-size: 13px; }
+.muscle-legend { display: flex; justify-content: center; gap: 1.25rem; margin: .25rem 0 .875rem; }
+.muscle-legend-item { display: flex; align-items: center; gap: .375rem; font-size: 12px; color: var(--text2); }
+.muscle-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.muscle-dot-current  { background: var(--accent); }
+.muscle-dot-previous { background: var(--text3); }
+.muscle-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .625rem; margin-top: .25rem; }
+.muscle-stat-tile { background: var(--bg3); border-radius: var(--radius-sm); padding: .75rem .875rem; }
+.muscle-stat-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .04em; margin-bottom: .25rem; }
+.muscle-stat-val { font-size: 18px; font-weight: 600; }
+.muscle-stat-delta { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.muscle-stat-delta.up { color: var(--accent2); }
 
 .lift-hist-summary {
   font-size: 13px;
