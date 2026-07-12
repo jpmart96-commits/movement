@@ -44,6 +44,16 @@ const REST_DEFAULTS = {
 //   image       — photo or GIF URL shown in the exercise view (optional).
 //                 Users can also set/override this per-exercise from
 //                 Settings → Exercise library → View → Edit → Custom image URL.
+//   modality    — array of Generate-screen tag ids this exercise belongs to
+//                 (optional). E.g. ['strength-a'] or ['plio-b','flexibility'] —
+//                 an exercise can belong to more than one tag. Drives which
+//                 tags pull this exercise into a session. Selectable tags:
+//                 'strength-a', 'strength-b', 'plio-a', 'plio-b', 'skill',
+//                 'z2', 'movement', 'flexibility', 'power', 'intervals'.
+//                 Editable per-exercise from Settings → Exercise library →
+//                 Edit → Modality tags. Exercises with no modality tags
+//                 (warm-up, cooldown, object manipulation, etc.) aren't
+//                 driven by tag selection — they're always-on blocks.
 //   defaultState— 'active' | 'notyet' | 'excluded'
 // ─────────────────────────────────────────────────────────────
 
@@ -299,6 +309,7 @@ const LIBRARY = [
   // ── GYM — STRENGTH A ───────────────────────────────────────
   {
     id: 'squat',
+    modality: ['strength-a'],
     name: 'Squat',
     category: 'Gym', subcategory: 'Strength A',
     difficulty: 3, energy: 'High', segment: 'main',
@@ -310,6 +321,7 @@ const LIBRARY = [
   },
   {
     id: 'incline-bench',
+    modality: ['strength-a'],
     name: 'Incline bench press',
     category: 'Gym', subcategory: 'Strength A',
     difficulty: 3, energy: 'High', segment: 'main',
@@ -321,6 +333,7 @@ const LIBRARY = [
   },
   {
     id: 'pull-up',
+    modality: ['strength-a'],
     name: 'Pull-up',
     category: 'Gym', subcategory: 'Strength A',
     difficulty: 3, energy: 'High', segment: 'main',
@@ -332,6 +345,7 @@ const LIBRARY = [
   },
   {
     id: 'lateral-raise',
+    modality: ['strength-a'],
     name: 'Lateral raise',
     category: 'Gym', subcategory: 'Strength A',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -343,6 +357,7 @@ const LIBRARY = [
   },
   {
     id: 'toes-to-bar',
+    modality: ['strength-a'],
     name: 'Toes to bar',
     category: 'Gym', subcategory: 'Strength A',
     difficulty: 3, energy: 'Med', segment: 'main',
@@ -356,6 +371,7 @@ const LIBRARY = [
   // ── GYM — STRENGTH B ───────────────────────────────────────
   {
     id: 'deadlift',
+    modality: ['strength-b'],
     name: 'Deadlift',
     category: 'Gym', subcategory: 'Strength B',
     difficulty: 4, energy: 'High', segment: 'main',
@@ -367,6 +383,7 @@ const LIBRARY = [
   },
   {
     id: 'overhead-press',
+    modality: ['strength-b'],
     name: 'Overhead press',
     category: 'Gym', subcategory: 'Strength B',
     difficulty: 3, energy: 'High', segment: 'main',
@@ -378,6 +395,7 @@ const LIBRARY = [
   },
   {
     id: 'cable-row',
+    modality: ['strength-b'],
     name: 'Seated cable row',
     category: 'Gym', subcategory: 'Strength B',
     difficulty: 3, energy: 'Med', segment: 'main',
@@ -389,6 +407,7 @@ const LIBRARY = [
   },
   {
     id: 'triceps-dip',
+    modality: ['strength-b'],
     name: 'Triceps dip',
     category: 'Gym', subcategory: 'Strength B',
     difficulty: 3, energy: 'Med', segment: 'main',
@@ -400,6 +419,7 @@ const LIBRARY = [
   },
   {
     id: 'plank',
+    modality: ['strength-b'],
     name: 'Plank',
     category: 'Gym', subcategory: 'Strength B',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -413,6 +433,7 @@ const LIBRARY = [
   // ── GYM — ACCESSORY ────────────────────────────────────────
   {
     id: 'hip-thrust',
+    modality: ['strength-a'],
     name: 'Hip thrust / glute bridge',
     category: 'Gym', subcategory: 'Accessory',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -538,6 +559,7 @@ const LIBRARY = [
   // ── GYM — PLIO A ───────────────────────────────────────────
   {
     id: 'box-jump',
+    modality: ['plio-a'],
     name: 'Box jump',
     category: 'Gym', subcategory: 'Plio A',
     difficulty: 3, energy: 'High', segment: 'main',
@@ -549,6 +571,7 @@ const LIBRARY = [
   },
   {
     id: 'kb-swing',
+    modality: ['plio-a'],
     name: 'Kettlebell swing',
     category: 'Gym', subcategory: 'Plio A',
     difficulty: 3, energy: 'High', segment: 'main',
@@ -560,6 +583,7 @@ const LIBRARY = [
   },
   {
     id: 'ring-push-up',
+    modality: ['plio-a'],
     name: 'Ring push-up',
     category: 'Gym', subcategory: 'Plio A',
     difficulty: 3, energy: 'Med', segment: 'main',
@@ -571,6 +595,7 @@ const LIBRARY = [
   },
   {
     id: 'walking-lunge',
+    modality: ['plio-a'],
     name: 'Walking lunge',
     category: 'Gym', subcategory: 'Plio A',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -582,6 +607,7 @@ const LIBRARY = [
   },
   {
     id: 'weighted-crunch',
+    modality: ['plio-a'],
     name: 'Weighted crunch',
     category: 'Gym', subcategory: 'Plio A',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -593,6 +619,7 @@ const LIBRARY = [
   },
   {
     id: 'cable-twist',
+    modality: ['plio-a'],
     name: 'Cable twist down-to-up',
     category: 'Gym', subcategory: 'Plio A',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -606,6 +633,7 @@ const LIBRARY = [
   // ── GYM — PLIO B ───────────────────────────────────────────
   {
     id: 'cossack-squat',
+    modality: ['plio-b'],
     name: 'Cossack squat',
     category: 'Gym', subcategory: 'Plio B',
     difficulty: 3, energy: 'Med', segment: 'main',
@@ -617,6 +645,7 @@ const LIBRARY = [
   },
   {
     id: 'jefferson-curl',
+    modality: ['plio-b', 'flexibility'],
     name: 'Jefferson curl',
     category: 'Gym', subcategory: 'Plio B',
     difficulty: 2, energy: 'Low', segment: 'main',
@@ -628,6 +657,7 @@ const LIBRARY = [
   },
   {
     id: 'shoulder-cars',
+    modality: ['plio-b'],
     name: 'Shoulder CARs',
     category: 'Gym', subcategory: 'Plio B',
     difficulty: 1, energy: 'Low', segment: 'warmup',
@@ -639,6 +669,7 @@ const LIBRARY = [
   },
   {
     id: 'ankle-mobility',
+    modality: ['plio-b'],
     name: 'Ankle mobility rocks',
     category: 'Gym', subcategory: 'Plio B',
     difficulty: 1, energy: 'Low', segment: 'warmup',
@@ -650,6 +681,7 @@ const LIBRARY = [
   },
   {
     id: 'bulgarian-split-squat',
+    modality: ['plio-b'],
     name: 'Bulgarian split squat',
     category: 'Gym', subcategory: 'Plio B',
     difficulty: 3, energy: 'High', segment: 'main',
@@ -661,6 +693,7 @@ const LIBRARY = [
   },
   {
     id: 'single-leg-rdl',
+    modality: ['plio-b'],
     name: 'Single leg RDL',
     category: 'Gym', subcategory: 'Plio B',
     difficulty: 3, energy: 'Med', segment: 'main',
@@ -672,6 +705,7 @@ const LIBRARY = [
   },
   {
     id: 'half-kneeling-press',
+    modality: ['plio-b'],
     name: 'Half kneeling shoulder press',
     category: 'Gym', subcategory: 'Plio B',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -683,6 +717,7 @@ const LIBRARY = [
   },
   {
     id: 'farmers-walk',
+    modality: ['plio-b'],
     name: "Farmer's walk",
     category: 'Gym', subcategory: 'Plio B',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -694,6 +729,7 @@ const LIBRARY = [
   },
   {
     id: 'pallof-press',
+    modality: ['plio-b'],
     name: 'Pallof press',
     category: 'Gym', subcategory: 'Plio B',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -705,6 +741,7 @@ const LIBRARY = [
   },
   {
     id: 'pancake-good-morning',
+    modality: ['flexibility'],
     name: 'Pancake good morning',
     category: 'Gym', subcategory: 'Loaded Stretch',
     difficulty: 2, energy: 'Low', segment: 'main',
@@ -716,6 +753,7 @@ const LIBRARY = [
   },
   {
     id: 'couch-stretch-weighted',
+    modality: ['flexibility'],
     name: 'Couch stretch — weighted',
     category: 'Gym', subcategory: 'Loaded Stretch',
     difficulty: 2, energy: 'Low', segment: 'cooldown',
@@ -729,6 +767,7 @@ const LIBRARY = [
   // ── CARDIO ─────────────────────────────────────────────────
   {
     id: 'easy-run',
+    modality: ['z2'],
     name: 'Easy run',
     category: 'Cardio', subcategory: 'Run',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -740,6 +779,7 @@ const LIBRARY = [
   },
   {
     id: 'z2-cycling',
+    modality: ['z2'],
     name: 'Zone 2 indoor cycling',
     category: 'Cardio', subcategory: 'Cycling',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -764,6 +804,7 @@ const LIBRARY = [
   // ── POWER ──────────────────────────────────────────────────
   {
     id: 'uphill-sprints',
+    modality: ['power'],
     name: 'Uphill sprint repeats',
     category: 'Power', subcategory: 'Sprint',
     difficulty: 4, energy: 'High', segment: 'main',
@@ -775,6 +816,7 @@ const LIBRARY = [
   },
   {
     id: 'broad-jump',
+    modality: ['power'],
     name: 'Broad jump',
     category: 'Power', subcategory: 'Jumps',
     difficulty: 3, energy: 'High', segment: 'skill',
@@ -808,6 +850,7 @@ const LIBRARY = [
   },
   {
     id: 'med-ball-slams',
+    modality: ['plio-a', 'power'],
     name: 'Medicine ball slams',
     category: 'Power', subcategory: 'Throws',
     difficulty: 3, energy: 'High', segment: 'skill',
@@ -819,6 +862,7 @@ const LIBRARY = [
   },
   {
     id: 'med-ball-rotational',
+    modality: ['power'],
     name: 'Medicine ball rotational throw',
     category: 'Power', subcategory: 'Throws',
     difficulty: 3, energy: 'High', segment: 'skill',
@@ -830,6 +874,7 @@ const LIBRARY = [
   },
   {
     id: 'depth-jump',
+    modality: ['power'],
     name: 'Depth jump',
     category: 'Power', subcategory: 'Reactive',
     difficulty: 4, energy: 'High', segment: 'skill',
@@ -843,6 +888,7 @@ const LIBRARY = [
   // ── RINGS ──────────────────────────────────────────────────
   {
     id: 'ring-hold-support',
+    modality: ['skill'],
     name: 'Ring hold — support',
     category: 'Rings', subcategory: 'Holds',
     difficulty: 2, energy: 'Med', segment: 'skill',
@@ -865,6 +911,7 @@ const LIBRARY = [
   },
   {
     id: 'ring-dip',
+    modality: ['skill'],
     name: 'Ring dip',
     category: 'Rings', subcategory: 'Pushing',
     difficulty: 3, energy: 'High', segment: 'main',
@@ -876,6 +923,7 @@ const LIBRARY = [
   },
   {
     id: 'ring-pull-up',
+    modality: ['skill'],
     name: 'Ring pull-up',
     category: 'Rings', subcategory: 'Pulling',
     difficulty: 3, energy: 'High', segment: 'main',
@@ -942,6 +990,7 @@ const LIBRARY = [
   },
   {
     id: 'ring-row',
+    modality: ['strength-a'],
     name: 'Ring row — various angles',
     category: 'Rings', subcategory: 'Pulling',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -953,6 +1002,7 @@ const LIBRARY = [
   },
   {
     id: 'skin-the-cat',
+    modality: ['skill'],
     name: 'Skin the cat',
     category: 'Rings', subcategory: 'Skill',
     difficulty: 3, energy: 'Med', segment: 'skill',
@@ -975,6 +1025,7 @@ const LIBRARY = [
   },
   {
     id: 'back-lever',
+    modality: ['skill'],
     name: 'Back lever progressions',
     category: 'Rings', subcategory: 'Lever',
     difficulty: 4, energy: 'High', segment: 'skill',
@@ -1364,6 +1415,7 @@ const LIBRARY = [
   },
   {
     id: 'brachiation',
+    modality: ['movement'],
     name: 'Brachiation — swing to swing',
     category: 'Body Movement', subcategory: 'Hanging',
     difficulty: 3, energy: 'Med', segment: 'lightBlock',
@@ -1623,6 +1675,7 @@ const LIBRARY = [
   // ── BODY MOVEMENT — TUMBLING ───────────────────────────────
   {
     id: 'rolling-forward',
+    modality: ['movement'],
     name: 'Rolling — forward',
     category: 'Body Movement', subcategory: 'Tumbling',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -1634,6 +1687,7 @@ const LIBRARY = [
   },
   {
     id: 'rolling-backward',
+    modality: ['movement'],
     name: 'Rolling — backward',
     category: 'Body Movement', subcategory: 'Tumbling',
     difficulty: 3, energy: 'Med', segment: 'main',
@@ -1645,6 +1699,7 @@ const LIBRARY = [
   },
   {
     id: 'rolling-side',
+    modality: ['movement'],
     name: 'Rolling — side',
     category: 'Body Movement', subcategory: 'Tumbling',
     difficulty: 2, energy: 'Low', segment: 'main',
@@ -1656,6 +1711,7 @@ const LIBRARY = [
   },
   {
     id: 'cartwheel',
+    modality: ['movement'],
     name: 'Cartwheel',
     category: 'Body Movement', subcategory: 'Tumbling',
     difficulty: 3, energy: 'Med', segment: 'main',
@@ -1691,6 +1747,7 @@ const LIBRARY = [
   },
   {
     id: 'ground-flow',
+    modality: ['movement'],
     name: 'Ground flow — transitions',
     category: 'Body Movement', subcategory: 'Ground Flow',
     difficulty: 3, energy: 'Med', segment: 'main',
@@ -1768,6 +1825,7 @@ const LIBRARY = [
   },
   {
     id: 'freestyle',
+    modality: ['movement'],
     name: 'Freestyle / improvisation',
     category: 'Body Movement', subcategory: 'Flow',
     difficulty: 2, energy: 'Low', segment: 'main',
@@ -1959,6 +2017,7 @@ const LIBRARY = [
   },
   {
     id: 'hs-wall-hold',
+    modality: ['skill'],
     name: 'Handstand — wall hold',
     category: 'Body Movement', subcategory: 'Handstand',
     difficulty: 2, energy: 'Low', segment: 'skill',
@@ -1970,6 +2029,7 @@ const LIBRARY = [
   },
   {
     id: 'hs-pike-entry',
+    modality: ['skill'],
     name: 'Handstand — pike press entry',
     category: 'Body Movement', subcategory: 'Handstand',
     difficulty: 3, energy: 'Med', segment: 'skill',
@@ -1981,6 +2041,7 @@ const LIBRARY = [
   },
   {
     id: 'hs-tuck',
+    modality: ['skill'],
     name: 'Handstand — tuck freestanding',
     category: 'Body Movement', subcategory: 'Handstand',
     difficulty: 3, energy: 'Med', segment: 'skill',
@@ -2141,6 +2202,7 @@ const LIBRARY = [
   },
   {
     id: 'lizard-crawl',
+    modality: ['movement'],
     name: 'Animal — lizard crawl',
     category: 'Body Movement', subcategory: 'Animal Locomotion',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -2152,6 +2214,7 @@ const LIBRARY = [
   },
   {
     id: 'frog-hop',
+    modality: ['movement'],
     name: 'Animal — frog hop',
     category: 'Body Movement', subcategory: 'Animal Locomotion',
     difficulty: 2, energy: 'Med', segment: 'main',
@@ -2174,6 +2237,7 @@ const LIBRARY = [
   },
   {
     id: 'scorpion-walk',
+    modality: ['movement'],
     name: 'Animal — scorpion walk',
     category: 'Body Movement', subcategory: 'Animal Locomotion',
     difficulty: 3, energy: 'Med', segment: 'main',
@@ -2211,6 +2275,7 @@ const LIBRARY = [
   // ── GYMNASTICS CONDITIONING ────────────────────────────────
   {
     id: 'hollow-body-hold',
+    modality: ['skill'],
     name: 'Hollow body hold',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 2, energy: 'Med', segment: 'skill',
@@ -2222,6 +2287,7 @@ const LIBRARY = [
   },
   {
     id: 'hollow-body-rock',
+    modality: ['skill'],
     name: 'Hollow body rock',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 2, energy: 'Med', segment: 'skill',
@@ -2233,6 +2299,7 @@ const LIBRARY = [
   },
   {
     id: 'arch-body-hold',
+    modality: ['skill'],
     name: 'Arch body hold',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 2, energy: 'Med', segment: 'skill',
@@ -2244,6 +2311,7 @@ const LIBRARY = [
   },
   {
     id: 'tuck-sit',
+    modality: ['skill'],
     name: 'Tuck sit — lift feet',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 2, energy: 'Med', segment: 'skill',
@@ -2255,6 +2323,7 @@ const LIBRARY = [
   },
   {
     id: 'pike-sit-wall',
+    modality: ['skill'],
     name: 'Pike sit — wall assisted compression',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 2, energy: 'Low', segment: 'skill',
@@ -2266,6 +2335,7 @@ const LIBRARY = [
   },
   {
     id: 'pike-sit-free',
+    modality: ['skill'],
     name: 'Pike sit — freestanding compression',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 3, energy: 'Med', segment: 'skill',
@@ -2277,6 +2347,7 @@ const LIBRARY = [
   },
   {
     id: 'straddle-sit-compression',
+    modality: ['skill', 'flexibility'],
     name: 'Straddle sit — active compression',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 2, energy: 'Low', segment: 'skill',
@@ -2288,6 +2359,7 @@ const LIBRARY = [
   },
   {
     id: 'straddle-leg-circles',
+    modality: ['skill'],
     name: 'Straddle sit — leg circles',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 2, energy: 'Low', segment: 'skill',
@@ -2299,6 +2371,7 @@ const LIBRARY = [
   },
   {
     id: 'straddle-leg-raises',
+    modality: ['skill'],
     name: 'Straddle sit — leg raises',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 3, energy: 'Med', segment: 'skill',
@@ -2310,6 +2383,7 @@ const LIBRARY = [
   },
   {
     id: 'straddle-fold-passive',
+    modality: ['skill', 'flexibility'],
     name: 'Seated straddle fold — passive',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 1, energy: 'Low', segment: 'cooldown',
@@ -2343,6 +2417,7 @@ const LIBRARY = [
   },
   {
     id: 'l-sit-floor',
+    modality: ['skill'],
     name: 'L-sit progression — floor',
     category: 'Body Movement', subcategory: 'Gymnastics Conditioning',
     difficulty: 2, energy: 'High', segment: 'skill',
@@ -2411,6 +2486,7 @@ const LIBRARY = [
   },
   {
     id: 'hamstring-pnf',
+    modality: ['flexibility'],
     name: 'Hamstring — PNF',
     category: 'Flexibility', subcategory: 'Hamstring',
     difficulty: 2, energy: 'Low', segment: 'cooldown',
@@ -2422,6 +2498,7 @@ const LIBRARY = [
   },
   {
     id: 'pancake',
+    modality: ['flexibility'],
     name: 'Pancake / straddle floor',
     category: 'Flexibility', subcategory: 'Splits',
     difficulty: 3, energy: 'Low', segment: 'cooldown',
@@ -2433,6 +2510,7 @@ const LIBRARY = [
   },
   {
     id: 'middle-splits',
+    modality: ['flexibility'],
     name: 'Middle splits progression',
     category: 'Flexibility', subcategory: 'Splits',
     difficulty: 3, energy: 'Low', segment: 'cooldown',
@@ -2444,6 +2522,7 @@ const LIBRARY = [
   },
   {
     id: 'front-splits',
+    modality: ['flexibility'],
     name: 'Front splits',
     category: 'Flexibility', subcategory: 'Splits',
     difficulty: 3, energy: 'Low', segment: 'cooldown',
@@ -2455,6 +2534,7 @@ const LIBRARY = [
   },
   {
     id: 'bridge',
+    modality: ['flexibility'],
     name: 'Bridge / wheel',
     category: 'Flexibility', subcategory: 'Thoracic',
     difficulty: 3, energy: 'Med', segment: 'cooldown',
@@ -3031,6 +3111,7 @@ const GOALS = [
   },
   {
     id: 'middle-splits',
+    modality: ['flexibility'],
     name: 'Middle splits',
     category: 'Flexibility',
     priority: 2,
@@ -3046,6 +3127,7 @@ const GOALS = [
   },
   {
     id: 'back-lever',
+    modality: ['skill'],
     name: 'Back lever',
     category: 'Rings',
     priority: 3,
@@ -3177,6 +3259,7 @@ const GOALS = [
   },
   {
     id: 'skin-the-cat',
+    modality: ['skill'],
     name: 'Skin the cat — full rotation',
     category: 'Rings',
     priority: 2,
