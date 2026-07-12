@@ -19,7 +19,10 @@ const Custom = {
 
   addExercise(ex) {
     const list = this.getExercises();
-    const id   = 'custom_ex_' + Date.now();
+    // Random suffix guards against two saves in the same millisecond
+    // colliding on id — a real possibility now that "To try" lets you
+    // extract several exercises from one idea back-to-back.
+    const id   = 'custom_ex_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
     const item = {
       id,
       name:         ex.name,
@@ -205,5 +208,63 @@ const Custom = {
       App.profile.goalMilestones[goalId] = 0;
       Profile.save(App.profile);
     }
+  },
+};
+
+
+// ─────────────────────────────────────────────────────────────
+// "TO TRY" INBOX — low-friction capture for exercise variations spotted
+// in reels/shorts. Just a link, a name, and a rough category — everything
+// else (subcategory, modality tags, log type, etc.) is deferred until you
+// actually promote an idea into a real exercise via Custom.addExercise.
+// Deliberately NOT part of LIBRARY/Custom.getAllExercises() and therefore
+// invisible to session generation until promoted — a holding pen, not a
+// commitment.
+// ─────────────────────────────────────────────────────────────
+
+const Ideas = {
+  getAll() {
+    return DB.get('exercise_ideas') || [];
+  },
+
+  save(list) {
+    DB.set('exercise_ideas', list);
+  },
+
+  // { name, link, category } — name/category are optional at capture time
+  // (falls back to a placeholder name), link is expected but not required
+  // in case you just want to jot down "cossack jump variation" from memory.
+  add({ name, link, category }) {
+    const list = this.getAll();
+    const item = {
+      // Date.now() alone can collide if two ideas are saved in the same
+      // millisecond (caught by an automated test, not a real user, but
+      // cheap to make actually collision-safe).
+      id:       'idea_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      name:     (name || '').trim() || 'Untitled clip',
+      link:     (link || '').trim(),
+      category: category || '',
+      addedAt:  Date.now(),
+    };
+    list.unshift(item); // newest first
+    this.save(list);
+    return item;
+  },
+
+  remove(id) {
+    this.save(this.getAll().filter(i => i.id !== id));
+  },
+
+  get(id) {
+    return this.getAll().find(i => i.id === id) || null;
+  },
+
+  update(id, updates) {
+    const list = this.getAll();
+    const idx  = list.findIndex(i => i.id === id);
+    if (idx < 0) return null;
+    list[idx] = { ...list[idx], ...updates };
+    this.save(list);
+    return list[idx];
   },
 };
