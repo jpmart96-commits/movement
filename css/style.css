@@ -294,6 +294,7 @@ textarea.text-input { resize: vertical; min-height: 72px; }
 .theme-btn {
   width: 100%;
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 12px;
   background: var(--bg2);
@@ -305,6 +306,13 @@ textarea.text-input { resize: vertical; min-height: 72px; }
   text-align: left;
   transition: border-color .12s;
 }
+.cardio-mode-toggle { width: 100%; display: flex; gap: 6px; margin-top: 6px; }
+.cardio-mode-toggle button {
+  flex: 1; font-size: 11px; padding: 4px 6px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg1, #fff);
+  color: var(--text2); cursor: pointer;
+}
+.cardio-mode-toggle button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 .theme-btn.selected { border: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg2)); }
 .theme-btn.dimmed { opacity: .55; }
 .theme-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
@@ -439,9 +447,9 @@ textarea.text-input { resize: vertical; min-height: 72px; }
 .bh-right { display: flex; align-items: center; gap: 8px; }
 .bh-count { font-size: 12px; color: var(--text3); }
 .bh-chevron { stroke: var(--text3); fill: none; stroke-width: 2; stroke-linecap: round; transition: transform .2s; }
-.block-body.collapsed .bh-chevron { transform: rotate(-90deg); }
+.block-wrap.collapsed .bh-chevron { transform: rotate(-90deg); }
 .block-body { padding: 0 1rem .75rem; }
-.block-body.collapsed { display: none; }
+.block-wrap.collapsed .block-body { display: none; }
 .block-note { font-size: 12px; color: var(--text2); padding: .5rem 0; border-bottom: 1px solid var(--border); margin-bottom: .5rem; }
 
 /* ── EXERCISES ───────────────────────────────────────────── */
@@ -476,6 +484,15 @@ textarea.text-input { resize: vertical; min-height: 72px; }
 .ex-check.checked  { background: var(--accent2); border-color: var(--accent2); }
 .ex-check.skipped  { background: var(--text3);   border-color: var(--text3); }
 
+.ex-photo {
+  width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+  flex-shrink: 0; margin-top: 1px; background: var(--bg2);
+}
+.ex-photo-fallback {
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 13px; font-weight: 600;
+}
+.ex-clickarea { display: flex; align-items: flex-start; gap: 8px; flex: 1; min-width: 0; cursor: pointer; }
 .ex-info { flex: 1; min-width: 0; }
 .ex-name {
   font-size: 14px;
@@ -490,6 +507,10 @@ textarea.text-input { resize: vertical; min-height: 72px; }
   gap: 4px;
 }
 .ex-name a svg { stroke: currentColor; fill: none; stroke-width: 1.75; flex-shrink: 0; }
+.ex-target {
+  display: inline-block; margin-left: 6px; font-size: 11px; font-weight: 400;
+  color: var(--text3); white-space: nowrap;
+}
 .ex-notes { font-size: 12px; color: var(--text2); margin-top: 2px; }
 .ex-actions {
   display: flex;
@@ -596,6 +617,9 @@ textarea.text-input { resize: vertical; min-height: 72px; }
   min-width: 80px;
   text-align: center;
 }
+
+.hold-manual-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: .375rem; }
+.hold-manual-label { font-size: 12px; color: var(--text3); margin-right: 2px; }
 
 /* Cardio */
 .cardio-inputs { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -989,6 +1013,7 @@ textarea.text-input { resize: vertical; min-height: 72px; }
 .ml-set-row { display:flex; gap:6px; align-items:center; margin-top:.375rem; }
 .ml-ex-actions { display:flex; gap:8px; margin-top:.5rem; }
 .sr-badge { display:inline-block; font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.04em; color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:1px 6px; margin-left:6px; vertical-align:middle; }
+.sr-badge-live { color:#B8770A; background:#FDF1DD; border-color:#F0D8A8; }
 .fo-name { font-size:14px; display:block; }
 .fo-sub  { font-size:11px; color:var(--text3); display:block; margin-top:1px; }
 

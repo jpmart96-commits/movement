@@ -327,7 +327,7 @@
 
   <div class="collapsible-section">
     <button class="collapsible-header" onclick="toggleSection('s-library')">
-      <span>Exercise library</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
+      <span>Exercise library <span class="ex-cat-count" id="library-total-count"></span></span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
     </button>
     <div class="collapsible-body collapsed" id="s-library">
       <div id="exercise-state-list"></div>
@@ -535,7 +535,7 @@ function sessionRow(s) {
   const label = Utils.getSessionLabel(s);
   return `<div class="card session-row" onclick="openSessionModal('${s.id}')">
     <div class="sr-dot" style="background:${color}"></div>
-    <div class="sr-body"><div class="sr-theme">${label}${s.source==='manual'?'<span class="sr-badge">Manual</span>':''}</div><div class="sr-date">${Utils.formatDate(s.date)}</div></div>
+    <div class="sr-body"><div class="sr-theme">${label}${s.source==='manual'?'<span class="sr-badge">Manual</span>':''}${s.status==='in-progress'?'<span class="sr-badge sr-badge-live">In progress</span>':''}</div><div class="sr-date">${Utils.formatDate(s.date)}</div></div>
     <div class="sr-dur">${s.duration}m</div>
   </div>`;
 }
@@ -550,12 +550,12 @@ function startToday() {
 const SLEEP_LABELS  = ['','terrible','poor','okay','good','excellent'];
 const ENERGY_LABELS = ['','very low','low','moderate','good','high'];
 const TIER_LABELS   = {1:'quick session',2:'medium session',3:'full session',4:'long session'};
-const TIER_COLORS   = {lightBlock:'#1D9E75',objManip:'#7F77DD',meditate:'#7F77DD',warmup:'#378ADD',skill:'#185FA5',main:'#D85A30',cooldown:'#5F5E5A'};
-let _selectedTags   = []; // multi-select modality tag ids, e.g. ['strength-a','skill','z2']
+const TIER_COLORS   = {lightBlock:'#1D9E75',meditate:'#7F77DD',warmup:'#378ADD',skill:'#185FA5',main:'#D85A30',cooldown:'#5F5E5A'};
+let _selectedTags   = []; // multi-select modality tag ids, e.g. ['weights','cardio','coordination']
 
-// Strength A/B and Plio A/B are meant for different days — picking one
-// deselects its pair's other half. Every other tag combines freely.
-const EXCLUSIVE_TAG_PAIRS = [['strength-a','strength-b'], ['plio-a','plio-b']];
+// No forced exclusivity between modality tags any more — the user always
+// manually picks the day's blend ("I'm the ultimate knower of how I feel"),
+// e.g. Zone 2 two days running is a deliberate, valid choice.
 
 // ── TOTAL TIME (step 1) ─────────────────────────────────────────
 // Two ways to set the total session duration: drag a minutes slider, or
@@ -627,11 +627,11 @@ function setPip(type, val) {
 
 // ── RECENT STREAK CIRCLES ───────────────────────────────────────
 // Small colored dots above the theme picker showing the last several
-// sessions' Zone2/Intervals/Power/Strength A/Strength B/Plio A/Plio B/Rest
-// tags — most recent on the right. Skill/Movement/Flexibility/object
-// manipulation don't get a dot; they're not part of this rotation view.
-const STREAK_TAGS = ['z2', 'intervals', 'power', 'strength-a', 'strength-b', 'plio-a', 'plio-b', 'rest'];
-const STREAK_ABBR = { z2:'Z2', intervals:'I', power:'P', 'strength-a':'sA', 'strength-b':'sB', 'plio-a':'pA', 'plio-b':'pB', rest:'R' };
+// sessions' modality tags — most recent on the right. Every selectable
+// modality gets a dot now that there's no fixed-program subset to single
+// out — the whole point of the streak view is to see the day-to-day blend.
+const STREAK_TAGS = ['weights', 'calisthenics', 'gymnastics-conditioning', 'mobility-movement', 'flexibility', 'weighted-mobility', 'yoga', 'power-plyo', 'cardio', 'coordination'];
+const STREAK_ABBR = { weights:'W', calisthenics:'Ca', 'gymnastics-conditioning':'GC', 'mobility-movement':'MM', flexibility:'Fx', 'weighted-mobility':'WM', yoga:'Yg', 'power-plyo':'PP', cardio:'Cd', coordination:'Co' };
 
 function renderStreakCircles() {
   const wrap = document.getElementById('streak-circles');
@@ -668,31 +668,27 @@ function renderThemeList() {
   warn.style.display = msgs.length ? 'block' : 'none';
   warn.textContent   = msgs.join(' ');
   const THEMES = {
-    'strength-a': { sub:'Squat · Bench · Pull-up' },
-    'strength-b': { sub:'Deadlift · OHP · Row' },
-    'plio-a':     { sub:'Box jump · Ball slams' },
-    'plio-b':     { sub:'Cossack squat · Bulgarian' },
-    'skill':      { sub:'Handstand · Rings · Core' },
-    'z2':         { sub:'Zone 2 cardio' },
-    'movement':   { sub:'Ground flow · Rolling' },
-    'flexibility':{ sub:'Splits · Long holds' },
-    'power':      { sub:'Med ball · Jumps' },
-    'intervals':  { sub:'Bike/run work-rest intervals' },
-    'rest':       { sub:'Walk · Somatic' },
+    'weights':                 { sub:'Barbell · Dumbbell · Kettlebell' },
+    'calisthenics':            { sub:'Rings · Handstand · Loaded hangs' },
+    'gymnastics-conditioning': { sub:'Hollow body · L-sit · Planks' },
+    'mobility-movement':       { sub:'Ground flow · CARs · Animal locomotion' },
+    'flexibility':             { sub:'Splits · Long static holds' },
+    'weighted-mobility':       { sub:'Loaded stretching' },
+    'yoga':                    { sub:'Flow · Poses · Breathwork' },
+    'power-plyo':              { sub:'Jumps · Sprints · Throws' },
+    'cardio':                  { sub:'Bike / run — steady or intervals' },
+    'coordination':            { sub:'Juggling · Balance · Eye training' },
   };
-  // Rows of 2 render as side-by-side columns; rows of 1 stay full width.
-  // Pick freely across rows — only Strength A/B and Plio A/B are mutually
-  // exclusive with their own pair (see EXCLUSIVE_TAG_PAIRS).
+  // Rows of 2 render as side-by-side columns. Every tag combines freely
+  // with every other — no exclusive pairs any more.
   const ROWS = [
-    ['strength-a','strength-b'],
-    ['plio-a','plio-b'],
-    ['skill'],
-    ['z2','movement'],
-    ['flexibility','power'],
-    ['intervals'],
-    ['rest'],
+    ['weights','calisthenics'],
+    ['gymnastics-conditioning','mobility-movement'],
+    ['flexibility','weighted-mobility'],
+    ['yoga','coordination'],
+    ['cardio','power-plyo'],
   ];
-  const HIGH_INTENSITY = ['strength-a','strength-b','plio-a','plio-b','power','intervals'];
+  const HIGH_INTENSITY = ['weights','calisthenics','gymnastics-conditioning','power-plyo'];
   const list = document.getElementById('theme-list'); list.innerHTML='';
   ROWS.forEach(rowIds => {
     const row = document.createElement('div'); row.className = 'theme-row';
@@ -705,20 +701,22 @@ function renderThemeList() {
       if (disabled)                    btn.classList.add('dimmed');
       if (_selectedTags.includes(id))  btn.classList.add('selected');
       btn.innerHTML  = `<div class="theme-dot" style="background:${cfg.color}"></div><div class="theme-body"><div class="theme-label">${cfg.label}${disabled?' <span class="warn-tag">not recommended</span>':''}</div><div class="theme-sub">${t.sub}</div></div>`;
+      if (id === 'cardio' && _selectedTags.includes('cardio')) {
+        const mode = App.checkin.cardioMode || 'steady';
+        const toggle = document.createElement('div');
+        toggle.className = 'cardio-mode-toggle';
+        toggle.innerHTML = `
+          <button type="button" data-mode="steady" class="${mode==='steady'?'active':''}">Steady</button>
+          <button type="button" data-mode="intervals" class="${mode==='intervals'?'active':''}">Intervals</button>`;
+        toggle.querySelectorAll('button').forEach(b => {
+          b.onclick = (ev) => { ev.stopPropagation(); App.checkin.cardioMode = b.dataset.mode; renderThemeList(); };
+        });
+        btn.appendChild(toggle);
+      }
       btn.onclick = () => {
         const idx = _selectedTags.indexOf(id);
-        if (idx >= 0) {
-          _selectedTags.splice(idx, 1);
-        } else {
-          // Deselect this tag's exclusive pair partner, if any, before adding.
-          const pair = EXCLUSIVE_TAG_PAIRS.find(p => p.includes(id));
-          if (pair) {
-            const partner = pair.find(x => x !== id);
-            const pIdx = _selectedTags.indexOf(partner);
-            if (pIdx >= 0) _selectedTags.splice(pIdx, 1);
-          }
-          _selectedTags.push(id);
-        }
+        if (idx >= 0) _selectedTags.splice(idx, 1);
+        else _selectedTags.push(id);
         renderThemeList();
         document.getElementById('gen-next-btn').disabled = _selectedTags.length === 0;
       };
@@ -736,12 +734,11 @@ let _compose = [];
 // selected. One additional row per selected tag is appended in
 // genToCompose() below, seeded from the old skill+main time budget split
 // evenly across however many tags you picked. Split into PRE/POST so the
-// *default* composer order still reads light→objManip→breakfast→meditate→
+// *default* composer order still reads light→breakfast→meditate→
 // warmup→[tags]→cooldown, even though every row (including these fixed
 // ones) is freely reorderable afterward via the ▲▼ controls.
 const BLOCK_DEFS_PRE = {
   lightBlock: { label:'Light block',         color:'#1D9E75', min:0, max:60 },
-  objManip:   { label:'Object manipulation', color:'#7F77DD', min:0, max:40 },
   breakfast:  { label:'Breakfast',           color:'#BA7517', min:0, max:30, seed:15 },
   meditate:   { label:'Meditate',            color:'#9B59B6', min:0, max:40 },
   warmup:     { label:'Warm-up',             color:'#378ADD', min:0, max:20 },
@@ -783,7 +780,7 @@ function genToCompose() {
     return { key:id, label:cfg.label, color:cfg.color, enabled:true, duration:perTag, minDur:TAG_BLOCK_MIN, maxDur:TAG_BLOCK_MAX };
   });
 
-  // Default order: light → objManip → breakfast → meditate → warmup →
+  // Default order: light → breakfast → meditate → warmup →
   // [selected tags] → cooldown. Fully reorderable afterward in renderCompose.
   _compose = [...preRows, ...tagRows, ...postRows];
 
@@ -989,6 +986,7 @@ function renderSessionRationale() {
     pain: App.checkin.pain, focus: App.checkin.focus,
     profile: App.profile, customDurations,
     blockOrder: _compose.map(b => b.key),
+    cardioMode: App.checkin.cardioMode,
   });
 
   wrap.innerHTML = `<div class="section-label">Today's plan</div><div class="card rationale-card">${buildRationaleText(preview)}</div>`;
@@ -1025,12 +1023,6 @@ function painSentence(session) {
   const swapped = session.blocks.some(b => b.exercises?.some(e => e.notes?.includes('Swapped to the bike')));
   if (swapped) sentence += ' Cardio is on the bike instead of running today.';
 
-  const reclaimed = session.blocks.some(b => b.note?.includes('Extra time added'));
-  const boostedObj = session.blocks.some(b => b.key === 'objManip' && b.note?.includes('reclaimed'));
-  if (reclaimed || boostedObj) {
-    sentence += ' Skipped the higher-impact main work and put that time into skill and object manipulation instead — still enough to raise your heart rate, easier on the joint that\'s bothering you.';
-  }
-
   return sentence;
 }
 
@@ -1038,11 +1030,10 @@ function painSentence(session) {
 // dynamic per-modality-tag block (one per selected tag, see
 // Generator._getModalityBlocks), so whatever's left after filtering these
 // out is exactly "today's tag content."
-const _RATIONALE_FIXED_KEYS = ['lightBlock', 'objManip', 'breakfast', 'meditate', 'warmup', 'cooldown'];
+const _RATIONALE_FIXED_KEYS = ['lightBlock', 'breakfast', 'meditate', 'warmup', 'cooldown'];
 
 function buildRationaleText(session) {
   const light = session.blocks.find(b => b.key === 'lightBlock');
-  const obj   = session.blocks.find(b => b.key === 'objManip');
   const warm  = session.blocks.find(b => b.key === 'warmup');
   const tagBlocks = session.blocks.filter(b => !_RATIONALE_FIXED_KEYS.includes(b.key));
 
@@ -1050,14 +1041,6 @@ function buildRationaleText(session) {
 
   const pain = painSentence(session);
   if (pain) sentences.push(pain);
-
-  const objSentence = rotationSentence(obj, 'object manipulation');
-  if (objSentence) sentences.push(objSentence);
-  // Plain listing fallback when there's no rotation story yet (little or
-  // no history) — still names what's actually in the block.
-  if (!objSentence && obj?.exercises?.length) {
-    sentences.push(`${obj.duration}m of object manipulation: ${obj.exercises.map(e => e.name).join(', ')}.`);
-  }
 
   if (light?.exercises?.length) {
     sentences.push(`Light block: ${light.exercises.map(e => e.name).join(', ')}.`);
@@ -1102,6 +1085,7 @@ function buildAndStart() {
     pain: App.checkin.pain, focus: App.checkin.focus,
     profile: App.profile, customDurations,
     blockOrder: _compose.map(b => b.key),
+    cardioMode: App.checkin.cardioMode,
   });
   _startSession(session);
 }
@@ -1157,9 +1141,24 @@ async function genWithAI() {
 // ─────────────────────────────────────────────────────────────
 // SESSION
 // ─────────────────────────────────────────────────────────────
+// Tracks which blocks are expanded, surviving the full re-render that
+// LiveSession triggers after *every* mutation (log a set, check something
+// off, skip, add a note…) — without this, renderSessionScreen rebuilding
+// every block fresh from its "collapsed by default" state would slam shut
+// whatever section you had open the moment you interacted with it. Reset
+// only when it's actually a different session (id once saved, startedAt
+// while still active/unsaved).
+let _collapseState = {};
+let _collapseStateSessionKey = null;
+
 function renderSessionScreen() {
   const session = LiveSession.getSession();
   if (!session) { document.getElementById('session-blocks').innerHTML='<div class="empty-state" style="margin:2rem 1rem">No active session.</div>'; return; }
+  const sessionKey = session.id || session.startedAt;
+  if (_collapseStateSessionKey !== sessionKey) {
+    _collapseStateSessionKey = sessionKey;
+    _collapseState = {}; // fresh session — every block starts collapsed
+  }
   document.getElementById('sh-theme').textContent = Utils.getSessionLabel(session);
   document.getElementById('sh-theme').style.color  = Utils.getSessionColor(session);
   document.getElementById('sh-meta').textContent   = `${session.duration}m · Tier ${session.tier}`;
@@ -1176,7 +1175,11 @@ function renderSessionScreen() {
   }
   session.blocks.forEach((block, bIdx) => {
     const done = block.exercises.filter(e=>e.completed||e.skipped).length;
-    const wrap = document.createElement('div'); wrap.className='block-wrap'; wrap.id=`block-${bIdx}`;
+    // Collapsed by default — the generated list can be long; expand a
+    // section by tapping its header (toggleBlock). Once you expand one it
+    // stays expanded across re-renders (see _collapseState above).
+    const isCollapsed = _collapseState[bIdx] !== false;
+    const wrap = document.createElement('div'); wrap.className='block-wrap' + (isCollapsed ? ' collapsed' : ''); wrap.id=`block-${bIdx}`;
     wrap.innerHTML=`
       <div class="block-header${done===block.exercises.length?' block-done':''}" onclick="toggleBlock(${bIdx})">
         <div class="bh-left"><div class="bh-dot" style="background:${block.color}"></div><div><div class="bh-title">${block.label}</div>${block.duration?`<div class="bh-dur">~${block.duration} min</div>`:''}</div></div>
@@ -1188,7 +1191,7 @@ function renderSessionScreen() {
       </div>`;
     container.appendChild(wrap);
     const exList = document.getElementById(`ex-list-${bIdx}`);
-    block.exercises.forEach((ex,eIdx) => exList.appendChild(buildExerciseEl(ex,bIdx,eIdx)));
+    block.exercises.forEach((ex,eIdx) => exList.appendChild(buildExerciseEl(ex,bIdx,eIdx,block.color)));
   });
 }
 
@@ -1203,7 +1206,7 @@ function liveBestEstimate(ex) {
   return best;
 }
 
-function buildExerciseEl(ex, bIdx, eIdx) {
+function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
   const wrap = document.createElement('div');
   wrap.className = `ex-wrap${ex.completed?' ex-done':''}${ex.skipped?' ex-skipped':''}`;
   wrap.id = `ex-${bIdx}-${eIdx}`;
@@ -1227,7 +1230,8 @@ function buildExerciseEl(ex, bIdx, eIdx) {
     // Every stopwatch stop logs a new set (see toggleStopwatch) — show all
     // of them, each deletable, instead of only ever displaying the first.
     logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si,bIdx,eIdx)).join('')}</div>
-      <div class="hold-row"><button class="sw-btn" id="sw-${bIdx}-${eIdx}" onclick="toggleStopwatch(${bIdx},${eIdx})">▶ Start</button>${lastLog?.lastDuration?`<span class="last-hint">last: ${Utils.formatMMSS(lastLog.lastDuration)}</span>`:''}</div>`;
+      <div class="hold-row"><button class="sw-btn" id="sw-${bIdx}-${eIdx}" onclick="toggleStopwatch(${bIdx},${eIdx})">▶ Start</button>${lastLog?.lastDuration?`<span class="last-hint">last: ${Utils.formatMMSS(lastLog.lastDuration)}</span>`:''}</div>
+      <div class="hold-manual-row"><span class="hold-manual-label">or log time directly:</span><input type="number" class="num-in sm" id="hd-m-${bIdx}-${eIdx}" placeholder="min" min="0"><span>:</span><input type="number" class="num-in sm" id="hd-s-${bIdx}-${eIdx}" placeholder="ss" min="0" max="59"><button class="log-btn" onclick="logManualHold(${bIdx},${eIdx})">Log</button></div>`;
   } else if (ex.logType==='reps') {
     logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si,bIdx,eIdx)).join('')}</div>
       <div class="add-set-row"><input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" min="0"><button class="log-btn" onclick="logReps(${bIdx},${eIdx})">Log</button></div>`;
@@ -1238,17 +1242,42 @@ function buildExerciseEl(ex, bIdx, eIdx) {
       :`<div class="cardio-inputs"><input type="number" class="num-in sm" id="cd-m-${bIdx}-${eIdx}" placeholder="min"><span>:</span><input type="number" class="num-in sm" id="cd-s-${bIdx}-${eIdx}" placeholder="ss" max="59"><input type="number" class="num-in sm" id="cd-km-${bIdx}-${eIdx}" placeholder="km" step="0.01" min="0"><input type="text" class="text-in-sm" id="cd-link-${bIdx}-${eIdx}" placeholder="Apple Fitness link"><button class="log-btn" onclick="logCardio(${bIdx},${eIdx})">Log</button></div>`
     }</div>`;
   }
-  const libEx = Custom.getAllExercises().find(e=>e.id===ex.id);
+  // Overrides-merged, same reasoning as Generator._resolveExFactory — a
+  // plain Custom.getAllExercises() lookup never reflects an edited
+  // instructions override for a built-in library exercise.
+  const rawLibEx = Custom.getAllExercises().find(e=>e.id===ex.id);
+  const libEx = rawLibEx ? (rawLibEx.isCustom ? rawLibEx : Overrides.apply(rawLibEx)) : null;
+  // No separate full-width banner image any more — the round photo circle
+  // below covers that need, and showing both was redundant.
   let extraHtml = '';
-  if (libEx?.imageUrl)     extraHtml += `<img src="${libEx.imageUrl}" class="ex-image" alt="${ex.name}" onerror="this.style.display='none'">`;
-  if (libEx?.instructions) extraHtml += `<div class="ex-instructions">${libEx.instructions}</div>`;
+  if (libEx?.instructions)  extraHtml += `<div class="ex-instructions">${libEx.instructions}</div>`;
+
+  // Small round thumbnail — same priority chain as the exercise view/edit
+  // modals (custom image > built-in photo > auto YouTube thumb). `ex` here
+  // is the live-session instance, which now carries imageUrl/image straight
+  // from Generator (Overrides-applied — see _resolveExFactory), so this
+  // doesn't need its own separate override lookup. Most built-in exercises
+  // don't have a real photo or a YouTube *video* link yet (many still point
+  // at a generic search-results URL, which yields no thumbnail) — rather
+  // than leave the circle blank in that common case, fall back to a colored
+  // initial matching the block's color, so every exercise still gets a
+  // quick visual anchor even before a real photo is added.
+  const photoThumb = ex.imageUrl || ex.image || Overrides.thumbFromYouTube(ex.link) || '';
+  const initial = (ex.name || '?').trim().charAt(0).toUpperCase();
+  const fallbackBg = blockColor || '#888';
+  const photoHtml = photoThumb
+    ? `<img class="ex-photo" src="${photoThumb}" alt="" loading="lazy" data-fallback-bg="${fallbackBg}" data-fallback-text="${initial}" onerror="exPhotoFallback(this)">`
+    : `<div class="ex-photo ex-photo-fallback" style="background:${fallbackBg}">${initial}</div>`;
 
   wrap.innerHTML=`
     <div class="ex-header">
       <div class="ex-check${ex.completed?' checked':''}${ex.skipped?' skipped':''}" onclick="toggleExerciseDone(${bIdx},${eIdx})">${ex.completed?'✓':ex.skipped?'–':''}</div>
-      <div class="ex-info">
-        <div class="ex-name">${ex.link?`<a href="${ex.link}" target="_blank" rel="noopener">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:ex.name}</div>
-        ${ex.notes?`<div class="ex-notes">${ex.notes}</div>`:''}
+      <div class="ex-clickarea" onclick="openExView('${ex.id}')" title="View exercise details">
+        ${photoHtml}
+        <div class="ex-info">
+          <div class="ex-name">${ex.link?`<a href="${ex.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:ex.name}${ex.allocatedMinutes?`<span class="ex-target">~${Utils.formatDuration(Math.round(ex.allocatedMinutes*60))}</span>`:''}</div>
+          ${ex.notes?`<div class="ex-notes">${ex.notes}</div>`:''}
+        </div>
       </div>
       <div class="ex-actions">
         <button class="ex-skip-btn" onclick="skipExercise(${bIdx},${eIdx})" title="Skip">−</button>
@@ -1259,6 +1288,17 @@ function buildExerciseEl(ex, bIdx, eIdx) {
     ${logHtml?`<div class="ex-log">${logHtml}</div>`:''}
     <div class="ex-note-row"><input type="text" class="note-in" placeholder="note…" id="note-${bIdx}-${eIdx}" onblur="saveExNote(${bIdx},${eIdx},this.value)" value="${ex.sessionNote||''}"></div>`;
   return wrap;
+}
+
+// A broken/unreachable image src (e.g. a stale imageUrl override, or a
+// hqdefault.jpg that 404s for a video that was removed) swaps in the same
+// colored-initial fallback circle used when there was never a photo to try.
+function exPhotoFallback(img) {
+  const div = document.createElement('div');
+  div.className = 'ex-photo ex-photo-fallback';
+  div.style.background = img.dataset.fallbackBg;
+  div.textContent = img.dataset.fallbackText;
+  img.replaceWith(div);
 }
 
 function setRow(s,si,b,e){return`<div class="set-row"><span class="set-num">${si+1}</span>${s.weight?`<span class="set-weight">${s.weight}kg</span>`:''} ${s.reps?`<span class="set-reps">× ${s.reps}</span>`:''} ${s.duration?`<span class="set-reps">${Utils.formatMMSS(s.duration)}</span>`:''}<button class="set-del" onclick="removeSet(${b},${e},${si})" aria-label="Delete set">✕</button></div>`;}
@@ -1284,6 +1324,16 @@ function logReps(b,e){
   const res=LiveSession.logSet(b,e,{reps:r,completed:true});refreshExercise(b,e);
   if(res?.startRest){const ex=LiveSession.getSession().blocks[b].exercises[e];showRest(ex.restSeconds);}
   const ri=document.getElementById(`r-${b}-${e}`);if(ri)ri.value='';
+}
+// Manual duration entry for hold/somatic exercises — for when you did the
+// thing (e.g. 10 min of spinal waves) without remembering to hit Start on
+// the live stopwatch. Logs a set the same way toggleStopwatch does.
+function logManualHold(b,e){
+  const m=parseInt(document.getElementById(`hd-m-${b}-${e}`)?.value)||0,s=parseInt(document.getElementById(`hd-s-${b}-${e}`)?.value)||0;
+  const total=m*60+s;
+  if(!total)return;
+  LiveSession.logSet(b,e,{duration:total,completed:true});
+  refreshExercise(b,e);
 }
 function logCardio(b,e){
   const m=parseInt(document.getElementById(`cd-m-${b}-${e}`)?.value)||0,s=parseInt(document.getElementById(`cd-s-${b}-${e}`)?.value)||0,km=parseFloat(document.getElementById(`cd-km-${b}-${e}`)?.value)||null,link=document.getElementById(`cd-link-${b}-${e}`)?.value||'';
@@ -1339,23 +1389,23 @@ function onAddExSearch(query){
   ).join('');
 }
 // Adds the chosen exercise into the block whose modality tag it actually
-// carries (e.g. Pull-up → modality ['strength-a'] only matches a block
-// with key 'strength-a'). This mirrors exactly how Generator._poolForTag
+// carries (e.g. Pull-up → modalityTags ['weights'] only matches a block
+// with key 'weights'). This mirrors exactly how Generator._poolForTag
 // builds blocks in the first place, so it's the same definition of
 // "belongs in this block" the generator itself uses.
 //
 // Matching on the exercise's top-level `category` instead (an earlier
 // version of this) was too coarse: category is shared across very
-// different modalities — e.g. "Gym" covers both heavy strength work AND
-// loaded-stretch mobility work filed under the Flexibility tag — so a
-// Gym-category exercise could get shoehorned into a same-category-but-
-// wrong-theme block (a Pull-up landing in today's Flexibility block just
-// because a loaded stretch, also category "Gym", happened to be in it).
-// Modality tags don't have that collision: an exercise is only ever
-// filed under the tag(s) that actually generate it.
+// different modalities — e.g. "Gym" used to cover both heavy strength work
+// AND loaded-stretch mobility work, so a Gym-category exercise could get
+// shoehorned into a same-category-but-wrong-theme block (a Pull-up landing
+// in today's Flexibility block just because a loaded stretch, also
+// category "Gym", happened to be in it). Weighted Mobility getting its own
+// modality tag (2026-07-12 taxonomy revamp) fixed the root cause; modality
+// tags never collide the way category did.
 // If nothing in the session carries a matching modality (as with a
-// Flexibility+Rest day and a Gym pull-up), it goes into a lazily-created
-// "Extra exercises" block instead of guessing.
+// Flexibility-only day and a Weights pull-up), it goes into a
+// lazily-created "Extra exercises" block instead of guessing.
 function pickExerciseForSession(id){
   const session=LiveSession.getSession();
   if(!session)return;
@@ -1364,16 +1414,21 @@ function pickExerciseForSession(id){
   const inst=Generator.buildExerciseInstance(ex,App.profile);
   if(!inst)return;
   const ov = Overrides.get(ex.id);
-  const modality = ov?.modality || ex.modality || [];
-  let targetIdx = session.blocks.findIndex(blk => modality.includes(blk.key));
+  const modalityTags = ov?.modalityTags || ex.modalityTags || [];
+  let targetIdx = session.blocks.findIndex(blk => modalityTags.includes(blk.key));
   if(targetIdx===-1)targetIdx=LiveSession.ensureExtraBlock();
   LiveSession.addExercise(targetIdx,inst);
   closeAddExerciseModal();
   renderSessionScreen();
 }
 function saveExNote(b,e,v){LiveSession.addExerciseNote(b,e,v);}
-function toggleBlock(b){document.getElementById(`block-body-${b}`)?.classList.toggle('collapsed');}
-function refreshExercise(b,e){const ex=LiveSession.getSession()?.blocks[b]?.exercises[e];if(!ex)return;document.getElementById(`ex-${b}-${e}`)?.replaceWith(buildExerciseEl(ex,b,e));}
+function toggleBlock(b){
+  const el = document.getElementById(`block-${b}`);
+  if (!el) return;
+  const nowCollapsed = el.classList.toggle('collapsed');
+  _collapseState[b] = nowCollapsed;
+}
+function refreshExercise(b,e){const block=LiveSession.getSession()?.blocks[b];const ex=block?.exercises[e];if(!ex)return;document.getElementById(`ex-${b}-${e}`)?.replaceWith(buildExerciseEl(ex,b,e,block.color));}
 function refreshBlock(b){
   const block=LiveSession.getSession()?.blocks[b];if(!block)return;
   const done=block.exercises.filter(e=>e.completed||e.skipped).length;
@@ -1386,7 +1441,18 @@ function showRest(s){if(!s)return;document.getElementById('rest-overlay').style.
 function hideRest(){document.getElementById('rest-overlay').style.display='none';Timer.stopCountdown();}
 function skipRest(){hideRest();}
 function adjustRest(d){Timer.adjustCountdown(d);}
-function finishSession(){LiveSession.setSessionNote(document.getElementById('session-note').value);const id=LiveSession.complete();if(id){document.querySelector('.session-nav').style.display='none';App.session=null;navTo('home');}}
+function finishSession(){
+  LiveSession.setSessionNote(document.getElementById('session-note').value);
+  if(!LiveSession.isFullyDone()){
+    // Something's still unchecked — log progress but keep the session live
+    // so it can be finished later instead of silently dropping it.
+    const progress=LiveSession.getProgress();
+    LiveSession.logCheckpoint();
+    alert(`Logged (${progress.done}/${progress.total} done). Session stays open — check off the rest, then tap Complete session again to finish it.`);
+    return;
+  }
+  const id=LiveSession.complete();if(id){document.querySelector('.session-nav').style.display='none';App.session=null;navTo('home');}
+}
 function discardSession(){if(!confirm('Discard session?'))return;LiveSession.discard();App.session=null;document.querySelector('.session-nav').style.display='none';navTo('home');}
 
 // ─────────────────────────────────────────────────────────────
@@ -1792,14 +1858,18 @@ function renderMuscleDistribution() {
     </div>`;
 }
 
-// Hand-rolled hexagon radar chart (no charting library in this project —
-// see EXERCISE_TAGS comment in data/library.js for why muscle is null for
+// Hand-rolled radar chart (no charting library in this project — see
+// EXERCISE_TAGS comment in data/library.js for why muscle is null for
 // most non-loading exercises). Axis order matches History.MUSCLE_GROUPS,
-// laid out clockwise from top-left: Back, Chest, Core, Shoulders, Arms, Legs.
+// evenly spaced clockwise starting at the top. Axis count/spacing is
+// derived from groups.length rather than hardcoded, so this still works
+// when MUSCLE_GROUPS changes size (it grew from 6 to 11 on 2026-07-12
+// when arms/legs were split into finer buckets) without touching this fn.
 function buildMuscleRadarSVG(curr, prev, days) {
   const groups = History.MUSCLE_GROUPS;
   const cx = 150, cy = 150, R = 100, labelR = 128;
-  const angleFor = i => (-120 + i * 60) * Math.PI / 180;
+  const step = 360 / groups.length;
+  const angleFor = i => (-90 + i * step) * Math.PI / 180;
 
   // Fixed baseline scale rather than "relative to whichever axis is
   // busiest right now" — with sparse data, a single logged set used to
@@ -1947,7 +2017,7 @@ function calNext(){ if(_calMonth===11){_calMonth=0;_calYear++;}else _calMonth++;
 
 function openSessionModal(id) {
   const session=History.getSession(id); if(!session) return;
-  let html=`<div class="modal-theme" style="color:${Utils.getSessionColor(session)}">${Utils.getSessionLabel(session)}${session.source==='manual'?'<span class="sr-badge">Manual</span>':''}</div><div class="modal-date">${Utils.formatDate(session.date)} · ${session.duration}m</div>${session.notes?`<div class="modal-note">${session.notes}</div>`:''}<div class="modal-blocks">`;
+  let html=`<div class="modal-theme" style="color:${Utils.getSessionColor(session)}">${Utils.getSessionLabel(session)}${session.source==='manual'?'<span class="sr-badge">Manual</span>':''}${session.status==='in-progress'?'<span class="sr-badge sr-badge-live">In progress</span>':''}</div><div class="modal-date">${Utils.formatDate(session.date)} · ${session.duration}m</div>${session.notes?`<div class="modal-note">${session.notes}</div>`:''}<div class="modal-blocks">`;
   session.blocks?.forEach(block=>{
     const logged=block.exercises?.filter(e=>e.sets?.length||e.completed||e.cardioLog);
     if(!logged?.length) return;
@@ -1974,7 +2044,7 @@ function deleteSession(id){ if(!confirm('Delete?'))return; History.deleteSession
 // ─────────────────────────────────────────────────────────────
 let _ml = { exercises: [] };
 
-const _ML_THEME_IDS = ['strength-a','strength-b','plio-a','plio-b','skill','z2','movement','flexibility','power','intervals','rest'];
+const _ML_THEME_IDS = ['weights','calisthenics','gymnastics-conditioning','mobility-movement','flexibility','weighted-mobility','yoga','power-plyo','cardio','coordination'];
 
 function openManualLogModal() {
   _ml = { exercises: [] };
@@ -2205,6 +2275,7 @@ function renderSettings() {
   // Two-level collapsible library using slug() for safe IDs
   const allEx = Custom.getAllExercises();
   const cats  = [...new Set(allEx.map(e=>e.category))];
+  document.getElementById('library-total-count').textContent = allEx.length;
   document.getElementById('exercise-state-list').innerHTML = cats.map(cat => {
     const catEx   = allEx.filter(e=>e.category===cat);
     const subcats = [...new Set(catEx.map(e=>e.subcategory||'General'))];
@@ -2456,7 +2527,7 @@ function openExView(id) {
   detail('Energy', ex.energy);
   detail('Log type', ex.logType);
   detail('Rest group', ex.restGroup);
-  detail('Modality tags', (ex.modality || []).map(t => Utils.getThemeConfig(t).label).join(', '));
+  detail('Modality tags', (ex.modalityTags || []).map(t => Utils.getThemeConfig(t).label).join(', '));
   detail('Frequency', ex.frequency);
   detail('Equipment', (ex.equipment || []).join(', '));
   detail('Goals', (ex.goals || []).map(gId => GOALS.find(g => g.id === gId)?.name || gId).join(', '));
@@ -2560,8 +2631,8 @@ function openExEdit(id) {
   // Modality tags — which Generate-screen tags pull this exercise into a
   // session. This is the self-serve reclassification promised when adding
   // the multi-select tag system: check/uncheck here instead of editing code.
-  const MODALITY_TAGS = ['strength-a','strength-b','plio-a','plio-b','skill','movement','flexibility','power'];
-  const currentModality = ex.modality || [];
+  const MODALITY_TAGS = ['weights','calisthenics','gymnastics-conditioning','mobility-movement','flexibility','weighted-mobility','yoga','power-plyo','cardio','coordination'];
+  const currentModality = ex.modalityTags || [];
   const modalityWrap = document.createElement('div'); modalityWrap.className = 'modality-tag-grid'; modalityWrap.id = 'exe-modality';
   MODALITY_TAGS.forEach(tag => {
     const tagCfg = Utils.getThemeConfig(tag);
@@ -2641,7 +2712,7 @@ function saveExEdit() {
   if (!base) return;
 
   const modalityEls = document.querySelectorAll('#exe-modality input[type=checkbox]');
-  const modality = [...modalityEls].filter(cb => cb.checked).map(cb => cb.value);
+  const modalityTags = [...modalityEls].filter(cb => cb.checked).map(cb => cb.value);
 
   const data = {
     logType:      document.getElementById('exe-logtype')?.value,
@@ -2650,7 +2721,7 @@ function saveExEdit() {
     link:         document.getElementById('exe-link')?.value || '',
     imageUrl:     document.getElementById('exe-img')?.value || '',
     instructions: document.getElementById('exe-instructions')?.value || '',
-    modality,
+    modalityTags,
   };
 
   // Save state separately (profile, not override)
@@ -2821,7 +2892,7 @@ function openExerciseModal(id, prefill) {
   const ex = id ? Custom.getExercise(id) : (prefill || null);
   const ideaId = !id && prefill ? prefill._ideaId : '';
   const cats = [...new Set(LIBRARY.map(e=>e.category)),'Other'];
-  const segs = ['lightBlock','objManip','meditate','warmup','skill','main','cooldown'];
+  const segs = ['lightBlock','meditate','warmup','skill','main','cooldown'];
   const logTypes = ['weight+reps','hold','reps','cardio','none'];
   const restGroups = ['strength-heavy','strength-acc','skill','prehab','power','flexibility','somatic','meditation','cardio'];
 
