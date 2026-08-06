@@ -176,6 +176,26 @@ Object.assign(DB, {
       await _upsert(table, { user_id:uid, [keyCol]:storeKey, data:value }, `user_id,${keyCol}`);
       return;
     }
+    // Daily instances (project_scaffold_revamp) — key is 'pb_daily_instance_YYYY-MM-DD'
+    if (fullKey.startsWith('pb_daily_instance_')) {
+      const date = fullKey.replace('pb_daily_instance_', '');
+      await _upsert('daily_instances', {
+        user_id: uid, date,
+        weekday: value?.weekday || null,
+        correlation_mode: value?.correlationMode || 'correlated',
+        theme_override: value?.themeOverride || null,
+        data: value,
+        chat_log: value?.chatLog || [],
+      }, 'user_id,date');
+      return;
+    }
+    // Week scaffold override (project_scaffold_revamp) — user's edited copy
+    // of the default WEEK_SCAFFOLD shipped in data/scaffold.js, if/when the
+    // app grows a UI to edit it. Not written by anything yet.
+    if (fullKey === 'pb_week_scaffold') {
+      await _upsert('week_scaffold', { user_id: uid, data: value }, 'user_id');
+      return;
+    }
   },
 
   // Pull all data from Supabase into localStorage
@@ -185,7 +205,7 @@ Object.assign(DB, {
     const uid = user.id;
     console.log('Pulling data for user', uid);
 
-    const [profile, sidx, sessions, exes, goals, ovRows, cacheRows] = await Promise.all([
+    const [profile, sidx, sessions, exes, goals, ovRows, cacheRows, scaffold, instances] = await Promise.all([
       _rest('profile',          'GET', { eq:{user_id:uid}, select:'data' }),
       _rest('session_index',    'GET', { eq:{user_id:uid}, select:'data' }),
       _rest('sessions',         'GET', { eq:{user_id:uid}, select:'session_key,data', order:'date.desc', limit:50 }),
@@ -193,6 +213,8 @@ Object.assign(DB, {
       _rest('custom_goals',     'GET', { eq:{user_id:uid}, select:'data' }),
       _rest('overrides',        'GET', { eq:{user_id:uid}, select:'store_key,data' }),
       _rest('cache',            'GET', { eq:{user_id:uid}, select:'cache_key,data' }),
+      _rest('week_scaffold',    'GET', { eq:{user_id:uid}, select:'data' }),
+      _rest('daily_instances',  'GET', { eq:{user_id:uid}, select:'date,data', order:'date.desc', limit:30 }),
     ]);
 
     if (Array.isArray(profile)  && profile[0])  localStorage.setItem('pb_profile',          JSON.stringify(profile[0].data));
@@ -202,6 +224,8 @@ Object.assign(DB, {
     if (Array.isArray(goals))                   localStorage.setItem('pb_custom_goals',     JSON.stringify(goals.map(g=>g.data)));
     if (Array.isArray(ovRows))                  ovRows.forEach(r   => localStorage.setItem('pb_'+r.store_key,   JSON.stringify(r.data)));
     if (Array.isArray(cacheRows))               cacheRows.forEach(r => localStorage.setItem('pb_'+r.cache_key,  JSON.stringify(r.data)));
+    if (Array.isArray(scaffold) && scaffold[0]) localStorage.setItem('pb_week_scaffold',    JSON.stringify(scaffold[0].data));
+    if (Array.isArray(instances))               instances.forEach(r => localStorage.setItem('pb_daily_instance_'+r.date, JSON.stringify(r.data)));
 
     console.log('Pull complete');
   },
