@@ -1077,6 +1077,297 @@ const Generator = {
     return session;
   },
 
+  // ── SCAFFOLD-SEEDED DAILY INSTANCE (project_scaffold_revamp, Phase 3) ──
+  // Generates a full day's session from the week scaffold (data/scaffold.js)
+  // instead of a manually-picked theme list. Produces the methodology doc's
+  // block skeleton — Light Work (daily constants), Breakfast (non-fasting
+  // days only), Meditate, Warm-up, Skill Training, Reading, Main Focus,
+  // Cool-down — with Warm-up/Skill Training primed toward (or, in
+  // anti-correlated mode, deliberately away from) that day's Main Focus
+  // theme. Reuses _fitToTime/_poolForTag/_getModalityBlocks — the same
+  // pool→rotate→fit-to-time→allocate-time pipeline the manual generator
+  // uses, which already does the "fill to duration with a per-exercise time
+  // tally" job (see _allocateTime) rather than needing new logic for it.
+  //
+  // `themeOverride` (a WEEK_SCAFFOLD key, e.g. 'sunday') lets a chat
+  // override borrow a *different* day-type's whole skeleton for this one
+  // date, per the confirmed "Thursday borrows Sunday's Active Rest" case —
+  // the actual weekday is still recorded separately so this stays a
+  // single-date override, never touching the week template itself.
+  //
+  // Muscle-group/intensity rotation is intentionally NOT recomputed here
+  // against actual/overridden history — frozen at scaffold-design time,
+  // per the 2026-08-06 decision in project_scaffold_revamp. recentMuscleIntensity
+  // is still threaded through purely for pool *ordering* (same signal
+  // _fitToTime already uses elsewhere), not as a gating feature.
+  generateFromScaffold({ date, correlationMode, themeOverride, profile, sleep, energy, pain, focus }) {
+    const d = date ? new Date(date) : new Date();
+    const WEEKDAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const weekdayKey = WEEKDAY_KEYS[d.getDay()];
+    const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[themeOverride || weekdayKey] : null;
+    if (!slot) return null;
+
+    const fasting = slot.fasting;
+    const mode    = correlationMode === 'anti_correlated' ? 'antiCorrelated' : 'correlated';
+    const priming = slot.priming[mode];
+
+    const durations = this._scaffoldBlockDurations(fasting);
+    const tier      = this.getTier(this._skeletonTotalMinutes(fasting));
+    const lowEnergy = (sleep > 0 && sleep < 3) || (energy > 0 && energy < 3);
+    const useExt    = tier >= 3 && !lowEnergy;
+    const lastSeenMap = History.getExerciseLastSeenMap(30);
+    const recentMuscleIntensity = History.getRecentMuscleIntensity(2);
+    const painTags  = this._parsePainTags(pain);
+    const painAvoid = painTags.avoid, painCaution = painTags.caution;
+    const resolveEx = this._resolveExFactory(profile, painAvoid);
+
+    const blocks = [];
+
+    // Light Work — fixed daily constants, not a generated pool.
+    blocks.push(this._buildDailyConstantsBlock(durations['light-work']));
+
+    // Breakfast — only on non-fasting days (fasted days delay it past Main Focus).
+    if (!fasting && durations['breakfast'] > 0) {
+      blocks.push({
+        key: 'breakfast', label: 'Breakfast', icon: 'coffee', color: '#BA7517', bg: '#FAEEDA',
+        duration: durations['breakfast'], note: 'Eat. No heavy loading before this settles.',
+        exercises: [{ id: 'breakfast', name: 'Eat + digest', logType: 'none', notes: '',
+          sets: [], completed: false, skipped: false, link: null }],
+      });
+    }
+
+    // Meditate — same fixed pool as the manual generator.
+    const meditateIds = tier >= 3 ? ['box-breathing', 'visualization', 'trataka'] : ['box-breathing', 'visualization'];
+    blocks.push({
+      key: 'meditate', label: 'Meditate', icon: 'brain', color: '#7F77DD', bg: '#EEEDFE',
+      duration: durations['meditation'], note: 'Mental rehearsal before skill.',
+      exercises: this._fitToTime(meditateIds, durations['meditation'], resolveEx, null, painCaution),
+    });
+
+    // Warm-up — primed pool, replacing the generic CARs pool the manual generator uses.
+    const warmupPool = [...new Set((priming.warmup || []).flatMap(t => this._poolForTag(t)))];
+    blocks.push({
+      key: 'warmup', label: 'Warm-up', icon: 'flame', color: '#1D9E75', bg: '#E1F5EE',
+      duration: durations['warmup'],
+      note: mode === 'correlated' ? `Primes today's Main Focus (${slot.theme}).` : 'Deliberately light/unrelated today.',
+      exercises: this._fitToTime(warmupPool, durations['warmup'], resolveEx, lastSeenMap, painCaution, false, recentMuscleIntensity),
+      rotationNote: this._rotationNote(warmupPool, lastSeenMap),
+    });
+
+    // Skill Training — primed pool. Doesn't exist as a distinct block in the
+    // manual generator (there, "skill" is just pooled time split across
+    // whatever tags are selected) — this is the new explicit block the
+    // scaffold's skeleton calls for.
+    const skillPool = [...new Set((priming.skill || []).flatMap(t => this._poolForTag(t)))];
+    blocks.push({
+      key: 'skill', label: 'Skill Training', icon: 'star', color: '#D8890A', bg: '#FBEEDA',
+      duration: durations['skill'],
+      note: mode === 'correlated' ? `Primes today's Main Focus (${slot.theme}).` : 'Deliberately light/unrelated today.',
+      exercises: this._fitToTime(skillPool, durations['skill'], resolveEx, lastSeenMap, painCaution, false, recentMuscleIntensity),
+      rotationNote: this._rotationNote(skillPool, lastSeenMap),
+    });
+
+    // Reading — fixed buffer block, same pattern as Breakfast.
+    if (durations['reading'] > 0) {
+      blocks.push({
+        key: 'reading', label: 'Reading', icon: 'book', color: '#5F5E5A', bg: '#F1EFE8',
+        duration: durations['reading'], note: '',
+        exercises: [{ id: 'reading', name: 'Reading', logType: 'none', notes: '',
+          sets: [], completed: false, skipped: false, link: null }],
+      });
+    }
+
+    // Main Focus — reuse the same modality-block machinery the manual
+    // generator uses, capped at 60min per the doc's design principle.
+    const mainTags = slot.mainFocus.tags;
+    const mainDur  = Math.min(durations['main-focus'], 60);
+    const mainDurations = {};
+    mainTags.forEach(t => { mainDurations[t] = Math.round(mainDur / mainTags.length); });
+    const { blocks: mainBlocks } = this._getModalityBlocks({
+      themes: mainTags, tier, durations: mainDurations, lowEnergy, useExt, profile, focus,
+      resolveEx, lastSeenMap, recentMuscleIntensity, painAvoid, painCaution,
+      cardioMode: slot.mainFocus.cardioMode,
+    });
+    mainBlocks.forEach(b => { b.key = 'main-focus:' + b.key; b.mainFocus = true; });
+    blocks.push(...mainBlocks);
+
+    // Cool-down — merge cooldown pools from Main Focus tags only (Warm-up/
+    // Skill Training priming tags don't need their own wind-down).
+    const coolIdsRaw = [...new Set(mainTags.flatMap(t => this._MODALITY_COOLDOWN[t] || []))];
+    const coolIds = coolIdsRaw.length ? coolIdsRaw : ['body-scan'];
+    const coolDur = durations['cooldown'] || 10;
+    blocks.push({
+      key: 'cooldown', label: 'Cool-down', icon: 'moon', color: '#5F5E5A', bg: '#F1EFE8',
+      duration: coolDur, note: '', exercises: this._fitToTime(coolIds, coolDur, resolveEx),
+    });
+
+    const built = blocks.filter(b => b.exercises.length > 0);
+
+    return {
+      id: null,
+      date: d.toISOString().slice(0, 10),
+      weekday: weekdayKey,
+      theme: slot.theme,
+      // `themes` (modality tag ids) rather than the human-readable `theme`
+      // label is what Utils.getSessionLabel/getSessionColor actually key
+      // off (see getSessionThemeIds) — set both so history/calendar/session
+      // header render with real colors/icons instead of the generic
+      // unrecognized-id fallback.
+      themes: mainTags,
+      themeOverride: themeOverride || null,
+      correlationMode: mode,
+      fasting,
+      duration: built.reduce((sum, b) => sum + (b.duration || 0), 0),
+      tier,
+      sleep, energy, pain, focus,
+      status: 'active',
+      startedAt: Date.now(),
+      completedAt: null,
+      notes: '',
+      blocks: built,
+      chatLog: [],
+      painNote: (painAvoid.size || painCaution.size)
+        ? { avoid: [...painAvoid], caution: [...painCaution] }
+        : null,
+    };
+  },
+
+  // Minutes between two 'HH:MM' clock strings.
+  _clockDiffMin(from, to) {
+    const [fh, fm] = from.split(':').map(Number);
+    const [th, tm] = to.split(':').map(Number);
+    return (th * 60 + tm) - (fh * 60 + fm);
+  },
+
+  // Per-block minutes from SKELETON_BLOCKS (data/scaffold.js) for the given
+  // fasting variant. A block with no window for this variant (Breakfast on
+  // a fasting day) comes back 0.
+  _scaffoldBlockDurations(fasting) {
+    const out = {};
+    if (typeof SKELETON_BLOCKS === 'undefined') return out;
+    SKELETON_BLOCKS.forEach(b => {
+      const window = fasting ? b.fasting : b.nonFasting;
+      out[b.key] = window ? this._clockDiffMin(window[0], window[1]) : 0;
+    });
+    return out;
+  },
+
+  _skeletonTotalMinutes(fasting) {
+    return Object.values(this._scaffoldBlockDurations(fasting)).reduce((a, b) => a + b, 0);
+  },
+
+  // Light Work block content — the four "daily constants" (data/scaffold.js
+  // DAILY_CONSTANTS), fixed every day with internal variation (grip/depth/
+  // style) rather than picked from a pool.
+  _buildDailyConstantsBlock(durationMin) {
+    const items = (typeof DAILY_CONSTANTS !== 'undefined' ? DAILY_CONSTANTS.items : []) || [];
+    const exercises = items.map((it, i) => ({
+      id: 'daily-constant-' + i,
+      name: it.name + (it.vary && it.vary.length ? ` (vary: ${it.vary.join(' / ')})` : ''),
+      logType: 'none', notes: '', sets: [], completed: false, skipped: false, link: null,
+      allocatedMinutes: items.length ? Math.round((durationMin / items.length) * 2) / 2 : 0,
+    }));
+    return {
+      key: 'light-work', label: 'Light Work', icon: 'sun', color: '#1D9E75', bg: '#E1F5EE',
+      duration: durationMin, note: 'Daily constants — vary grip/depth/style day to day.', exercises,
+    };
+  },
+
+  // ── CHAT OVERRIDE EXECUTION (project_scaffold_revamp, Phase 5) ──
+  // Applies a validated `intent` (produced by ChatOverride.interpret — an
+  // LLM call) to an existing scaffold-generated `instance`, deterministically.
+  // The LLM only ever proposes WHICH block/theme; it never picks exercises,
+  // durations, or invents a block itself — same "LLM proposes structure, app
+  // code resolves it against real data" split AIGenerator._mapToBlocks
+  // already uses. Returns a new instance, or null if the intent didn't
+  // validate against the instance's actual blocks / WEEK_SCAFFOLD keys (the
+  // caller falls back to a "couldn't apply that" note in that case).
+  applyOverride(instance, intent, profile) {
+    if (!instance || !intent) return null;
+
+    if (intent.action === 'theme_swap') {
+      if (typeof WEEK_SCAFFOLD === 'undefined' || !WEEK_SCAFFOLD[intent.targetTheme]) return null;
+      const fresh = this.generateFromScaffold({
+        date: instance.date, correlationMode: instance.correlationMode,
+        themeOverride: intent.targetTheme, profile,
+        sleep: instance.sleep, energy: instance.energy, pain: instance.pain, focus: instance.focus,
+      });
+      if (!fresh) return null;
+      fresh.id = instance.id; fresh.startedAt = instance.startedAt; // keep continuity — user is mid-session
+      fresh.chatLog = instance.chatLog || [];
+      return fresh;
+    }
+
+    if (intent.action === 'correlation_flip') {
+      const mode = intent.mode === 'anti_correlated' ? 'anti_correlated' : 'correlated';
+      const fresh = this.generateFromScaffold({
+        date: instance.date, correlationMode: mode,
+        themeOverride: instance.themeOverride, profile,
+        sleep: instance.sleep, energy: instance.energy, pain: instance.pain, focus: instance.focus,
+      });
+      if (!fresh) return null;
+      fresh.id = instance.id; fresh.startedAt = instance.startedAt;
+      fresh.chatLog = instance.chatLog || [];
+      return fresh;
+    }
+
+    if (intent.action === 'remove_block') {
+      const blocks = instance.blocks.map(b => ({ ...b }));
+      const idx = blocks.findIndex(b => b.key === intent.blockKey);
+      if (idx === -1) return null;
+      const freedMinutes = blocks[idx].duration || 0;
+      blocks.splice(idx, 1);
+
+      const tIdx = intent.giveMinutesTo ? blocks.findIndex(b => b.key === intent.giveMinutesTo) : -1;
+      if (tIdx !== -1 && freedMinutes > 0) {
+        const target = blocks[tIdx];
+        const newDuration = (target.duration || 0) + freedMinutes;
+        blocks[tIdx] = this._regenerateBlockAtDuration(target, newDuration, instance, profile) || target;
+      }
+
+      return {
+        ...instance, blocks, chatLog: instance.chatLog || [],
+        duration: blocks.reduce((s, b) => s + (b.duration || 0), 0),
+      };
+    }
+
+    return null; // 'note_only' or unrecognized action — caller handles the fallback message
+  },
+
+  // Regenerates a single block's exercise list at a new duration, reusing
+  // the same pool the block was originally built from (re-derived from the
+  // block key + the instance's own weekday/theme-override/correlation-mode,
+  // not stored anywhere — a pure function of those, same as generateFromScaffold
+  // itself). Fixed-content blocks (Reading, Breakfast, Meditate, Light Work)
+  // just get their duration bumped, no pool involved.
+  _regenerateBlockAtDuration(block, newDuration, instance, profile) {
+    if (['reading', 'breakfast', 'meditate', 'cooldown'].includes(block.key)) {
+      return { ...block, duration: newDuration };
+    }
+    if (block.key === 'light-work') {
+      return this._buildDailyConstantsBlock(newDuration);
+    }
+
+    const painTags   = this._parsePainTags(instance.pain);
+    const resolveEx  = this._resolveExFactory(profile, painTags.avoid);
+    const lastSeenMap = History.getExerciseLastSeenMap(30);
+
+    if (block.key.startsWith('main-focus:')) {
+      const tag = block.key.replace('main-focus:', '');
+      const pool = this._poolForTag(tag);
+      return { ...block, duration: newDuration, exercises: this._fitToTime(pool, newDuration, resolveEx, lastSeenMap, painTags.caution) };
+    }
+    if (block.key === 'warmup' || block.key === 'skill') {
+      const slotKey = instance.themeOverride || instance.weekday;
+      const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[slotKey] : null;
+      const mode = instance.correlationMode === 'anti_correlated' ? 'antiCorrelated' : 'correlated';
+      const tags = slot?.priming?.[mode]?.[block.key] || [];
+      const pool = [...new Set(tags.flatMap(t => this._poolForTag(t)))];
+      return { ...block, duration: newDuration, exercises: this._fitToTime(pool, newDuration, resolveEx, lastSeenMap, painTags.caution) };
+    }
+    return { ...block, duration: newDuration };
+  },
+
   // Builds a resolveEx(id) closure — the single funnel every block's
   // exercise picks pass through, applying profile exclusion and pain-aware
   // hard exclusion consistently. Factored out so AIGenerator can resolve
@@ -1664,6 +1955,106 @@ ${JSON.stringify(compact)}`;
         ? { avoid: [...painTags.avoid], caution: [...painTags.caution] }
         : null,
     };
+  },
+};
+
+// ── CHAT OVERRIDE (project_scaffold_revamp, Phase 5) ────────────
+// Interprets a free-text request about TODAY's already-generated scaffold
+// instance into one structured action (see Generator.applyOverride for the
+// deterministic executor). Same direct-browser-to-Anthropic, bring-your-own-
+// key pattern as AIGenerator above — reused rather than duplicated
+// infrastructure, per the 2026-08-06 decision to not stand up a separate
+// backend for this.
+const ChatOverride = {
+  API_URL: 'https://api.anthropic.com/v1/messages',
+  API_VERSION: '2023-06-01',
+
+  buildPrompt({ message, instance }) {
+    const blockSummary = instance.blocks
+      .map(b => `${b.key} — "${b.label}" (${b.duration}min)`)
+      .join('\n');
+    const themeOptions = (typeof WEEK_SCAFFOLD !== 'undefined')
+      ? Object.keys(WEEK_SCAFFOLD).map(k => `${k}: ${WEEK_SCAFFOLD[k].theme}${WEEK_SCAFFOLD[k].fasting ? ' (fasted)' : ''}`).join('\n')
+      : '';
+
+    const system = `You interpret a single natural-language request about TODAY's already-generated movement practice session and translate it into ONE structured action. You never invent exercises, durations, or new blocks yourself — you only choose among the existing blocks/themes given to you. Return ONLY valid JSON, no markdown fences, no commentary outside the JSON:
+{
+  "action": "theme_swap" | "correlation_flip" | "remove_block" | "note_only",
+  "targetTheme": "<week scaffold key, only for theme_swap>",
+  "mode": "correlated" | "anti_correlated",
+  "blockKey": "<block key from today's blocks, only for remove_block>",
+  "giveMinutesTo": "<another block key to receive the freed time, optional, only for remove_block>",
+  "reply": "1-2 plain sentences, conversational, confirming what you changed — or, for note_only, briefly explaining you couldn't map this to a concrete change"
+}
+Rules:
+- "theme_swap": requests to replace today's whole plan with a different day-type (e.g. "swap today for the rest day", "I'm exhausted, make today active rest instead"). targetTheme must be exactly one of the week-scaffold keys listed below — never invent one.
+- "correlation_flip": requests to make warm-up/skill training lighter and unrelated to today's Main Focus (mode: anti_correlated), or to restore the normal priming relationship (mode: correlated).
+- "remove_block": requests to cut/drop one specific existing block. blockKey must be exactly one of today's actual block keys listed below — never invent one. If the request also names where the freed time should go ("more time for reading"), set giveMinutesTo to that block's key; otherwise omit it (freed time is simply dropped from the session).
+- If the request doesn't clearly map to one of these three, use "note_only" and explain briefly why in reply — never guess at a change you're not confident about.`;
+
+    const user = `User request: "${message}"
+
+Today's actual blocks (key — label (duration)):
+${blockSummary}
+
+Week scaffold options (key: theme):
+${themeOptions}`;
+
+    return { system, user };
+  },
+
+  // Same request shape as AIGenerator.callClaude — not factored into a
+  // shared helper to keep each module's error handling independently
+  // readable, mirroring how the two modules were already kept separate.
+  async callClaude({ apiKey, model, system, user }) {
+    const res = await fetch(this.API_URL, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': this.API_VERSION,
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1024, // a single small action object + a short reply — never needs much
+        system,
+        messages: [{ role: 'user', content: user }],
+      }),
+    });
+
+    if (!res.ok) {
+      let detail = '';
+      try { detail = (await res.json())?.error?.message || ''; } catch {}
+      throw new Error(`Anthropic API error (${res.status})${detail ? ': ' + detail : ''}`);
+    }
+
+    const data = await res.json();
+    const text = data?.content?.find(b => b.type === 'text')?.text;
+    if (!text) throw new Error('Anthropic API returned no text content.');
+    return { text, truncated: data.stop_reason === 'max_tokens' };
+  },
+
+  _extractJSON(text, truncated) {
+    const cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch (e) {
+      if (truncated) throw new Error('AI response got cut off before finishing — try again.');
+      throw new Error('Could not parse AI response as JSON: ' + e.message);
+    }
+    if (!parsed || !parsed.action) throw new Error('AI response was missing an action.');
+    return parsed;
+  },
+
+  async interpret({ message, instance, profile }) {
+    const apiKey = profile?.settings?.anthropicApiKey;
+    if (!apiKey) throw new Error('Add an Anthropic API key in Settings → AI generation first.');
+    const model = profile?.settings?.aiModel || 'claude-sonnet-5';
+    const { system, user } = this.buildPrompt({ message, instance });
+    const { text, truncated } = await this.callClaude({ apiKey, model, system, user });
+    return this._extractJSON(text, truncated);
   },
 };
 

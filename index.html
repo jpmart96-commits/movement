@@ -64,8 +64,14 @@
   </header>
   <section class="card today-card">
     <div class="today-day" id="today-day">Monday</div>
-    <button class="btn-primary" onclick="startToday()">Start a session ↗</button>
-    <button class="btn-ghost" style="margin-top:.5rem" onclick="openManualLogModal()">Log a past session</button>
+    <div class="scaffold-theme-line" id="scaffold-theme-line" style="opacity:.7;margin:-.25rem 0 .5rem"></div>
+    <label class="scaffold-toggle-row" style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;opacity:.85;margin-bottom:.5rem">
+      <input type="checkbox" id="scaffold-anti-correlated">
+      Lighter today — warm-up/skill unrelated to Main Focus
+    </label>
+    <button class="btn-primary" onclick="startScaffoldToday()">Today's Plan ↗</button>
+    <button class="btn-ghost" style="margin-top:.5rem" onclick="startToday()">Compose manually</button>
+    <button class="btn-ghost" onclick="openManualLogModal()">Log a past session</button>
   </section>
   <section class="card active-session-banner" id="active-banner" style="display:none">
     <div class="banner-label">Session in progress</div>
@@ -449,6 +455,7 @@
 </div>
 
 <script src="data/library.js"></script>
+<script src="data/scaffold.js"></script>
 <script src="js/app.js"></script>
 <script src="js/custom.js"></script>
 <script src="js/sync.js"></script>
@@ -490,6 +497,24 @@ function escAttr(s) {
 function renderHome() {
   const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   document.getElementById('today-day').textContent = days[new Date().getDay()];
+
+  // Scaffold theme line + resume state (project_scaffold_revamp)
+  const weekdayKeys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const wk = weekdayKeys[new Date().getDay()];
+  const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[wk] : null;
+  const themeLine = document.getElementById('scaffold-theme-line');
+  const existing = DB.get(_todayInstanceKey());
+  if (themeLine) {
+    if (existing) {
+      themeLine.textContent = `Today's plan is ready: ${existing.theme}${existing.themeOverride ? ' (swapped)' : ''}${existing.fasting ? ' · fasted' : ''}`;
+    } else if (slot) {
+      themeLine.textContent = `${slot.theme}${slot.fasting ? ' · fasted' : ''}`;
+    } else {
+      themeLine.textContent = '';
+    }
+  }
+  const antiBox = document.getElementById('scaffold-anti-correlated');
+  if (antiBox) antiBox.disabled = !!existing; // mode is locked once today's plan is generated
 
   const banner = document.getElementById('active-banner');
   if (LiveSession.getSession()) {
@@ -542,6 +567,83 @@ function sessionRow(s) {
 
 function startToday() {
   navTo('generate');
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCAFFOLD-SEEDED TODAY (project_scaffold_revamp, Phase 4)
+// Generates once per calendar date and persists under a
+// 'daily_instance_YYYY-MM-DD' key (synced to Supabase daily_instances —
+// see js/sync.js) so reopening the app the same day resumes the same
+// plan instead of generating a different one. `themeOverride` (a
+// WEEK_SCAFFOLD key) is exposed for a future chat override to call
+// directly; there's no UI path to it yet beyond the anti-correlated toggle.
+// ─────────────────────────────────────────────────────────────
+function _todayDateKey(date) {
+  return (date || new Date()).toISOString().slice(0, 10);
+}
+function _todayInstanceKey(date) {
+  return 'daily_instance_' + _todayDateKey(date);
+}
+
+function startScaffoldToday(themeOverride) {
+  const d = new Date();
+  const key = _todayInstanceKey(d);
+  let session = DB.get(key);
+
+  if (!session) {
+    const antiCorrelated = document.getElementById('scaffold-anti-correlated')?.checked;
+    session = Generator.generateFromScaffold({
+      date: d,
+      correlationMode: antiCorrelated ? 'anti_correlated' : 'correlated',
+      themeOverride: themeOverride || null,
+      profile: App.profile,
+      sleep: App.checkin.sleep, energy: App.checkin.energy,
+      pain: App.checkin.pain, focus: App.checkin.focus,
+    });
+    if (!session) { alert("Could not generate today's plan — check data/scaffold.js is loaded."); return; }
+    DB.set(key, session);
+  }
+
+  _startSession(session);
+}
+
+// Chat override send handler (project_scaffold_revamp, Phase 5). Interprets
+// the message via ChatOverride (Anthropic API, BYOK — same pattern as
+// genWithAI), applies it deterministically via Generator.applyOverride, and
+// persists the result both to the live session and to today's
+// daily_instance record so a reload doesn't lose the change or regenerate
+// a different plan.
+async function sendChatOverride() {
+  const input = document.getElementById('chat-override-input');
+  const message = (input?.value || '').trim();
+  if (!message) return;
+  const session = LiveSession.getSession();
+  if (!session) return;
+
+  session.chatLog = session.chatLog || [];
+  session.chatLog.push({ role: 'user', text: message, at: Date.now() });
+  input.value = '';
+  renderSessionScreen();
+
+  const btn = document.getElementById('chat-override-send');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  try {
+    const intent = await ChatOverride.interpret({ message, instance: session, profile: App.profile });
+    const updated = intent.action !== 'note_only' ? Generator.applyOverride(session, intent, App.profile) : null;
+    const finalSession = updated || session;
+    const replyText = intent.reply || (updated ? 'Updated.' : "Couldn't apply that automatically — no changes made.");
+    finalSession.chatLog.push({ role: 'assistant', text: replyText, at: Date.now() });
+    LiveSession.start(finalSession, s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
+    App.session = finalSession;
+    DB.set(_todayInstanceKey(new Date(finalSession.date)), finalSession);
+  } catch (e) {
+    session.chatLog.push({ role: 'assistant', text: 'Error: ' + e.message, at: Date.now() });
+    LiveSession.start(session, s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
+  renderSessionScreen();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1172,6 +1274,25 @@ function renderSessionScreen() {
     rCard.style.marginBottom = '.75rem';
     rCard.textContent = session.aiRationale;
     container.appendChild(rCard);
+  }
+  // Chat override panel — only for scaffold-generated instances (session.weekday
+  // is the marker; manually composed / AI-freeform sessions don't have one).
+  // See project_scaffold_revamp Phase 5.
+  if (session.weekday) {
+    const chatCard = document.createElement('div');
+    chatCard.className = 'card chat-override-card';
+    chatCard.style.marginBottom = '.75rem';
+    const log = (session.chatLog || []).map(m =>
+      `<div class="chat-msg" style="margin:.35rem 0;${m.role === 'user' ? 'text-align:right;opacity:.85' : ''}">${escAttr(m.text)}</div>`
+    ).join('');
+    chatCard.innerHTML = `
+      <div style="font-weight:600;margin-bottom:.4rem">Adjust today's plan</div>
+      <div id="chat-override-log" style="max-height:160px;overflow-y:auto">${log || '<div style="opacity:.6;font-size:.85rem">e.g. &quot;I\'m tired, swap today for the rest day&quot; or &quot;cut interval training, more time for reading&quot;</div>'}</div>
+      <div style="display:flex;gap:.4rem;margin-top:.5rem">
+        <input id="chat-override-input" type="text" placeholder="What's different about today?" style="flex:1" onkeydown="if(event.key==='Enter')sendChatOverride()">
+        <button id="chat-override-send" class="btn-primary" onclick="sendChatOverride()">Send</button>
+      </div>`;
+    container.appendChild(chatCard);
   }
   session.blocks.forEach((block, bIdx) => {
     const done = block.exercises.filter(e=>e.completed||e.skipped).length;
