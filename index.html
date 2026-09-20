@@ -208,6 +208,7 @@
       <div class="sh-progress" id="sh-progress">0/0</div>
       <div class="sh-elapsed" id="sh-elapsed">0m</div>
     </div>
+    <button class="btn-ghost" id="sh-adjust" style="width:auto;padding:.3rem .6rem;font-size:.78rem;margin-left:.5rem" onclick="openAdjust()">Adjust</button>
   </div>
   <div class="rest-overlay" id="rest-overlay" style="display:none">
     <div class="rest-label">Rest</div>
@@ -930,6 +931,110 @@ function startScaffoldToday(themeOverride) {
   _startSession(session);
 }
 
+// ────────────────────────────────────────────────────────────
+// ADJUST TODAY
+// Every action here is scoped to one date. The week scaffold and the month
+// plan are never touched — a wet Wednesday does not rewrite the block.
+// ────────────────────────────────────────────────────────────
+function closeAdjust() { document.getElementById('adjust-backdrop').style.display = 'none'; }
+
+function openAdjust() {
+  const session = LiveSession.getSession();
+  if (!session) return;
+  const body = document.getElementById('adjust-body');
+  const cardio = session.blocks.find(b => /^main-focus:cardio$/.test(b.key || '') || b.key === 'cardio');
+  const isBike = cardio && (cardio.exercises[0] || {}).id === 'z2-cycling';
+
+  // Candidate days to trade with: the rest of this block, nearest first.
+  const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
+  const today = _todayDateKey();
+  const others = plan ? (plan.days || []).filter(d => d.date !== today).slice(0, 40) : [];
+  const near = others
+    .map(d => ({ d, gap: Math.abs(new Date(d.date) - new Date(today)) }))
+    .sort((a, b) => a.gap - b.gap).slice(0, 4).map(x => x.d);
+
+  body.innerHTML = `
+    ${cardio ? `<div class="section-label">Swap the main focus</div>
+    <button class="btn-ghost" style="text-align:left" onclick="adjustApply({action:'swap_modality',modality:'${isBike ? 'run' : 'bike'}'},'Swapped to ${isBike ? 'the run' : 'the bike'}')">
+      <div style="font-weight:600">${isBike ? 'Bike \u2192 run' : 'Run \u2192 indoor bike'}</div>
+      <div style="font-size:.76rem;color:var(--text3);margin-top:.15rem">Same duration, same heart-rate cap. Still counts as today's aerobic session.</div>
+    </button>` : ''}
+
+    ${near.length ? `<div class="section-label">Trade days with</div>
+    <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.5rem">
+      ${near.map(d => `<button class="btn-xs" onclick="tradeDays('${d.date}')">${Utils.formatDate(d.date)} \u00b7 ${escAttr(d.theme)}</button>`).join('')}
+    </div>` : ''}
+
+    <div class="section-label">Change the dose</div>
+    <div style="display:flex;gap:.4rem;margin-bottom:.75rem">
+      <button class="btn-ghost" style="flex:1" onclick="adjustApply({action:'scale_session',factor:0.65},'Shortened to about two thirds')">Shorter</button>
+      <button class="btn-ghost" style="flex:1" onclick="adjustApply({action:'lighter',maxTier:'moderate'},'Capped at moderate intensity')">Lighter</button>
+      <button class="btn-ghost" style="flex:1" onclick="adjustApply({action:'reshuffle'},'Reshuffled \u2014 same shape, different picks')">Reshuffle</button>
+    </div>
+
+    <div class="section-label">Or just say it</div>
+    <div style="display:flex;gap:.4rem">
+      <input id="chat-override-input" type="text" placeholder="It's raining, swap the run for the bike" style="flex:1" onkeydown="if(event.key==='Enter')sendChatOverride()">
+      <button id="chat-override-send" class="btn-primary" style="width:auto;padding:.5rem .9rem" onclick="sendChatOverride()">Send</button>
+    </div>
+    <div id="chat-override-log" style="max-height:140px;overflow-y:auto;margin-top:.5rem">
+      ${(session.chatLog || []).map(m => `<div style="margin:.3rem 0;font-size:.82rem;${m.role === 'user' ? 'text-align:right;opacity:.8' : ''}">${escAttr(m.text)}</div>`).join('')}
+    </div>
+
+    <div class="card" style="margin-top:.75rem;background:var(--warn-bg);border-color:var(--warn-bdr)">
+      <div style="font-size:.78rem;line-height:1.5;color:var(--warn-text)"><strong>Only today.</strong> Nothing here changes the week template or the rest of the block, and the calendar follows within the hour.</div>
+    </div>`;
+  document.getElementById('adjust-backdrop').style.display = 'flex';
+}
+
+// Applies one of the deterministic actions and persists it to today's record.
+function adjustApply(intent, said) {
+  const session = LiveSession.getSession();
+  if (!session) return;
+  const updated = Generator.applyOverride(session, intent, App.profile);
+  if (!updated) { alert("Couldn't apply that to today's plan."); return; }
+  updated.chatLog = (session.chatLog || []).concat([{ role: 'assistant', text: said, at: Date.now() }]);
+  LiveSession.start(updated, s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
+  App.session = updated;
+  DB.set(_todayInstanceKey(new Date(updated.date + 'T12:00:00')), updated);
+  closeAdjust();
+  renderSessionScreen();
+}
+
+// Trade today's day-type with another date in the block. Both dates keep
+// their own content; only which day happens when changes, and only for
+// these two dates — the plan itself is untouched.
+function tradeDays(otherDate) {
+  const session = LiveSession.getSession();
+  const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
+  if (!session || !plan) return;
+  const today = _todayDateKey();
+  const a = (plan.days || []).find(d => d.date === today);
+  const b = (plan.days || []).find(d => d.date === otherDate);
+  if (!a || !b) return;
+  if (!confirm(`Do ${b.theme} today, and ${a.theme} on ${Utils.formatDate(otherDate)}?`)) return;
+
+  const mk = (dateKey, weekdayOfOther) => Generator.generateFromScaffold({
+    date: new Date(dateKey + 'T12:00:00'),
+    themeOverride: weekdayOfOther,
+    profile: App.profile,
+    sleep: App.checkin.sleep, energy: App.checkin.energy,
+    pain: App.checkin.pain, focus: App.checkin.focus,
+  });
+
+  const mine = mk(today, b.weekday);
+  const theirs = mk(otherDate, a.weekday);
+  if (!mine || !theirs) { alert('Could not rebuild both days.'); return; }
+  mine.chatLog = (session.chatLog || []).concat([{ role: 'assistant', text: `Traded with ${Utils.formatDate(otherDate)} \u2014 doing ${b.theme} today.`, at: Date.now() }]);
+
+  DB.set(_todayInstanceKey(new Date(today + 'T12:00:00')), mine);
+  DB.set(_todayInstanceKey(new Date(otherDate + 'T12:00:00')), theirs);
+  LiveSession.start(mine, s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
+  App.session = mine;
+  closeAdjust();
+  renderSessionScreen();
+}
+
 // Chat override send handler (project_scaffold_revamp, Phase 5). Interprets
 // the message via ChatOverride (Anthropic API, BYOK — same pattern as
 // genWithAI), applies it deterministically via Generator.applyOverride, and
@@ -967,6 +1072,10 @@ async function sendChatOverride() {
 
   if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
   renderSessionScreen();
+  // The input and log live inside the Adjust sheet, so redraw it while it is
+  // open — otherwise the reply lands in a panel that is no longer on screen.
+  const back = document.getElementById('adjust-backdrop');
+  if (back && back.style.display !== 'none') openAdjust();
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1598,24 +1707,19 @@ function renderSessionScreen() {
     rCard.textContent = session.aiRationale;
     container.appendChild(rCard);
   }
-  // Chat override panel — only for scaffold-generated instances (session.weekday
-  // is the marker; manually composed / AI-freeform sessions don't have one).
-  // See project_scaffold_revamp Phase 5.
-  if (session.weekday) {
-    const chatCard = document.createElement('div');
-    chatCard.className = 'card chat-override-card';
-    chatCard.style.marginBottom = '.75rem';
-    const log = (session.chatLog || []).map(m =>
-      `<div class="chat-msg" style="margin:.35rem 0;${m.role === 'user' ? 'text-align:right;opacity:.85' : ''}">${escAttr(m.text)}</div>`
-    ).join('');
-    chatCard.innerHTML = `
-      <div style="font-weight:600;margin-bottom:.4rem">Adjust today's plan</div>
-      <div id="chat-override-log" style="max-height:160px;overflow-y:auto">${log || '<div style="opacity:.6;font-size:.85rem">e.g. &quot;I\'m tired, swap today for the rest day&quot; or &quot;cut interval training, more time for reading&quot;</div>'}</div>
-      <div style="display:flex;gap:.4rem;margin-top:.5rem">
-        <input id="chat-override-input" type="text" placeholder="What's different about today?" style="flex:1" onkeydown="if(event.key==='Enter')sendChatOverride()">
-        <button id="chat-override-send" class="btn-primary" onclick="sendChatOverride()">Send</button>
-      </div>`;
-    container.appendChild(chatCard);
+  // Adjusting a day moved into its own sheet (openAdjust). The button in the
+  // header is only meaningful for scaffold-generated instances — a manually
+  // composed session has no weekday to swap or plan to scale against.
+  const adjBtn = document.getElementById('sh-adjust');
+  if (adjBtn) adjBtn.style.display = session.weekday ? '' : 'none';
+  if (session.chatLog && session.chatLog.length) {
+    const last = session.chatLog[session.chatLog.length - 1];
+    const note = document.createElement('div');
+    note.className = 'card';
+    note.style.marginBottom = '.75rem';
+    note.innerHTML = `<div style="font-size:.7rem;letter-spacing:.12em;font-weight:600;color:var(--warm);margin-bottom:.25rem">ADJUSTED TODAY</div>
+      <div style="font-size:.82rem;line-height:1.45;color:var(--text2)">${escAttr(last.text)}</div>`;
+    container.appendChild(note);
   }
   session.blocks.forEach((block, bIdx) => {
     const done = block.exercises.filter(e=>e.completed||e.skipped).length;
@@ -1629,6 +1733,7 @@ function renderSessionScreen() {
         <div class="bh-left"><div class="bh-dot" style="background:${block.color}"></div><div><div class="bh-title">${block.label}</div>${block.duration?`<div class="bh-dur">~${block.duration} min</div>`:''}</div></div>
         <div class="bh-right"><span class="bh-count">${done}/${block.exercises.length}</span><svg class="bh-chevron" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg></div>
       </div>
+      ${isCollapsed ? `<div class="bh-summary" style="padding:0 .9rem .7rem 2.1rem;font-size:.76rem;line-height:1.45;color:var(--text3)">${block.exercises.map(e => e.name).join(' · ')}</div>` : ''}
       <div class="block-body" id="block-body-${bIdx}">
         ${block.note?`<div class="block-note">${block.note}</div>`:''}
         <div class="ex-list" id="ex-list-${bIdx}"></div>
@@ -3466,6 +3571,17 @@ setInterval(() => {
       <button class="modal-close" onclick="closeGoalRing()">✕</button>
     </div>
     <div class="goal-ring-grid" id="goal-ring-grid"></div>
+  </div>
+</div>
+
+<!-- Adjust today modal -->
+<div class="modal-backdrop" id="adjust-backdrop" style="display:none" onclick="closeAdjust()">
+  <div class="modal modal-tall" onclick="event.stopPropagation()">
+    <div class="ex-edit-header">
+      <div class="ex-edit-name">Adjust today</div>
+      <button class="modal-close" onclick="closeAdjust()">&#10005;</button>
+    </div>
+    <div id="adjust-body"></div>
   </div>
 </div>
 
