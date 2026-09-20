@@ -4189,6 +4189,99 @@ const LIBRARY = [
     link: 'https://www.youtube.com/results?search_query=gaze+stabilization+VOR+exercise',
     defaultState: 'active',
   },
+
+  // ── COORDINATION — BALANCE gap-fill (2026-09-20) ───────────
+  // The balance domain had four entries — the board plus the three
+  // balance-stick holds — against vision's six, stick's nine and object
+  // manipulation's sixteen. Every balance day in the block therefore
+  // generated the identical four exercises. These six widen it to ten and
+  // cover what was actually missing: balance with vision removed, balance
+  // under head movement, and balance as a background task while the hands
+  // work. No new equipment — all of it is already on the profile.
+  {
+    id: 'single-leg-eyes-closed',
+    name: 'Single-leg stand \u2014 eyes closed',
+    modality: ['movement'], category: 'Body Movement', subcategory: 'Standing Balance',
+    modalityTags: ['coordination'],
+    coordDomain: 'balance',
+    difficulty: 2, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: [], frequency: 'Daily',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'Removing vision is the single biggest jump in difficulty there is.',
+    instructions: 'Stand on one leg, hands on the hips, and find stillness with the eyes open first. Then close them and hold. Expect the time to collapse \u2014 ten seconds with the eyes closed is worth more than a minute with them open, because the ankle and the inner ear are now doing work the eyes were quietly covering. Both sides.',
+    link: 'https://www.youtube.com/results?search_query=single+leg+balance+eyes+closed',
+    defaultState: 'active',
+  },
+  {
+    id: 'heel-toe-line-walk',
+    name: 'Heel-to-toe line walk',
+    modality: ['movement'], category: 'Body Movement', subcategory: 'Standing Balance',
+    modalityTags: ['coordination'],
+    coordDomain: 'balance',
+    difficulty: 1, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: [], frequency: 'Daily',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'Backward is the version that actually teaches you something.',
+    instructions: 'Walk a straight line \u2014 a floorboard, a paving edge \u2014 with the heel of each step touching the toe of the last, arms out to the sides. Forward first, then backward, which is considerably harder because you cannot see where the foot is going. Eyes on a fixed point ahead, not on your feet.',
+    link: 'https://www.youtube.com/results?search_query=heel+to+toe+tandem+walk+balance',
+    defaultState: 'active',
+  },
+  {
+    id: 'single-leg-head-turns',
+    name: 'Single-leg stand \u2014 head turns',
+    modality: ['movement'], category: 'Body Movement', subcategory: 'Standing Balance',
+    modalityTags: ['coordination'],
+    coordDomain: 'balance',
+    difficulty: 3, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: [], frequency: 'Daily',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'The vestibular counterpart to gaze stabilisation in the vision domain.',
+    instructions: 'Stand on one leg. Turn the head slowly side to side, then up and down, then close the eyes and repeat. Moving the head moves fluid in the inner ear, which is why this is far harder than a plain single-leg hold and why it transfers to anything happening on uneven ground while you are looking somewhere else.',
+    link: 'https://www.youtube.com/results?search_query=single+leg+balance+head+turns+vestibular',
+    defaultState: 'active',
+  },
+  {
+    id: 'single-leg-ball-pass',
+    name: 'Single-leg stand \u2014 ball pass-around',
+    modality: ['skill'], category: 'Body Movement', subcategory: 'Standing Balance',
+    modalityTags: ['coordination'],
+    coordDomain: 'balance',
+    difficulty: 2, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: ['Tennis balls'], frequency: 'Daily',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'Balance becomes the background task while the hands work \u2014 that is the point.',
+    instructions: 'Balance on one leg and pass a ball around the waist, then in a figure-of-eight through and around the legs. The balance stops being the thing you are concentrating on, which is the state you actually want it in. Change direction, then change legs.',
+    link: 'https://www.youtube.com/results?search_query=single+leg+balance+ball+pass+drill',
+    defaultState: 'active',
+  },
+  {
+    id: 'balance-board-single-leg',
+    name: 'Balance board \u2014 single leg',
+    modality: ['movement'], category: 'Body Movement', subcategory: 'Balance',
+    modalityTags: ['coordination'],
+    coordDomain: 'balance',
+    difficulty: 3, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: ['Balance board'], frequency: 'Daily',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'Progress by removing vision, not by adding time.',
+    instructions: 'One foot centred on the board, the other leg lifted. Hold without letting either edge touch down. When that is comfortable, progress by closing the eyes or passing an object hand to hand rather than by holding it longer.',
+    link: 'https://www.youtube.com/results?search_query=single+leg+balance+board+progression',
+    defaultState: 'active',
+  },
+  {
+    id: 'balance-board-squat-hold',
+    name: 'Balance board \u2014 squat hold',
+    modality: ['movement'], category: 'Body Movement', subcategory: 'Balance',
+    modalityTags: ['coordination'],
+    coordDomain: 'balance',
+    difficulty: 3, energy: 'Med', segment: 'objManip',
+    goals: [], equipment: ['Balance board'], frequency: 'Daily',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'Ankles do the work. Go deeper, not longer.',
+    instructions: 'Both feet on the board, sink to a quarter squat and hold the board level, then deeper as it gets easy. The ankles are doing almost all of this. Pairs well with a strength day \u2014 it is ankle work the squat quietly depends on.',
+    link: 'https://www.youtube.com/results?search_query=balance+board+squat+hold',
+    defaultState: 'active',
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -4690,6 +4783,12 @@ const EXERCISE_TAGS = {
   'air-baby': { joints: ['wrist', 'elbow', 'shoulder'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: 'triceps' },
   'air-baby-extensions': { joints: ['wrist', 'elbow', 'shoulder'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: 'triceps' },
   'balance-board': { joints: ['ankle', 'knee'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'single-leg-eyes-closed':   { joints: ['ankle', 'knee'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'heel-toe-line-walk':       { joints: ['ankle'],          impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'single-leg-head-turns':    { joints: ['ankle', 'neck'],  impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'single-leg-ball-pass':     { joints: ['ankle'],          impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'balance-board-single-leg': { joints: ['ankle', 'knee'],  impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'balance-board-squat-hold': { joints: ['ankle', 'knee'],  impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
 
   // ── Flexibility gap-fill additions (2026-07-13) — joints tagged only
   // where a specific pain-caution mapping is meaningful (neck/wrist/
