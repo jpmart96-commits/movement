@@ -230,52 +230,12 @@
     <div class="logo" style="font-size:1.45rem">Log</div>
     <div style="font-size:.76rem;color:var(--text3);margin-top:.15rem">What actually happened</div>
   </div>
-  <!-- Calendar -->
-  <div class="section-label">Calendar</div>
-  <div class="card" id="cal-wrap">
-    <div class="cal-nav">
-      <button class="cal-arrow" onclick="calPrev()">‹</button>
-      <div class="cal-month" id="cal-month"></div>
-      <button class="cal-arrow" onclick="calNext()">›</button>
-    </div>
-    <div class="cal-grid" id="cal-grid"></div>
-    <div class="cal-legend">
-      <div class="cal-legend-item"><div class="cal-dot" style="background:#185FA5"></div>Strength</div>
-      <div class="cal-legend-item"><div class="cal-dot" style="background:#1A7A4A"></div>Z2</div>
-      <div class="cal-legend-item"><div class="cal-dot" style="background:#A32D2D"></div>Power</div>
-      <div class="cal-legend-item"><div class="cal-dot" style="background:#533483"></div>Plio</div>
-      <div class="cal-legend-item"><div class="cal-dot" style="background:#5D6D7E"></div>Rest</div>
-    </div>
-  </div>
-  <div class="card cal-day-detail" id="cal-day-detail" style="display:none">
-    <div class="cal-detail-date" id="cal-detail-date"></div>
-    <div id="cal-detail-body"></div>
-  </div>
+  <div id="log-body"></div>
 
-  <!-- Tracked lifts -->
-  <div id="tracked-lifts-section" style="display:none">
-    <div class="section-label" style="margin-top:1rem">Tracked lifts</div>
-    <div id="tracked-lifts-list"></div>
+  <!-- Exercise sheet (level 3 of Today / the live session) -->
+  <div id="ex-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeExSheet()">
+    <div class="mv-sheet" onclick="event.stopPropagation()" id="ex-sheet"></div>
   </div>
-
-  <!-- Muscle distribution -->
-  <div class="section-label" style="margin-top:1rem;display:flex;align-items:center;justify-content:space-between">
-    <span>Muscle distribution</span>
-    <select class="text-input" id="muscle-period" style="width:auto;padding:.375rem .625rem;font-size:12px" onchange="renderMuscleDistribution()">
-      <option value="7">Last 7 days</option>
-      <option value="14">Last 14 days</option>
-      <option value="30" selected>Last 30 days</option>
-      <option value="60">Last 60 days</option>
-    </select>
-  </div>
-  <div class="card" id="muscle-dist-card"></div>
-
-  <!-- Session list -->
-  <div class="section-label" style="margin-top:1rem;display:flex;align-items:center;justify-content:space-between">
-    <span>Sessions</span>
-    <button class="btn-ghost" style="padding:.375rem .75rem;font-size:12px" onclick="openManualLogModal()">+ Log session</button>
-  </div>
-  <div id="history-list"></div>
 
   <!-- Session detail modal -->
   <div class="modal-backdrop" id="session-modal-backdrop" style="display:none" onclick="closeSessionModal()">
@@ -554,6 +514,9 @@ function renderHome() {
   const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
   const prog = plan ? MonthPlan.progress(now) : null;
   const planDay = plan ? MonthPlan.dayFor(now) : null;
+  const todayKey = plan ? MonthPlan._key(now) : null;
+  const preBlock = !!(plan && todayKey && todayKey < plan.blockStart);
+  const nextDay  = preBlock ? (plan.days || [])[0] : null;
   const existing = DB.get(_todayInstanceKey());
   const done = !!existing && existing.status === 'completed';
   const live = LiveSession.getSession();
@@ -580,7 +543,7 @@ function renderHome() {
   // block card
   if (plan) {
     const weeks = plan.weeks || [];
-    const cur = prog && prog.week;
+    const cur = (prog && prog.week) || (preBlock ? ((weeks[0] || {}).n) : null);
     h += `<div class="mv-card">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.2rem">
         <span class="mv-eyebrow mv-eyebrow--warm">Block</span>
@@ -589,17 +552,24 @@ function renderHome() {
       <div class="mv-display" style="font-size:1.25rem;margin-bottom:.8rem">${plan.title || 'Current block'}</div>
       <div class="mv-weekbar">${weeks.map(w=>`<i class="${w.n===cur?'on':''}"></i>`).join('')}</div>
       <div class="mv-weekbar-labels">${weeks.map(w=>`<span class="${w.n===cur?'on':''}">${w.label}</span>`).join('')}</div>
-      ${prog && prog.dayNumber ? `<div style="margin-top:.7rem;font-size:.76rem;color:var(--text2)">Day ${prog.dayNumber} of ${prog.totalDays}</div>` : ''}
+      <div style="margin-top:.7rem;font-size:.76rem;color:var(--text2)">${
+        prog && prog.dayNumber ? `Day ${prog.dayNumber} of ${prog.totalDays}`
+        : preBlock ? `Starts ${Utils.formatDate(plan.blockStart)} &middot; ${(plan.days||[]).length} days`
+        : `Block finished &middot; ${(plan.days||[]).length} days`
+      }</div>
     </div>`;
   }
 
   // today card
   const theme = (planDay && planDay.theme) || (existing && existing.theme) || (slot && slot.theme) || '—';
   const mins  = existing ? existing.duration : (slot ? (slot.variant === 'light' ? 85 : 140) : null);
+  const domain = (planDay && planDay.coordDomain) ||
+    ((typeof Generator !== 'undefined' && Generator.coordDomainFor) ? Generator.coordDomainFor(now) : null);
   const chips = [];
-  if (planDay && planDay.coordDomain) chips.push(`<span class="mv-chip mv-chip--accent">${DOMAIN_LABEL[planDay.coordDomain] || planDay.coordDomain}</span>`);
+  if (domain) chips.push(`<span class="mv-chip mv-chip--accent">${DOMAIN_LABEL[domain] || domain}</span>`);
   chips.push(`<span class="mv-chip">${slot && slot.variant === 'light' ? '09:00 – 10:25' : '09:00 – 11:20'}</span>`);
-  if (planDay && planDay.load) chips.push(`<span class="mv-chip">${planDay.load}</span>`);
+  const loadLabel = (planDay && planDay.load) || (preBlock ? 'before the block' : '');
+  if (loadLabel) chips.push(`<span class="mv-chip">${loadLabel}</span>`);
   h += `<div class="mv-card mv-card--flush">
     <div style="padding:1rem 1rem .9rem">
       <div class="mv-eyebrow" style="margin-bottom:.35rem">Today${prog && prog.dayNumber ? ' · day ' + prog.dayNumber : ''}</div>
@@ -612,6 +582,26 @@ function renderHome() {
     </div>
     <button class="mv-cta mv-cta--edge" onclick="${done ? "navTo('log')" : 'startScaffoldToday()'}">${done ? 'Today’s plan is done ✓' : (existing ? 'Resume today’s plan ↗' : 'Open today ↗')}</button>
   </div>`;
+
+  // Block hasn't started yet — day 1 is the thing worth looking at, so it
+  // gets a card of its own rather than leaving the screen looking empty.
+  if (preBlock && nextDay) {
+    const nDom = nextDay.coordDomain;
+    const w1 = (plan.weeks || []).find(w => w.n === nextDay.week);
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
+    const rel = Math.round((new Date(nextDay.date + 'T12:00:00') - midnight) / 86400000);
+    h += `<div class="mv-card mv-card--warm">
+      <div class="mv-eyebrow mv-eyebrow--warm" style="margin-bottom:.35rem">Up next &middot; day 1 &middot; ${rel === 1 ? 'tomorrow' : Utils.formatDate(nextDay.date)}</div>
+      <div class="mv-display" style="font-size:1.35rem;margin-bottom:.6rem">${nextDay.theme}</div>
+      <div class="mv-chips" style="margin-bottom:.7rem">
+        ${nDom ? `<span class="mv-chip mv-chip--accent">${DOMAIN_LABEL[nDom] || nDom}</span>` : ''}
+        <span class="mv-chip">${nextDay.variant === 'light' ? '09:00 – 10:25' : '09:00 – 11:20'}</span>
+        ${nextDay.load ? `<span class="mv-chip">${nextDay.load}</span>` : ''}
+        ${w1 ? `<span class="mv-chip">week ${w1.n} &middot; ${w1.label}</span>` : ''}
+      </div>
+      ${nextDay.focusNote ? `<div class="mv-note">${nextDay.focusNote}</div>` : ''}
+    </div>`;
+  }
 
   if (live) {
     const pr = LiveSession.getProgress();
@@ -626,12 +616,13 @@ function renderHome() {
         <button class="mv-ghost" onclick="openManualLogModal()">Log a past session</button>`;
 
   // week strip
-  if (plan && prog && prog.week) {
-    const wk = (plan.weeks || []).find(w => w.n === prog.week);
+  if (plan) {
+    const wkNum = (prog && prog.week) || ((plan.weeks || [])[0] || {}).n;
+    const wk = (plan.weeks || []).find(w => w.n === wkNum);
     const wdays = wk ? (plan.days || []).filter(d => d.date >= wk.start && d.date <= wk.end) : [];
     const tk = MonthPlan._key(now);
     if (wdays.length) {
-      h += `<div class="mv-eyebrow" style="margin:1.2rem 0 .5rem">Week ${wk.n} &middot; ${wk.label}</div>
+      h += `<div class="mv-eyebrow" style="margin:1.2rem 0 .5rem">Week ${wk.n} &middot; ${wk.label}${preBlock ? ' &middot; starts ' + Utils.formatDate(plan.blockStart) : ''}</div>
       <div class="mv-week">${wdays.map(d => {
         const dd = new Date(d.date + 'T12:00:00');
         return `<div class="mv-day ${d.date===tk?'today':''}" title="${escAttr(d.theme)}">
@@ -680,6 +671,13 @@ function renderHome() {
 // a zero would be a lie.
 // ─────────────────────────────────────────────────────────────
 let _openMove = null;
+// Where you are on a ladder is yours to set — tapping a rung on Progress
+// records it, rather than the app inferring it from sessions it can't see.
+function setMilestone(goalId, idx) {
+  App.profile.goalMilestones[goalId] = idx;
+  Profile.save(App.profile);
+  renderProgress();
+}
 function toggleMove(id) { _openMove = (_openMove === id) ? null : id; renderProgress(); }
 
 // One pass over recent sessions, pulling out every cardio log. Capped —
@@ -810,11 +808,12 @@ function renderProgress() {
         </button>
         ${open ? `<div style="margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--border)">
           <div class="mv-eyebrow" style="margin-bottom:.4rem">The ladder</div>
-          ${ms.map((m,k)=>`<div class="mv-step">
+          ${ms.map((m,k)=>`<button type="button" class="mv-step" style="width:100%;background:none;border:none;padding:.25rem 0;font-family:var(--font-body);text-align:left;cursor:pointer" onclick="setMilestone('${g.id}',${k})" title="Tap the rung you are on">
             <div class="mv-step-dot ${k<at?'on':''}"></div>
             <div style="flex:1;font-size:.78rem;line-height:1.4;color:${k<at?'var(--text)':'var(--text3)'}">${m}</div>
             ${k===at?'<div class="mv-here">HERE</div>':''}
-          </div>`).join('')}
+          </button>`).join('')}
+          <div style="font-size:.66rem;color:var(--text3);margin-top:.3rem">Tap a rung to mark where you are.</div>
           <div class="mv-eyebrow" style="margin:.8rem 0 .4rem">Feeds it</div>
           <div class="mv-chips">${(g.feedExercises||[]).map(fid=>{
             const ex = LIBRARY.find(e=>e.id===fid) || Custom.getAllExercises().find(e=>e.id===fid);
@@ -875,6 +874,133 @@ function _dose(ex) {
   return bits.join(' · ');
 }
 
+// ─────────────────────────────────────────────────────────────
+// EXERCISE SHEET — level 3.
+// Opens over Today or the live session. Everything on it is real: the
+// demo is the exercise's own image or video thumbnail, LAST TIME comes
+// from the log, and HOW / WATCH FOR are the exercise's own text. Where
+// there is nothing written yet it says so rather than inventing a cue.
+// ─────────────────────────────────────────────────────────────
+let _exSheet = null;   // { id, blockKey }
+
+function openExSheet(id, blockKey) {
+  _exSheet = { id, blockKey: blockKey || null };
+  renderExSheet();
+}
+
+function closeExSheet() {
+  _exSheet = null;
+  document.getElementById('ex-sheet-back').style.display = 'none';
+}
+
+function renderExSheet() {
+  if (!_exSheet) return;
+  const back = document.getElementById('ex-sheet-back');
+  const el = document.getElementById('ex-sheet');
+  if (!back || !el) return;
+
+  const { session, live } = _todayRecord();
+  const block = session && (session.blocks || []).find(b => b.key === _exSheet.blockKey);
+  const inst  = block && (block.exercises || []).find(e => e.id === _exSheet.id);
+
+  const base = Custom.getAllExercises().find(e => e.id === _exSheet.id);
+  const ex   = base ? (base.isCustom ? base : Overrides.apply(base)) : null;
+  if (!ex && !inst) { closeExSheet(); return; }
+  const name = (inst && inst.name) || (ex && ex.name) || 'Exercise';
+
+  const thumb = (ex && (ex.imageUrl || ex.image)) || (ex && Overrides.thumbFromYouTube(ex.link)) || '';
+  const demo = thumb
+    ? `<div class="mv-demo"><img src="${escAttr(thumb)}" alt="${escAttr(name)}" onerror="this.style.display='none'"></div>`
+    : `<div class="mv-demo">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2.5"/><polygon points="10 9 15.5 12 10 15"/></svg>
+        <div style="font-size:.72rem;color:var(--text3)">No demo saved for this one yet</div>
+      </div>`;
+
+  // today / last time / rest
+  const lastLog = History.getLastExerciseLog(_exSheet.id);
+  const lastTxt = lastLog
+    ? [lastLog.lastWeight ? lastLog.lastWeight + 'kg' : null,
+       lastLog.lastReps ? '× ' + lastLog.lastReps : null,
+       lastLog.lastDuration ? Utils.formatMMSS(lastLog.lastDuration) : null]
+      .filter(Boolean).join(' ') || Utils.formatDate(lastLog.date)
+    : 'never';
+  const rest = (inst && inst.restSeconds) || (ex ? Profile.getRestDefault(App.profile, ex.restGroup) : null);
+  const tile = (k, v, tone) => `<div class="mv-tile"><div class="mv-tile-k">${k}</div><div class="mv-tile-v" style="font-size:.85rem;font-weight:600;color:${tone || 'var(--text)'}">${v}</div></div>`;
+
+  const how = (ex && ex.instructions) || '';
+  const watch = (ex && ex.notes) || '';
+
+  const sec = (label, cls, text) => text
+    ? `<div class="mv-eyebrow ${cls}" style="margin-bottom:.4rem">${label}</div>
+       <div style="font-size:.84rem;line-height:1.6;color:var(--text2);margin-bottom:.9rem">${text}</div>`
+    : '';
+
+  const meta = [ex && ex.category, ex && ex.subcategory].filter(Boolean).join(' · ');
+  // Swap is only offered where there is somewhere to swap to: the fixed
+  // blocks (Open, Close) have no pool behind them.
+  const used = new Set((session.blocks || []).flatMap(b => (b.exercises || []).map(e => e.id)));
+  const canSwap = !!block && Generator._poolForBlock(block, session).filter(id => !used.has(id)).length > 0;
+
+  el.innerHTML = `
+    <div class="mv-sheet-head">
+      <div style="min-width:0">
+        <div class="mv-eyebrow" style="margin-bottom:.2rem">${block ? escAttr(block.label) : meta || 'Exercise'}</div>
+        <div class="mv-display" style="font-size:1.2rem">${name}</div>
+      </div>
+      <button class="mv-sheet-x" onclick="closeExSheet()" aria-label="Close">&times;</button>
+    </div>
+    <div class="mv-sheet-body">
+      ${demo}
+      <div class="mv-tiles">
+        ${tile('Today', inst && _dose(inst) ? _dose(inst) : (inst ? (inst.allocatedMinutes ? inst.allocatedMinutes + 'm' : '—') : '—'))}
+        ${tile('Last time', lastTxt, lastLog ? 'var(--text2)' : 'var(--text3)')}
+        ${tile('Rest', rest ? rest + 's' : '—')}
+      </div>
+      ${sec('How', '', how)}
+      ${sec('Watch for', 'mv-eyebrow--warm', watch)}
+      ${!how && !watch ? `<div style="font-size:.82rem;line-height:1.6;color:var(--text3);margin-bottom:.9rem">Nothing written down for this one yet.${ex && ex.link ? ' The video is the reference.' : ''} You can add cues in Settings → Exercise library.</div>` : ''}
+      ${ex && ex.link ? `<a href="${escAttr(ex.link)}" target="_blank" rel="noopener" style="display:inline-block;font-size:.8rem;color:var(--accent);text-decoration:none;margin-bottom:.9rem">&#9654; Watch</a>` : ''}
+      ${meta ? `<div style="font-size:.7rem;color:var(--text3);margin-bottom:.9rem">${meta}</div>` : ''}
+    </div>
+    <div class="mv-sheet-foot">
+      <button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border);${canSwap ? '' : 'opacity:.4'}" onclick="exSheetSwap()" ${canSwap ? '' : 'disabled'}>Swap exercise</button>
+      <button style="background:var(--accent);color:var(--on-accent,#fff);border:none" onclick="exSheetGo()">${live ? 'Log a set' : 'Start session'}</button>
+    </div>`;
+  back.style.display = 'flex';
+}
+
+// Swap is scoped to today's instance. If the session is already running the
+// swap lands in the live copy, otherwise in the stored daily instance —
+// either way the block template is untouched.
+function exSheetSwap() {
+  if (!_exSheet || !_exSheet.blockKey) return;
+  const { session } = _todayRecord();
+  if (!session) return;
+
+  const updated = Generator.applyOverride(session,
+    { action: 'swap_exercise', blockKey: _exSheet.blockKey, exerciseId: _exSheet.id }, App.profile);
+  if (!updated) { alert('Nothing else in that block\u2019s pool to swap to.'); return; }
+
+  _commitToday(updated);
+  if (updated.swapped && updated.swapped.to) _exSheet.id = updated.swapped.to;
+  renderExSheet();
+}
+
+// From the live session: the block key is derived from the index the session
+// screen already has, so the sheet's Swap knows which pool it is in.
+function openExSheetFromSession(id, bIdx) {
+  const live = LiveSession.getSession();
+  const blk = live && (live.blocks || [])[bIdx];
+  openExSheet(id, blk ? blk.key : null);
+}
+
+function exSheetGo() {
+  const live = LiveSession.getSession();
+  closeExSheet();
+  if (live) { navTo('session'); return; }
+  startTodayFromPlan();
+}
+
 function renderToday() {
   const el = document.getElementById('today-body');
   if (!el) return;
@@ -927,7 +1053,7 @@ function renderToday() {
       ${!open ? `<div class="mv-blk-summary">${b.exercises.map(e => e.name).join(' · ')}</div>` : `
       <div class="mv-blk-body">
         ${b.note ? `<div class="mv-body" style="padding:.5rem 0 .2rem">${b.note}</div>` : ''}
-        ${b.exercises.map(e => `<button type="button" class="mv-ex" onclick="openExView('${escAttr(e.id)}')">
+        ${b.exercises.map(e => `<button type="button" class="mv-ex" onclick="openExSheet('${escAttr(e.id)}','${escAttr(b.key)}')">
           <span class="mv-ex-bullet"></span>
           <span class="mv-ex-name">${e.name}</span>
           <span class="mv-ex-dose">${_dose(e)}</span>
@@ -1018,6 +1144,36 @@ function startScaffoldToday(themeOverride) {
 }
 
 // ────────────────────────────────────────────────────────────
+// TODAY'S RECORD
+// The one object every edit to today goes through: the live session if one
+// is running, otherwise the stored daily instance (generated and persisted
+// on demand). Without this, Adjust only worked after Start — which is
+// exactly the wrong way round on a rainy morning.
+// ────────────────────────────────────────────────────────────
+function _todayRecord() {
+  const live = LiveSession.getSession();
+  if (live) return { session: live, live: true };
+  const key = _todayInstanceKey();
+  let stored = DB.get(key);
+  if (!stored) {
+    stored = _todayPlan().session;
+    if (stored) DB.set(key, stored);
+  }
+  return { session: stored, live: false };
+}
+
+function _commitToday(updated) {
+  if (!updated) return;
+  DB.set(_todayInstanceKey(new Date(updated.date + 'T12:00:00')), updated);
+  if (LiveSession.getSession()) {
+    LiveSession.start(updated, x => { App.session = x; if (App.screen === 'session') renderSessionScreen(); });
+    App.session = updated;
+    if (App.screen === 'session') renderSessionScreen();
+  }
+  if (App.screen === 'today') renderToday();
+}
+
+// ────────────────────────────────────────────────────────────
 // ADJUST TODAY
 // Every action here is scoped to one date. The week scaffold and the month
 // plan are never touched — a wet Wednesday does not rewrite the block.
@@ -1025,7 +1181,7 @@ function startScaffoldToday(themeOverride) {
 function closeAdjust() { document.getElementById('adjust-backdrop').style.display = 'none'; }
 
 function openAdjust() {
-  const session = LiveSession.getSession();
+  const { session } = _todayRecord();
   if (!session) return;
   const body = document.getElementById('adjust-body');
   const cardio = session.blocks.find(b => /^main-focus:cardio$/.test(b.key || '') || b.key === 'cardio');
@@ -1088,23 +1244,20 @@ function openAdjust() {
 
 // Applies one of the deterministic actions and persists it to today's record.
 function adjustApply(intent, said) {
-  const session = LiveSession.getSession();
+  const { session } = _todayRecord();
   if (!session) return;
   const updated = Generator.applyOverride(session, intent, App.profile);
   if (!updated) { alert("Couldn't apply that to today's plan."); return; }
   updated.chatLog = (session.chatLog || []).concat([{ role: 'assistant', text: said, at: Date.now() }]);
-  LiveSession.start(updated, s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
-  App.session = updated;
-  DB.set(_todayInstanceKey(new Date(updated.date + 'T12:00:00')), updated);
+  _commitToday(updated);
   closeAdjust();
-  renderSessionScreen();
 }
 
 // Trade today's day-type with another date in the block. Both dates keep
 // their own content; only which day happens when changes, and only for
 // these two dates — the plan itself is untouched.
 function tradeDays(otherDate) {
-  const session = LiveSession.getSession();
+  const { session } = _todayRecord();
   const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
   if (!session || !plan) return;
   const today = _todayDateKey();
@@ -1126,12 +1279,9 @@ function tradeDays(otherDate) {
   if (!mine || !theirs) { alert('Could not rebuild both days.'); return; }
   mine.chatLog = (session.chatLog || []).concat([{ role: 'assistant', text: `Traded with ${Utils.formatDate(otherDate)} \u2014 doing ${b.theme} today.`, at: Date.now() }]);
 
-  DB.set(_todayInstanceKey(new Date(today + 'T12:00:00')), mine);
   DB.set(_todayInstanceKey(new Date(otherDate + 'T12:00:00')), theirs);
-  LiveSession.start(mine, s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
-  App.session = mine;
+  _commitToday(mine);
   closeAdjust();
-  renderSessionScreen();
 }
 
 // Chat override send handler (project_scaffold_revamp, Phase 5). Interprets
@@ -1920,7 +2070,7 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
   wrap.innerHTML=`
     <div class="ex-header">
       <div class="ex-check${ex.completed?' checked':''}${ex.skipped?' skipped':''}" onclick="toggleExerciseDone(${bIdx},${eIdx})">${ex.completed?'✓':ex.skipped?'–':''}</div>
-      <div class="ex-clickarea" onclick="openExView('${ex.id}')" title="View exercise details">
+      <div class="ex-clickarea" onclick="openExSheetFromSession('${ex.id}',${bIdx})" title="View exercise details">
         ${photoHtml}
         <div class="ex-info">
           <div class="ex-name">${ex.link?`<a href="${ex.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:ex.name}${ex.allocatedMinutes?`<span class="ex-target">~${Utils.formatDuration(Math.round(ex.allocatedMinutes*60))}</span>`:''}</div>
@@ -2455,138 +2605,207 @@ function closeGoalModal() {
 // ─────────────────────────────────────────────────────────────
 let _calYear=new Date().getFullYear(), _calMonth=new Date().getMonth();
 
+// ─────────────────────────────────────────────────────────────
+// LOG — what actually happened.
+// Ported from the design canvas: one calendar, tracked lifts with a
+// sparkline and a delta, muscle distribution as bars. All three read the
+// same History index; nothing here is a second source of truth.
+// ─────────────────────────────────────────────────────────────
 function renderLog() {
-  renderCalendar();
-  renderTrackedLifts();
-  renderMuscleDistribution();
-  document.getElementById('history-list').innerHTML = History.getIndex(50).map(sessionRow).join('') || '<div class="empty-state">No sessions logged yet.</div>';
+  const el = document.getElementById('log-body');
+  if (!el) return;
+  el.innerHTML = _logCalendar() + _logDetail() + _logLifts() + _logDistribution() + _logSessions();
 }
 
-// ── MUSCLE DISTRIBUTION — hard-set radar, current vs previous period ──
-// Mirrors History.getMuscleDistribution(): six muscle-group buckets
-// (back/chest/core/shoulders/arms/legs) tagged on exercises via
-// EXERCISE_TAGS[id].muscle in data/library.js. Kept as its own render
-// function (rather than folded into renderLog) so the period <select>
-// can re-render just this card without touching the calendar/history list.
-function renderMuscleDistribution() {
-  const card = document.getElementById('muscle-dist-card');
-  if (!card) return;
+// The month grid. A logged session gets its theme colour; a planned day
+// that has not happened yet gets a hollow dot, so the calendar reads
+// forwards as well as backwards.
+let _calSelected = null;
 
-  const days = parseInt(document.getElementById('muscle-period')?.value || '30', 10);
-  const dist = History.getMuscleDistribution(days);
-  const { current, previous } = dist;
+function _logCalendar() {
+  const y = _calYear, m = _calMonth;
+  const index = History.getIndex(200);
+  const byDay = {};
+  index.forEach(s => {
+    const d = new Date(s.date);
+    if (d.getFullYear() === y && d.getMonth() === m) (byDay[d.getDate()] = byDay[d.getDate()] || []).push(s);
+  });
+  const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
+  const planned = new Set((plan && plan.days || []).map(d => d.date));
 
-  if (!current.workouts && !previous.workouts) {
-    card.innerHTML = '<div class="muscle-radar-empty">Log a few sessions to see your muscle distribution.</div>';
-    return;
+  const first = new Date(y, m, 1).getDay();          // 0 = Sunday
+  const lead = (first + 6) % 7;                      // grid starts Monday
+  const dim = new Date(y, m + 1, 0).getDate();
+  const now = new Date();
+  const p2 = n => String(n).padStart(2, '0');
+
+  let cells = '';
+  for (let i = 0; i < lead; i++) cells += '<div class="mv-cal-cell blank"></div>';
+  for (let d = 1; d <= dim; d++) {
+    const ss = byDay[d] || [];
+    const key = `${y}-${p2(m + 1)}-${p2(d)}`;
+    const isToday = y === now.getFullYear() && m === now.getMonth() && d === now.getDate();
+    const sel = _calSelected === d;
+    const dot = ss.length ? Utils.getSessionColor(ss[0])
+              : (planned.has(key) ? 'var(--text3)' : 'transparent');
+    const op = ss.length ? '1' : '.45';
+    cells += `<button type="button" class="mv-cal-cell ${isToday ? 'today' : ''}"
+      style="${sel ? 'border-color:var(--text3)' : ''}" onclick="selectCalDay(${d})"
+      title="${escAttr(key)}">
+      <span style="font-variant-numeric:tabular-nums">${d}</span>
+      <i class="mv-cal-dot" style="background:${dot};opacity:${op}"></i>
+    </button>`;
   }
 
-  const statTile = (label, curVal, prevVal, fmt) => {
-    const diff = curVal - prevVal;
-    const arrow = diff > 0 ? '↑' : (diff < 0 ? '↓' : '→');
-    const cls = diff > 0 ? 'up' : '';
-    return `<div class="muscle-stat-tile">
-      <div class="muscle-stat-lbl">${label}</div>
-      <div class="muscle-stat-val">${fmt(curVal)}</div>
-      <div class="muscle-stat-delta ${cls}">${arrow} ${fmt(prevVal)}</div>
-    </div>`;
-  };
-
-  card.innerHTML = `
-    ${buildMuscleRadarSVG(current.muscles, previous.muscles, days)}
-    <div class="muscle-legend">
-      <div class="muscle-legend-item"><div class="muscle-dot muscle-dot-current"></div>Current</div>
-      <div class="muscle-legend-item"><div class="muscle-dot muscle-dot-previous"></div>Previous</div>
+  return `<div class="mv-card">
+    <div class="mv-cal-head">
+      <button class="mv-cal-nav" onclick="calPrev()" aria-label="Previous month">&lsaquo;</button>
+      <div style="font-size:.82rem;font-weight:600;letter-spacing:.03em">${new Date(y, m, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</div>
+      <button class="mv-cal-nav" onclick="calNext()" aria-label="Next month">&rsaquo;</button>
     </div>
-    <div class="muscle-stat-grid">
-      ${statTile('Workouts', current.workouts, previous.workouts, v => v)}
-      ${statTile('Duration', current.durationMin, previous.durationMin, Utils.formatHoursMin)}
-      ${statTile('Volume', current.volumeKg, previous.volumeKg, v => `${Math.round(v).toLocaleString()}kg`)}
-      ${statTile('Sets', current.sets, previous.sets, v => v)}
-    </div>`;
+    <div class="mv-cal-dows">${['M','T','W','T','F','S','S'].map(d => `<div>${d}</div>`).join('')}</div>
+    <div class="mv-cal-grid">${cells}</div>
+    <div class="mv-legend" style="margin-top:.6rem">
+      <span><i style="background:var(--accent)"></i>logged</span>
+      <span><i style="background:var(--text3);opacity:.45"></i>planned</span>
+    </div>
+  </div>`;
 }
 
-// Hand-rolled radar chart (no charting library in this project — see
-// EXERCISE_TAGS comment in data/library.js for why muscle is null for
-// most non-loading exercises). Axis order matches History.MUSCLE_GROUPS,
-// evenly spaced clockwise starting at the top. Axis count/spacing is
-// derived from groups.length rather than hardcoded, so this still works
-// when MUSCLE_GROUPS changes size (it grew from 6 to 11 on 2026-07-12
-// when arms/legs were split into finer buckets) without touching this fn.
-function buildMuscleRadarSVG(curr, prev, days) {
-  const groups = History.MUSCLE_GROUPS;
-  const cx = 150, cy = 150, R = 100, labelR = 128;
-  const step = 360 / groups.length;
-  const angleFor = i => (-90 + i * step) * Math.PI / 180;
+function selectCalDay(d) { _calSelected = (_calSelected === d) ? null : d; renderLog(); }
+function calPrev() { if (_calMonth === 0) { _calMonth = 11; _calYear--; } else _calMonth--; _calSelected = null; renderLog(); }
+function calNext() { if (_calMonth === 11) { _calMonth = 0; _calYear++; } else _calMonth++; _calSelected = null; renderLog(); }
 
-  // Fixed baseline scale rather than "relative to whichever axis is
-  // busiest right now" — with sparse data, a single logged set used to
-  // auto-max its axis out (100% of the ring) even though it reflected
-  // almost no training. The baseline scales with the selected period
-  // (~0.5 tagged sets/day reads as "fully trained", floor of 5) so a
-  // 7-day and 60-day view both feel proportionate. It still expands to
-  // fit real data that exceeds the baseline, so nothing gets clipped —
-  // it just stops being generous toward mostly-empty windows.
-  const baseline = Math.max(5, Math.round((days || 30) * 0.5));
-  const maxVal = Math.max(baseline, ...groups.map(g => curr[g] || 0), ...groups.map(g => prev[g] || 0));
+function _logDetail() {
+  if (!_calSelected) return '';
+  const d = _calSelected;
+  const ss = History.getIndex(200).filter(s => {
+    const x = new Date(s.date);
+    return x.getFullYear() === _calYear && x.getMonth() === _calMonth && x.getDate() === d;
+  });
+  const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
+  const p2 = n => String(n).padStart(2, '0');
+  const key = `${_calYear}-${p2(_calMonth + 1)}-${p2(d)}`;
+  const pday = plan ? (plan.days || []).find(x => x.date === key) : null;
 
-  const pointFor = (val, i) => {
-    const r = (Math.max(0, val) / maxVal) * R;
-    const a = angleFor(i);
-    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
-  };
-  const polygonPoints = data => groups.map((g, i) => pointFor(data[g] || 0, i).join(',')).join(' ');
+  const body = ss.length
+    ? ss.map(s => `<button type="button" class="mv-ex" onclick="openSessionModal('${s.id}')">
+        <span class="mv-ex-bullet" style="background:${Utils.getSessionColor(s)};opacity:1"></span>
+        <span class="mv-ex-name">${Utils.getSessionLabel(s)}</span>
+        <span class="mv-ex-dose">${s.duration}m</span>
+      </button>`).join('')
+    : `<div style="font-size:.78rem;color:var(--text3)">${pday ? 'Planned: ' + pday.theme + ' — not logged.' : 'Nothing logged.'}</div>`;
 
-  const rings = [0.25, 0.5, 0.75, 1].map(f => {
-    const pts = groups.map((g, i) => { const a = angleFor(i); return `${cx + R * f * Math.cos(a)},${cy + R * f * Math.sin(a)}`; }).join(' ');
-    return `<polygon points="${pts}" fill="none" stroke="var(--border)" stroke-width="1"/>`;
-  }).join('');
-
-  const spokes = groups.map((g, i) => {
-    const a = angleFor(i);
-    return `<line x1="${cx}" y1="${cy}" x2="${cx + R * Math.cos(a)}" y2="${cy + R * Math.sin(a)}" stroke="var(--border)" stroke-width="1"/>`;
-  }).join('');
-
-  const labels = groups.map((g, i) => {
-    const a = angleFor(i);
-    const x = cx + labelR * Math.cos(a), y = cy + labelR * Math.sin(a);
-    const cos = Math.cos(a);
-    const anchor = Math.abs(cos) < 0.3 ? 'middle' : (cos > 0 ? 'start' : 'end');
-    const label = g.charAt(0).toUpperCase() + g.slice(1);
-    return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" font-size="12" font-weight="600" fill="var(--text3)">${label}</text>`;
-  }).join('');
-
-  return `<svg viewBox="0 0 300 300" style="width:100%;max-width:300px;display:block;margin:0 auto">
-    ${rings}${spokes}
-    <polygon points="${polygonPoints(prev)}" fill="var(--text3)" fill-opacity="0.18" stroke="var(--text3)" stroke-width="2"/>
-    <polygon points="${polygonPoints(curr)}" fill="var(--accent)" fill-opacity="0.25" stroke="var(--accent)" stroke-width="2"/>
-    ${labels}
-  </svg>`;
+  return `<div class="mv-card">
+    <div class="mv-eyebrow" style="margin-bottom:.5rem">${new Date(_calYear, _calMonth, d).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+    ${body}
+  </div>`;
 }
 
-// ── TRACKED LIFTS — weight / est. 1RM progress ──────────────────
-function renderTrackedLifts() {
-  const section = document.getElementById('tracked-lifts-section');
+// One row per tracked lift: name, when, a six-point e1RM sparkline, the
+// top set and the change since the session before it.
+function _logLifts() {
   const ids = App.profile.trackedLifts || [];
-  if (!section || !ids.length) { if (section) section.style.display = 'none'; return; }
-  section.style.display = 'block';
-
+  if (!ids.length) return '';
   const allEx = Custom.getAllExercises();
-  document.getElementById('tracked-lifts-list').innerHTML = ids.map(id => {
+
+  const rows = ids.map(id => {
     const ex = allEx.find(e => e.id === id);
     if (!ex) return '';
-    const best = History.getBestEstimate(id);
-    const last = History.getLastExerciseLog(id);
-    return `<div class="card lift-row" onclick="openLiftHistory('${id}')">
-      <div class="lift-row-main">
-        <div class="lift-name">${ex.name}</div>
-        ${last?.lastWeight
-          ? `<div class="lift-sub">Last: ${last.lastWeight}kg × ${last.lastReps||'?'} · ${Utils.formatDate(last.date)}</div>`
-          : '<div class="lift-sub">No sets logged yet</div>'}
+    const hist = History.getExerciseHistory(id, 12);   // newest first
+    const pts = hist.map(h => {
+      const best = (h.sets || []).reduce((a, s) => {
+        const e = History.estimateOneRM(s.weight, s.reps);
+        return (e && (!a || e > a)) ? e : a;
+      }, null);
+      return best ? { e: best, date: h.date, sets: h.sets } : null;
+    }).filter(Boolean).reverse();                       // oldest first
+
+    if (!pts.length) {
+      return `<div class="mv-row">
+        <div style="flex:1"><div style="font-size:.82rem;font-weight:500">${ex.name}</div>
+        <div style="font-size:.7rem;color:var(--text3);margin-top:.05rem">No sets logged yet</div></div>
+      </div>`;
+    }
+
+    const last = pts[pts.length - 1];
+    const prev = pts.length > 1 ? pts[pts.length - 2] : null;
+    const delta = prev ? Math.round((last.e - prev.e) * 10) / 10 : null;
+    const dTone = !delta ? 'var(--text3)' : (delta > 0 ? 'var(--accent2)' : 'var(--danger)');
+    const top = (last.sets || []).reduce((a, s) => (s.weight && (!a || s.weight > a.weight)) ? s : a, null);
+
+    const tail = pts.slice(-6);
+    const lo = Math.min(...tail.map(p => p.e)), hi = Math.max(...tail.map(p => p.e));
+    const span = (hi - lo) || 1;
+    const poly = tail.map((p, i) => {
+      const x = tail.length === 1 ? 28 : 2 + i * (52 / (tail.length - 1));
+      const y = 17 - ((p.e - lo) / span) * 14;
+      return `${Math.round(x * 10) / 10},${Math.round(y * 10) / 10}`;
+    }).join(' ');
+
+    return `<button type="button" class="mv-row" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);font-family:var(--font-body);color:inherit;text-align:left;cursor:pointer;align-items:center" onclick="openLiftHistory('${id}')">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.82rem;font-weight:500">${ex.name}</div>
+        <div style="font-size:.7rem;color:var(--text3);margin-top:.05rem">${Utils.formatDate(last.date)}</div>
       </div>
-      ${best ? `<div class="lift-est"><div class="lift-est-val">${best.e1rm}kg</div><div class="lift-est-lbl">est. 1RM</div></div>` : ''}
-    </div>`;
+      <svg width="56" height="20" viewBox="0 0 56 20" fill="none" style="flex-shrink:0" aria-hidden="true">
+        <polyline points="${poly}" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div style="width:3.6rem;text-align:right;flex-shrink:0">
+        <div style="font-size:.82rem;font-weight:600;font-variant-numeric:tabular-nums">${top && top.weight ? top.weight : Math.round(last.e)}</div>
+        <div style="font-size:.64rem;color:${dTone}">${delta === null ? '—' : (delta > 0 ? '+' : '') + delta}</div>
+      </div>
+    </button>`;
   }).join('');
+
+  return `<div class="mv-card">
+    <div class="mv-eyebrow mv-eyebrow--accent" style="margin-bottom:.6rem">Tracked lifts</div>
+    ${rows}
+    <div style="font-size:.68rem;color:var(--text3);margin-top:.5rem">Top set, and the change in estimated 1RM since the session before.</div>
+  </div>`;
+}
+
+// Working sets by muscle group over a window. Thin groups are flagged in
+// colour rather than in prose — the generator already deprioritises
+// whatever was hit hard in the last two days.
+let _distDays = 30;
+function setDistDays(n) { _distDays = n; renderLog(); }
+
+function _logDistribution() {
+  const dist = History.getMuscleDistribution(_distDays).current;
+  const entries = Object.entries(dist.muscles).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+  const max = entries.length ? entries[0][1] : 1;
+  const pills = [7, 14, 30, 60].map(n => `<button type="button" class="mv-pill" style="${n === _distDays ? 'border-color:var(--accent);color:var(--accent)' : ''}" onclick="setDistDays(${n})">${n}d</button>`).join('');
+
+  const body = entries.length
+    ? entries.map(([k, n]) => {
+        const pct = Math.round((n / max) * 100);
+        const c = pct >= 40 ? 'var(--accent)' : (pct >= 18 ? 'var(--warm)' : 'var(--danger)');
+        return `<div class="mv-dist">
+          <div class="mv-dist-k">${k.charAt(0).toUpperCase() + k.slice(1)}</div>
+          <div class="mv-dist-bar"><i style="width:${pct}%;background:${c}"></i></div>
+          <div class="mv-dist-n">${n}</div>
+        </div>`;
+      }).join('')
+    : '<div style="font-size:.78rem;color:var(--text3)">No weighted sets logged in this window yet.</div>';
+
+  return `<div class="mv-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">
+      <span class="mv-eyebrow">Muscle distribution</span>
+      <span style="display:flex;gap:.25rem">${pills}</span>
+    </div>
+    <div class="mv-body" style="margin-bottom:.7rem">Last ${_distDays} days, by working sets &middot; ${dist.workouts} session${dist.workouts === 1 ? '' : 's'}.</div>
+    ${body}
+  </div>`;
+}
+
+function _logSessions() {
+  const rows = History.getIndex(50).map(sessionRow).join('');
+  return `<div style="display:flex;align-items:center;justify-content:space-between;margin:1.2rem 0 .5rem">
+      <span class="mv-eyebrow">Sessions</span>
+      <button class="mv-pill" onclick="openManualLogModal()">+ Log a session</button>
+    </div>
+    ${rows || '<div class="empty-state">No sessions logged yet.</div>'}`;
 }
 
 function openLiftHistory(id) {
@@ -2625,43 +2844,6 @@ function openLiftHistory(id) {
 function closeLiftHistory() {
   document.getElementById('lift-modal-backdrop').style.display = 'none';
 }
-
-function renderCalendar() {
-  const y=_calYear, m=_calMonth;
-  document.getElementById('cal-month').textContent = new Date(y,m,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});
-  const index = History.getIndex(200);
-  const dayMap = {};
-  index.forEach(s => { const d=new Date(s.date); if(d.getFullYear()===y&&d.getMonth()===m){ const k=d.getDate(); if(!dayMap[k]) dayMap[k]=[]; dayMap[k].push(s); } });
-  const firstDay = new Date(y,m,1).getDay();
-  const daysInMonth = new Date(y,m+1,0).getDate();
-  const now = new Date();
-  const grid = document.getElementById('cal-grid'); grid.innerHTML='';
-  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>{ const el=document.createElement('div'); el.className='cal-day-name'; el.textContent=d; grid.appendChild(el); });
-  for(let i=0;i<firstDay;i++){ const el=document.createElement('div'); el.className='cal-cell empty'; grid.appendChild(el); }
-  for(let d=1;d<=daysInMonth;d++){
-    const el=document.createElement('div'); el.className='cal-cell';
-    const sessions=dayMap[d]||[];
-    if(y===now.getFullYear()&&m===now.getMonth()&&d===now.getDate()) el.classList.add('cal-today');
-    el.innerHTML=`<span class="cal-num">${d}</span>`;
-    if(sessions.length){
-      const dots=document.createElement('div'); dots.className='cal-dots';
-      sessions.slice(0,3).forEach(s=>{ const dot=document.createElement('div'); dot.className='cal-dot'; dot.style.background=Utils.getSessionColor(s); dots.appendChild(dot); });
-      el.appendChild(dots);
-    }
-    el.onclick=()=>showCalDay(d,sessions);
-    grid.appendChild(el);
-  }
-}
-
-function showCalDay(day, sessions) {
-  const detail=document.getElementById('cal-day-detail'), body=document.getElementById('cal-detail-body');
-  document.getElementById('cal-detail-date').textContent=new Date(_calYear,_calMonth,day).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
-  body.innerHTML=sessions.length?sessions.map(s=>{ return `<div class="cal-session-item" onclick="openSessionModal('${s.id}')"><div class="sr-dot" style="background:${Utils.getSessionColor(s)}"></div><div class="sr-theme">${Utils.getSessionLabel(s)}</div><div class="sr-dur">${s.duration}m</div></div>`; }).join(''):'<div class="empty-state">Rest day</div>';
-  detail.style.display='block';
-}
-
-function calPrev(){ if(_calMonth===0){_calMonth=11;_calYear--;}else _calMonth--; renderCalendar(); document.getElementById('cal-day-detail').style.display='none'; }
-function calNext(){ if(_calMonth===11){_calMonth=0;_calYear++;}else _calMonth++; renderCalendar(); document.getElementById('cal-day-detail').style.display='none'; }
 
 function openSessionModal(id) {
   const session=History.getSession(id); if(!session) return;
