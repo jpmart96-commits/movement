@@ -86,6 +86,11 @@ const Profile = {
       // your key saved.
       anthropicApiKey: '',
       aiModel: 'claude-sonnet-5',
+      // Heart-rate zone ceilings, bpm — each value is the TOP of that zone,
+      // z5 being everything above z4. User-supplied 2026-09-20. Used by
+      // js/import.js to report what zone a run was actually spent in, which
+      // is the whole point of a Zone2 day having a Zone2 label.
+      hrZones: { z1: 133, z2: 148, z3: 155, z4: 185 },
     },
   },
 
@@ -626,16 +631,45 @@ const Generator = {
   // Rough per-exercise time estimate (minutes) — used only to decide how
   // many exercises fit inside a block's chosen duration. Not a promise of
   // exact live-session time, since actual sets/reps are logged by hand.
+  // Per-exercise setup cost — getting into position, fetching the band,
+  // walking to the rig. Also guarantees every exercise costs something, so
+  // a pool can never fill a block indefinitely (a 'none'-type exercise
+  // used to cost exactly 0 and would have looped through a whole pool).
+  _SETUP_MIN: 0.5,
+
   _estimateExerciseMinutes(ex) {
     const rest = ex.restSeconds || 0;
+    const setup = this._SETUP_MIN;
     switch (ex.logType) {
-      case 'weight+reps': return (3 * (40 + rest)) / 60;              // 3 working sets
-      case 'reps':        return (2 * (30 + Math.min(rest, 30))) / 60; // bodyweight/band, brief rest
-      case 'hold':         return (2 * (30 + rest)) / 60;              // 2 holds
-      case 'cardio':       return 15;                                  // user logs actual time
+      case 'weight+reps': return setup + (3 * (40 + rest)) / 60;                    // 3 working sets
+      case 'reps':        return setup + (2 * (30 + Math.min(rest, 30))) / 60;      // bodyweight/band, brief rest
+      case 'hold':        return setup + (2 * (45 + Math.max(rest, 15))) / 60;      // 2 holds of 45s (was 2x30s @ 0 rest
+                                                                                    // = exactly 1min, which let a 45min
+                                                                                    // block "fit" 45 stretches)
+      case 'cardio':      return 15;                                                // user logs actual time
       case 'none':
-      default:              return 0;
+      default:            return setup;
     }
+  },
+
+  // Ceiling on how many exercises one block may hold, derived from its
+  // duration. The time tally alone is not a sufficient brake: hold-type
+  // work is cheap per exercise, so hold-heavy pools (flexibility 71,
+  // mobility-movement 55, coordination 36, yoga 31) used to be emptied
+  // wholesale into a single block — 36 coordination drills in one 45min
+  // warm-up. Roughly one exercise per 5min of block time, floored at 2 so
+  // a short block still has something to alternate, capped at 10 so a long
+  // block stays a session rather than a checklist. Whichever brake binds
+  // first wins: heavy strength work is still limited by time (a squat at
+  // 180s rest costs ~11.5min, so a 60min block holds ~5-7 lifts), while
+  // stretching and coordination are limited by this count.
+  _MIN_PER_EXERCISE: 5,
+  _MAX_EXERCISES_PER_BLOCK: 10,
+  _MIN_EXERCISES_PER_BLOCK: 2,
+
+  _maxExercisesFor(targetMin) {
+    const n = Math.round((targetMin || 0) / this._MIN_PER_EXERCISE);
+    return Math.max(this._MIN_EXERCISES_PER_BLOCK, Math.min(this._MAX_EXERCISES_PER_BLOCK, n));
   },
 
   // Reorders a candidate pool so exercises not seen recently bubble to the
@@ -1002,8 +1036,10 @@ const Generator = {
       ordered = [...hr, ...rest];
     }
 
+    const maxCount = this._maxExercisesFor(targetMin);
     let used = 0;
     for (const id of ordered) {
+      if (picked.length >= maxCount) break;
       if (used >= targetMin && picked.length > 0) break;
       const ex = resolveEx(id);
       if (!ex) continue;

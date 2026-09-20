@@ -1,0 +1,4 @@
+# Large Ruttio/Apple workout exports kept locally as parser fixtures.
+# samples/wall-pike-fix.json is deliberately NOT ignored — it is the only
+# surviving copy of 16 custom exercises (see 2026-09-20 data loss).
+samples/workout_*
