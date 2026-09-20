@@ -705,7 +705,7 @@ function renderProgress() {
   const el = document.getElementById('progress-body');
   if (!el) return;
   const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
-  const st = App.profile.settings || {};
+  const st = (App.profile && App.profile.settings) || {};
   const idx = History.getIndex(200);
   const doneDates = new Set(idx.map(r => (r.date || '').slice(0, 10)));
   const cardio = _cardioLogs();
@@ -718,10 +718,14 @@ function renderProgress() {
   // 1 — the plan
   if (plan && Array.isArray(plan.days)) {
     const n = plan.days.filter(d => doneDates.has(d.date)).length;
+    const pg = MonthPlan.progress(new Date());
+    const where = pg && pg.dayNumber
+      ? `day ${pg.dayNumber} of ${plan.days.length}`
+      : (MonthPlan._key(new Date()) < plan.blockStart ? 'starts ' + Utils.formatDate(plan.blockStart) : 'block finished');
     h += _mvCard('The plan', '', `
       <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.7rem">
         <div class="mv-display" style="font-size:2.2rem">${n}<span style="font-size:1rem;color:var(--text3);font-weight:500">/${plan.days.length}</span></div>
-        <div style="font-size:.78rem;color:var(--text2)">sessions done</div>
+        <div style="font-size:.78rem;color:var(--text2)">sessions done &middot; ${where}</div>
       </div>
       <div class="mv-grid28">${plan.days.map(d => {
         const cls = doneDates.has(d.date) ? 'done' : (d.benchmark ? 'bench' : '');
@@ -2705,7 +2709,7 @@ function _logDetail() {
 // One row per tracked lift: name, when, a six-point e1RM sparkline, the
 // top set and the change since the session before it.
 function _logLifts() {
-  const ids = App.profile.trackedLifts || [];
+  const ids = (App.profile && App.profile.trackedLifts) || [];
   if (!ids.length) return '';
   const allEx = Custom.getAllExercises();
 
