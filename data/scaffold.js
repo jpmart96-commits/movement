@@ -125,4 +125,30 @@ const WEEK_SCAFFOLD = {
     fuel: 'Whatever you like.',
     movable: true,
   },
+
+  // ── NAMED DAY-TYPES ───────────────────────────────────────
+  // Not weekdays. A month-plan day borrows one by setting `dayType`, which
+  // is how the second quality session of a build week lands on a Saturday
+  // without rewriting the week template. Chat's theme_swap can reach these
+  // too, since it looks up the same map.
+  'quality-4x4': {
+    theme: 'Quality \u2014 4x4', variant: 'standard',
+    mainFocus: {
+      tags: ['cardio'], cardioMode: 'intervals', modality: 'run',
+      intervalSpec: 'Norwegian 4x4 \u2014 10min warm-up at 118-137bpm, then 4 x 4min at 167-186bpm with 3min easy jogging between, 5min cool-down.',
+      note: 'The four intervals are the session. Recover properly between them \u2014 the recovery is what lets the next one count.',
+    },
+    accessory: { tags: ['calisthenics'] },
+    mobility:  { tags: ['mobility-movement'] },
+    fuel: 'Eat something light first \u2014 do not do this one empty.',
+  },
+
+  'light-yoga': {
+    theme: 'Yoga + Mobility', variant: 'light',
+    mainFocus: null,
+    accessory: { tags: ['yoga'] },
+    mobility:  { tags: ['yoga', 'flexibility'] },
+    fuel: 'Whatever you like.',
+    movable: true,
+  },
 };

@@ -887,6 +887,42 @@ const LIBRARY = [
     defaultState: 'active',
   },
   {
+    id: 'interval-run',
+    name: 'Interval run',
+    category: 'Cardio', subcategory: 'Run',
+    modalityTags: ['cardio'],
+    difficulty: 4, energy: 'High', segment: 'main',
+    goals: [], equipment: [], frequency: '1x week',
+    restGroup: 'cardio', intensityTier: 'explosive', logType: 'cardio',
+    notes: 'Work bouts at 90-95% max HR, recover fully between. 4x4 is the default shape.',
+    link: 'https://www.youtube.com/results?search_query=4x4+norwegian+interval+training+running',
+    defaultState: 'active',
+  },
+  {
+    id: 'tempo-run',
+    name: 'Tempo run',
+    category: 'Cardio', subcategory: 'Run',
+    modalityTags: ['cardio'],
+    difficulty: 3, energy: 'High', segment: 'main',
+    goals: [], equipment: [], frequency: '1x week',
+    restGroup: 'cardio', intensityTier: 'heavy', logType: 'cardio',
+    notes: 'Comfortably hard, held. Threshold - not intervals, not easy.',
+    link: 'https://www.youtube.com/results?search_query=tempo+run+threshold+pace',
+    defaultState: 'active',
+  },
+  {
+    id: 'interval-cycling',
+    name: 'Interval cycling',
+    category: 'Cardio', subcategory: 'Cycling',
+    modalityTags: ['cardio'],
+    difficulty: 4, energy: 'High', segment: 'main',
+    goals: [], equipment: [], frequency: '1x week',
+    restGroup: 'cardio', intensityTier: 'explosive', logType: 'cardio',
+    notes: 'Same protocol as the run, without the ground impact.',
+    link: 'https://www.youtube.com/results?search_query=vo2max+bike+intervals',
+    defaultState: 'active',
+  },
+  {
     // Added 2026-07-12 as a real pool exercise — previously "walking" was a
     // synthetic entry hardcoded into the old 'rest' theme's block-building
     // logic (js/app.js), not a real LIBRARY exercise. Folded into Mobility/
@@ -4679,4 +4715,29 @@ const EXERCISE_TAGS = {
   'toe-extension-stretch':   { joints: ['ankle'], impact: 'low', pattern: 'flexibility', raisesHR: false, muscle: null },
   'toe-sit-stretch':         { joints: ['ankle'], impact: 'low', pattern: 'flexibility', raisesHR: false, muscle: null },
   'arch-stretch':            { joints: ['ankle'], impact: 'low', pattern: 'flexibility', raisesHR: false, muscle: null },
+
+  // Added 2026-09-20. The interval/tempo run entries close the gap where
+  // every run filed as 'Easy run'. The gymnastics-conditioning block below
+  // had no muscle tags at all, so an entire modality contributed nothing to
+  // the muscle distribution despite being real core work.
+  'interval-run':                        { joints: ['ankle','knee','hip'], impact: 'high', pattern: 'cardio', raisesHR: true, muscle: null },
+  'tempo-run':                           { joints: ['ankle','knee','hip'], impact: 'high', pattern: 'cardio', raisesHR: true, muscle: null },
+  'interval-cycling':                    { joints: [], impact: 'low', pattern: 'cardio', raisesHR: true, muscle: null },
+  'forearm-stand':                       { joints: ['shoulder','elbow'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: 'shoulders' },
+  'headstand':                           { joints: ['shoulder','back'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: 'shoulders' },
+  'hollow-body-hold':                    { joints: ['back'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
+  'hollow-body-rock':                    { joints: ['back'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
+  'arch-body-hold':                      { joints: ['back'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'back' },
+  'tuck-sit':                            { joints: ['shoulder','back'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
+  'pike-sit-wall':                       { joints: ['back','hip'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
+  'pike-sit-free':                       { joints: ['back','hip'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
+  'straddle-sit-compression':            { joints: ['back','hip'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
+  'straddle-leg-circles':                { joints: ['back','hip'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
+  'straddle-leg-raises':                 { joints: ['back','hip'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
+  'straddle-fold-passive':               { joints: ['back','hip'], impact: 'low', pattern: 'flexibility', raisesHR: false, muscle: null },
+  'press-hs-pike':                       { joints: ['shoulder','wrist'], impact: 'low', pattern: 'push', raisesHR: false, muscle: 'shoulders' },
+  'stalder-prep':                        { joints: ['shoulder','wrist'], impact: 'low', pattern: 'push', raisesHR: false, muscle: 'shoulders' },
+  'l-sit-floor':                         { joints: ['shoulder','back'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
+  'v-sit':                               { joints: ['shoulder','back'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
+  'mechanical-advantage-planche-pushup': { joints: ['shoulder','elbow','wrist'], impact: 'low', pattern: 'push', raisesHR: false, muscle: 'chest' },
 };
