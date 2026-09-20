@@ -37,17 +37,17 @@
 
 <!-- NAV: Home / Generate / Session(hidden) / Goals / Log / Settings -->
 <nav id="nav">
-  <button class="nav-btn active" data-screen="home" onclick="navTo('home')" aria-label="Home">
-    <svg viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg><span>Home</span>
+  <button class="nav-btn active" data-screen="home" onclick="navTo('home')" aria-label="Block">
+    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span>Block</span>
   </button>
-  <button class="nav-btn" data-screen="generate" onclick="navTo('generate')" aria-label="Generate">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg><span>Generate</span>
+  <button class="nav-btn" data-screen="today" onclick="navTo('today')" aria-label="Today">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span>Today</span>
   </button>
   <button class="nav-btn session-nav" data-screen="session" onclick="navTo('session')" style="display:none" aria-label="Session">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span>Session</span>
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Live</span>
   </button>
-  <button class="nav-btn" data-screen="goals" onclick="navTo('goals')" aria-label="Goals">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>Goals</span>
+  <button class="nav-btn" data-screen="progress" onclick="navTo('progress')" aria-label="Progress">
+    <svg viewBox="0 0 24 24"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg><span>Progress</span>
   </button>
   <button class="nav-btn" data-screen="log" onclick="navTo('log')" aria-label="Log">
     <svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Log</span>
@@ -61,33 +61,50 @@
 <main id="screen-home" class="screen active">
   <header class="screen-header">
     <h1 class="logo">Movement</h1>
+    <button class="btn-ghost" style="width:auto;padding:.3rem .6rem;font-size:.8rem" onclick="navTo('settings')" aria-label="Settings">&#9881;</button>
   </header>
+
+  <!-- where you are in the block -->
+  <section class="card" id="block-card"></section>
+
+  <!-- today / tomorrow -->
   <section class="card today-card">
     <div class="today-day" id="today-day">Monday</div>
     <div class="scaffold-theme-line" id="scaffold-theme-line" style="opacity:.7;margin:-.25rem 0 .5rem"></div>
-    <label class="scaffold-toggle-row" style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;opacity:.85;margin-bottom:.5rem">
-      <input type="checkbox" id="scaffold-anti-correlated">
-      Lighter today — warm-up/skill unrelated to Main Focus
-    </label>
-    <button class="btn-primary" id="scaffold-cta" onclick="startScaffoldToday()">Today's Plan ↗</button>
+    <div id="block-focus-note"></div>
+    <button class="btn-primary" id="scaffold-cta" onclick="startScaffoldToday()">Today's Plan &#8599;</button>
     <button class="btn-ghost" style="margin-top:.5rem" onclick="startToday()">Compose manually</button>
     <button class="btn-ghost" onclick="openManualLogModal()">Log a past session</button>
   </section>
+
   <section class="card active-session-banner" id="active-banner" style="display:none">
     <div class="banner-label">Session in progress</div>
     <div class="banner-info" id="banner-info"></div>
-    <button class="btn-primary" onclick="navTo('session')">Continue →</button>
+    <button class="btn-primary" onclick="navTo('session')">Continue &rarr;</button>
   </section>
-  <section id="goal-flags"></section>
+
+  <!-- the week -->
+  <div class="section-label">This week</div>
+  <div id="block-week"></div>
+
+  <!-- next benchmark -->
+  <div id="block-benchmark"></div>
+
   <section class="card">
     <div class="stat-row">
-      <div class="stat-item"><div class="stat-val" id="stat-sessions">—</div><div class="stat-lbl">Sessions</div></div>
-      <div class="stat-item"><div class="stat-val" id="stat-streak">—</div><div class="stat-lbl">Streak</div></div>
-      <div class="stat-item"><div class="stat-val" id="stat-last">—</div><div class="stat-lbl">Last</div></div>
+      <div class="stat-item"><div class="stat-val" id="stat-sessions">&mdash;</div><div class="stat-lbl">Sessions</div></div>
+      <div class="stat-item"><div class="stat-val" id="stat-streak">&mdash;</div><div class="stat-lbl">Streak</div></div>
+      <div class="stat-item"><div class="stat-val" id="stat-last">&mdash;</div><div class="stat-lbl">Last</div></div>
     </div>
   </section>
   <div class="section-label">Recent</div>
   <div id="home-recent"></div>
+</main>
+
+<!-- ═══ PROGRESS ═══════════════════════════════════════ -->
+<main id="screen-progress" class="screen">
+  <header class="screen-header"><h1 class="logo">Progress</h1></header>
+  <div id="progress-body"></div>
 </main>
 
 <!-- ═══ GENERATE ════════════════════════════════════════════════ -->
@@ -505,6 +522,10 @@ function setTheme(t) {
 // NAVIGATION
 // ─────────────────────────────────────────────────────────────
 function navTo(screen) {
+  if (screen === 'today') {
+    if (LiveSession.getSession()) return navTo('session');
+    return startScaffoldToday();
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('screen-' + screen)?.classList.add('active');
@@ -512,6 +533,7 @@ function navTo(screen) {
   App.screen = screen;
   document.getElementById('fab').style.display = screen === 'settings' ? 'flex' : 'none';
   if (screen === 'home')     renderHome();
+  if (screen === 'progress') renderProgress();
   if (screen === 'generate') { renderThemeList(); initGenerateDuration(); }
   if (screen === 'goals')    renderGoals();
   if (screen === 'log')      renderLog();
@@ -557,10 +579,8 @@ function renderHome() {
   }
   const cta = document.getElementById('scaffold-cta');
   if (cta) cta.textContent = done ? "Today's Plan \u2713" : (existing ? "Resume Today's Plan \u2197" : "Today's Plan \u2197");
-  const antiBox = document.getElementById('scaffold-anti-correlated');
-  // Mode is locked while today's plan is live; a finished day unlocks it
-  // again so a deliberate second session can be generated in the other mode.
-  if (antiBox) antiBox.disabled = !!existing && !done;
+
+  renderBlockContext();
 
   const banner = document.getElementById('active-banner');
   if (LiveSession.getSession()) {
@@ -586,7 +606,11 @@ function renderHome() {
     const pg = Custom.getAllGoals().find(x => x.id === g.id);
     return pg && pg.priority <= 2;
   }).slice(0,3);
-  document.getElementById('goal-flags').innerHTML = stale.length
+  // The stale-goal flags moved to Progress, where the full ladder lives.
+  // Kept null-safe rather than deleted so an older cached index.html that
+  // still has the container keeps working.
+  const flagsEl = document.getElementById('goal-flags');
+  if (flagsEl) flagsEl.innerHTML = stale.length
     ? `<div class="section-label">Needs attention</div>${stale.map(g => {
         const pg = Custom.getAllGoals().find(x => x.id === g.id);
         const ms = goalMilestoneInfo(g.id);
@@ -599,6 +623,245 @@ function renderHome() {
       }).join('')}` : '';
 
   document.getElementById('home-recent').innerHTML = History.getIndex(5).map(sessionRow).join('') || '<div class="empty-state">No sessions yet.</div>';
+}
+
+// ────────────────────────────────────────────────────────────
+// BLOCK CONTEXT — where today sits in the four-week plan.
+// Everything here degrades to nothing when no plan covers today, so the
+// screen still works outside a block.
+// ────────────────────────────────────────────────────────────
+const DOMAIN_LABEL = (typeof COORD_DOMAIN_LABELS !== 'undefined') ? COORD_DOMAIN_LABELS : {};
+
+function _dayColor(d) {
+  if (!d) return 'var(--text3)';
+  if (d.benchmark) return 'var(--warm)';
+  if (d.variant === 'light') return 'var(--text3)';
+  if (/strength/i.test(d.theme)) return 'var(--accent)';
+  return 'var(--accent2)';
+}
+
+function renderBlockContext() {
+  const card  = document.getElementById('block-card');
+  const note  = document.getElementById('block-focus-note');
+  const weekEl = document.getElementById('block-benchmark');
+  const weekBox = document.getElementById('block-week');
+  const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
+  const today = new Date();
+  const prog = plan ? MonthPlan.progress(today) : null;
+
+  if (!plan) {
+    if (card) card.style.display = 'none';
+    [note, weekEl, weekBox].forEach(el => { if (el) el.innerHTML = ''; });
+    return;
+  }
+  if (card) card.style.display = '';
+
+  // ── block header + week bar
+  const weeks = plan.weeks || [];
+  const curWeek = prog && prog.week;
+  if (card) {
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.15rem">
+        <div style="font-size:.7rem;letter-spacing:.12em;font-weight:600;color:var(--warm)">BLOCK</div>
+        <div style="font-size:.7rem;color:var(--text3)">${Utils.formatDate(plan.blockStart)} – ${Utils.formatDate(plan.blockEnd)}</div>
+      </div>
+      <div style="font-size:1.15rem;font-weight:600;line-height:1.25;margin-bottom:.6rem">${plan.title || 'Current block'}</div>
+      <div style="display:flex;gap:.25rem;margin-bottom:.4rem">
+        ${weeks.map(w => `<div style="flex:1;height:6px;border-radius:3px;background:${w.n === curWeek ? 'var(--accent)' : 'var(--bg3)'}"></div>`).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text3)">
+        ${weeks.map(w => `<span style="${w.n === curWeek ? 'color:var(--text);font-weight:600' : ''}">${w.label}</span>`).join('')}
+      </div>
+      ${prog && prog.dayNumber ? `<div style="margin-top:.6rem;font-size:.78rem;color:var(--text2)">Day ${prog.dayNumber} of ${prog.totalDays}</div>` : ''}`;
+  }
+
+  // ── today's note from the plan
+  const day = MonthPlan.dayFor(today);
+  if (note) {
+    const bits = [];
+    if (day && day.coordDomain) bits.push(`<span style="font-size:.72rem;padding:.2rem .5rem;border-radius:999px;background:var(--bg3);color:var(--text2)">${DOMAIN_LABEL[day.coordDomain] || day.coordDomain}</span>`);
+    if (day && day.load) bits.push(`<span style="font-size:.72rem;padding:.2rem .5rem;border-radius:999px;background:var(--bg3);color:var(--text2)">${day.load}</span>`);
+    note.innerHTML = `
+      ${bits.length ? `<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.5rem">${bits.join('')}</div>` : ''}
+      ${day && day.focusNote ? `<div style="font-size:.8rem;line-height:1.45;color:var(--text2);padding-left:.6rem;border-left:2px solid var(--warm);margin-bottom:.6rem">${day.focusNote}</div>` : ''}`;
+  }
+
+  // ── the seven days of the current week
+  if (weekBox) {
+    const wk = weeks.find(w => w.n === curWeek);
+    const days = wk ? (plan.days || []).filter(d => d.date >= wk.start && d.date <= wk.end) : [];
+    const todayKey = MonthPlan._key(today);
+    weekBox.innerHTML = days.length ? `<div class="card" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.3rem">
+      ${days.map(d => {
+        const isToday = d.date === todayKey;
+        return `<div title="${escAttr(d.theme)}" style="text-align:center;padding:.4rem .1rem;border-radius:9px;background:${isToday ? 'var(--bg3)' : 'transparent'};border:1px solid ${isToday ? 'var(--accent)' : 'transparent'}">
+          <div style="font-size:.62rem;color:var(--text3)">${['S','M','T','W','T','F','S'][new Date(d.date + 'T12:00:00').getDay()]}</div>
+          <div style="font-size:.8rem;font-weight:600;margin:.15rem 0">${+d.date.slice(8)}</div>
+          <div style="width:6px;height:6px;border-radius:3px;margin:0 auto;background:${_dayColor(d)}"></div>
+        </div>`;
+      }).join('')}
+    </div>` : '';
+  }
+
+  // ── the next test, so it never arrives as a surprise
+  if (weekEl) {
+    const next = MonthPlan.upcomingBenchmarks(today)[0];
+    weekEl.innerHTML = next ? `<div class="card" style="border-color:var(--warn-bdr);background:var(--warn-bg)">
+      <div style="font-size:.7rem;letter-spacing:.12em;font-weight:600;color:var(--warm);margin-bottom:.25rem">NEXT BENCHMARK</div>
+      <div style="font-size:.9rem;font-weight:600;margin-bottom:.2rem">${Utils.formatDate(next.date)} — ${next.theme}</div>
+      <div style="font-size:.78rem;line-height:1.45;color:var(--warn-text)">${next.focusNote || ''}</div>
+    </div>` : '';
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+// PROGRESS — is the block working?
+// Six sections: the plan, the engine, best efforts, easy-day discipline,
+// strength against the block targets, and the movement ladders. Every one
+// renders an honest empty state rather than a zero, because on day one
+// almost all of this is genuinely unknown.
+// ────────────────────────────────────────────────────────────
+let _openMove = null;
+function toggleMove(id) { _openMove = (_openMove === id) ? null : id; renderProgress(); }
+
+// Walk recent sessions once and pull out every cardio log. Capped: this is
+// localStorage, one read per session, and nothing here needs deep history.
+function _cardioLogs(limit = 40) {
+  const out = [];
+  History.getIndex(limit).forEach(row => {
+    const s = History.getSession(row.id);
+    if (!s || !s.blocks) return;
+    s.blocks.forEach(b => (b.exercises || []).forEach(ex => {
+      if (ex.cardioLog && (ex.cardioLog.duration || ex.cardioLog.distanceKm)) {
+        out.push({ ...ex.cardioLog, date: s.date, name: ex.name, sessionId: row.id });
+      }
+    }));
+  });
+  return out.sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+function _card(eyebrow, color, body) {
+  return `<section class="card">
+    <div style="font-size:.7rem;letter-spacing:.12em;font-weight:600;color:${color};margin-bottom:.55rem">${eyebrow}</div>
+    ${body}
+  </section>`;
+}
+
+function renderProgress() {
+  const el = document.getElementById('progress-body');
+  if (!el) return;
+  const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
+  const s = App.profile.settings || {};
+  const idx = History.getIndex(200);
+  const doneDates = new Set(idx.map(r => (r.date || '').slice(0, 10)));
+  const cardio = _cardioLogs();
+  let html = '';
+
+  // 1 — the plan
+  if (plan && Array.isArray(plan.days)) {
+    const done = plan.days.filter(d => doneDates.has(d.date)).length;
+    html += _card('THE PLAN', 'var(--text3)', `
+      <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.6rem">
+        <div style="font-size:2rem;font-weight:700;line-height:1">${done}<span style="font-size:1rem;color:var(--text3)">/${plan.days.length}</span></div>
+        <div style="font-size:.78rem;color:var(--text2)">sessions done</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:3px">
+        ${plan.days.map(d => {
+          const c = doneDates.has(d.date) ? 'var(--accent)' : (d.benchmark ? 'var(--warm)' : 'var(--bg3)');
+          return `<div title="${escAttr(d.date + ' · ' + d.theme)}" style="height:15px;border-radius:3px;background:${c}"></div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:.45rem;font-size:.66rem;color:var(--text3)">
+        ${(plan.weeks || []).map(w => `<span>${w.label}</span>`).join('')}
+      </div>`);
+  }
+
+  // 2 — the engine
+  const tests = cardio.filter(c => c.isBenchmark);
+  html += _card('THE ENGINE', 'var(--accent2)', `
+    <div style="display:flex;gap:.6rem;margin-bottom:.6rem">
+      <div style="flex:1"><div style="font-size:1.4rem;font-weight:700;line-height:1.1">${tests.length ? tests[0].distanceKm + '<span style="font-size:.8rem;color:var(--text3)">km</span>' : '<span style="color:var(--text3)">—</span>'}</div><div style="font-size:.68rem;color:var(--text3);margin-top:.1rem">@150bpm / 30min</div></div>
+      <div style="flex:1"><div style="font-size:1.4rem;font-weight:700;line-height:1.1">${s.vo2max || '<span style="color:var(--text3)">—</span>'}</div><div style="font-size:.68rem;color:var(--text3);margin-top:.1rem">VO2 max</div></div>
+      <div style="flex:1"><div style="font-size:1.4rem;font-weight:700;line-height:1.1">${s.restingHR || '<span style="color:var(--text3)">—</span>'}</div><div style="font-size:.68rem;color:var(--text3);margin-top:.1rem">resting HR</div></div>
+    </div>
+    <div style="font-size:.76rem;color:var(--text2);line-height:1.45;padding-top:.55rem;border-top:1px solid var(--border)">${tests.length ? 'Same cap and route every block — distance is the only thing that can move.' : 'No fixed-HR test logged yet. Run 30 minutes capped at 150bpm and record the distance.'}</div>`);
+
+  // 3 — best efforts
+  const best = (km) => {
+    const hits = cardio.filter(c => c.distanceKm && c.distanceKm >= km * 0.97 && c.duration);
+    if (!hits.length) return null;
+    const b = hits.reduce((a, c) => (c.duration / c.distanceKm < a.duration / a.distanceKm ? c : a));
+    return { t: Utils.formatMMSS(Math.round(b.duration * (km / b.distanceKm))), when: Utils.formatDate(b.date), hr: b.avgHR };
+  };
+  html += _card('BEST EFFORTS', 'var(--text3)', [1, 5, 10].map(km => {
+    const b = best(km);
+    return `<div style="display:flex;align-items:baseline;gap:.6rem;padding:.4rem 0;border-bottom:1px solid var(--border)">
+      <div style="width:3.2rem;font-size:.78rem;font-weight:600">${km} km</div>
+      <div style="flex:1;font-size:.85rem;${b ? '' : 'color:var(--text3)'}">${b ? b.t : '—'}</div>
+      <div style="font-size:.7rem;color:var(--text3)">${b ? b.when + (b.hr ? ' · HR ' + b.hr : '') : 'no run yet'}</div>
+    </div>`;
+  }).join(''));
+
+  // 4 — easy-day discipline
+  const easy = cardio.filter(c => c.zones).slice(0, 10).reverse();
+  html += _card('EASY-DAY DISCIPLINE', 'var(--text3)', `
+    <div style="font-size:.76rem;color:var(--text2);margin-bottom:.55rem">Share of each easy session actually at or under ${(s.hrZones && s.hrZones.z2) || 153} bpm.</div>
+    ${easy.length ? `<div style="display:flex;align-items:flex-end;gap:4px;height:58px">
+      ${easy.map(c => {
+        const pct = (c.zones.z1.pct || 0) + (c.zones.z2.pct || 0);
+        return `<div title="${escAttr(Utils.formatDate(c.date) + ' · ' + pct + '%')}" style="flex:1;height:${Math.max(3, pct)}%;background:${pct >= 60 ? 'var(--accent2)' : 'var(--danger)'};border-radius:3px 3px 0 0"></div>`;
+      }).join('')}
+    </div>` : `<div style="font-size:.78rem;color:var(--text3)">No runs with heart-rate data imported yet.</div>`}`);
+
+  // 5 — strength against the block targets
+  const targets = (plan && plan.targets) || [];
+  const liftRows = targets.filter(t => /squat|deadlift|bench|press|pull/i.test(t.metric)).map(t => `
+    <div style="margin-bottom:.6rem">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.2rem">
+        <div style="font-size:.82rem;font-weight:500">${t.metric}</div>
+        <div style="font-size:.74rem;color:var(--text3)">${t.from} <span style="opacity:.5">→</span> <span style="color:var(--text)">${t.to}</span></div>
+      </div>
+      <div style="height:4px;border-radius:2px;background:var(--bg3)"><div style="height:4px;border-radius:2px;background:var(--accent);width:0%"></div></div>
+    </div>`).join('');
+  if (liftRows) html += _card('STRENGTH', 'var(--accent)', liftRows);
+
+  // 6 — movement ladders
+  const goals = Custom.getAllGoals().filter(g => g.priority <= 2).slice(0, 6);
+  html += _card('MOVEMENTS', 'var(--domain)', `
+    <div style="font-size:.76rem;color:var(--text2);margin-bottom:.6rem">Not block targets. They progress inside the daily blocks — this is where you notice them move.</div>
+    ${goals.map(g => {
+      const at = Profile.getGoalMilestone(App.profile, g.id) || 0;
+      const total = (g.milestones || []).length;
+      const open = _openMove === g.id;
+      return `<div style="border:1px solid ${open ? 'var(--border)' : 'transparent'};background:${open ? 'var(--bg3)' : 'transparent'};border-radius:11px;padding:${open ? '.6rem' : '0 0 .1rem'};margin-bottom:.55rem">
+        <button type="button" onclick="toggleMove('${g.id}')" style="background:none;border:none;padding:0;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.25rem">
+            <div style="font-size:.85rem;font-weight:600">${g.name}</div>
+            <div style="font-size:.72rem;color:var(--text3)">${at}/${total} ${open ? '▾' : '▸'}</div>
+          </div>
+          <div style="display:flex;gap:3px;margin-bottom:.25rem">
+            ${(g.milestones || []).map((_, i) => `<div style="flex:1;height:5px;border-radius:2px;background:${i < at ? 'var(--domain)' : 'var(--bg3)'}"></div>`).join('')}
+          </div>
+          <div style="font-size:.76rem;color:var(--text2)">${(g.milestones || [])[at] || 'complete'}</div>
+        </button>
+        ${open ? `<div style="margin-top:.6rem;padding-top:.5rem;border-top:1px solid var(--border)">
+          ${(g.milestones || []).map((m, i) => `<div style="display:flex;align-items:flex-start;gap:.5rem;padding:.25rem 0">
+            <div style="width:14px;height:14px;border-radius:7px;flex-shrink:0;margin-top:.1rem;border:1.5px solid ${i < at ? 'var(--domain)' : 'var(--border)'};background:${i < at ? 'var(--domain)' : 'transparent'}"></div>
+            <div style="flex:1;font-size:.78rem;line-height:1.4;color:${i < at ? 'var(--text)' : 'var(--text3)'}">${m}</div>
+            ${i === at ? '<div style="font-size:.6rem;font-weight:700;letter-spacing:.08em;color:var(--domain);border:1px solid var(--warn-bdr);background:var(--warn-bg);border-radius:5px;padding:.1rem .35rem">HERE</div>' : ''}
+          </div>`).join('')}
+          <div style="font-size:.66rem;letter-spacing:.1em;font-weight:600;color:var(--text3);margin:.7rem 0 .35rem">FEEDS IT</div>
+          <div style="display:flex;flex-wrap:wrap;gap:.3rem">
+            ${(g.feedExercises || []).map(id => {
+              const ex = LIBRARY.find(e => e.id === id) || Custom.getAllExercises().find(e => e.id === id);
+              return ex ? `<span style="font-size:.72rem;padding:.2rem .5rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text2)">${ex.name}</span>` : '';
+            }).join('')}
+          </div>
+        </div>` : ''}
+      </div>`;
+    }).join('')}`);
+
+  el.innerHTML = html;
 }
 
 function sessionRow(s) {
