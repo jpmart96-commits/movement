@@ -189,6 +189,19 @@ Object.assign(DB, {
       }, 'user_id,date');
       return;
     }
+    // Month plan (js/monthplan.js) — the four-week block skeleton. One row
+    // per block; block_start doubles as the natural key so regenerating the
+    // same block updates it rather than piling up duplicates.
+    if (fullKey === 'pb_month_plan') {
+      await _upsert('month_plans', {
+        user_id: uid,
+        block_start: value?.blockStart || null,
+        block_end:   value?.blockEnd   || null,
+        title:       value?.title      || null,
+        data: value,
+      }, 'user_id,block_start');
+      return;
+    }
     // Hevy exercise-name aliases (js/import.js) — { normalizedHevyName:
     // exerciseId }, learned each time the user confirms a mapping on the
     // import screen. Stored in the generic `overrides` table since it is
@@ -233,7 +246,7 @@ Object.assign(DB, {
     const uid = user.id;
     console.log('Pulling data for user', uid);
 
-    const [profile, sidx, sessions, exes, goals, ovRows, cacheRows, scaffold, instances] = await Promise.all([
+    const [profile, sidx, sessions, exes, goals, ovRows, cacheRows, scaffold, instances, monthPlan] = await Promise.all([
       _rest('profile',          'GET', { eq:{user_id:uid}, select:'data' }),
       _rest('session_index',    'GET', { eq:{user_id:uid}, select:'data' }),
       _rest('sessions',         'GET', { eq:{user_id:uid}, select:'session_key,data', order:'date.desc', limit:50 }),
@@ -243,6 +256,7 @@ Object.assign(DB, {
       _rest('cache',            'GET', { eq:{user_id:uid}, select:'cache_key,data' }),
       _rest('week_scaffold',    'GET', { eq:{user_id:uid}, select:'data' }),
       _rest('daily_instances',  'GET', { eq:{user_id:uid}, select:'date,data', order:'date.desc', limit:30 }),
+      _rest('month_plans',      'GET', { eq:{user_id:uid}, select:'data', order:'block_start.desc', limit:1 }),
     ]);
 
     if (Array.isArray(profile)  && profile[0])  localStorage.setItem('pb_profile',          JSON.stringify(profile[0].data));
@@ -261,6 +275,7 @@ Object.assign(DB, {
     if (Array.isArray(cacheRows))               cacheRows.forEach(r => localStorage.setItem('pb_'+r.cache_key,  JSON.stringify(r.data)));
     if (Array.isArray(scaffold) && scaffold[0]) localStorage.setItem('pb_week_scaffold',    JSON.stringify(scaffold[0].data));
     if (Array.isArray(instances))               instances.forEach(r => localStorage.setItem('pb_daily_instance_'+r.date, JSON.stringify(r.data)));
+    if (Array.isArray(monthPlan) && monthPlan[0]) localStorage.setItem('pb_month_plan',      JSON.stringify(monthPlan[0].data));
 
     console.log('Pull complete');
   },
@@ -384,6 +399,10 @@ async function manualSync() {
     await DB._flush();       // push any pending local writes first
     await DB.pull();         // pull fresh from Supabase
     App.profile = Profile.load();
+    // Push the shipped block skeleton into storage (and therefore Supabase)
+    // the first time this device boots, so the .ics feed has something to
+    // serve without waiting for a session to be generated.
+    if (typeof MonthPlan !== 'undefined') MonthPlan.ensureSeeded();
     const time = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
     if (status) { status.textContent = `Synced ✓ ${time}`; status.style.color = 'var(--accent2)'; }
     // Re-render current screen
