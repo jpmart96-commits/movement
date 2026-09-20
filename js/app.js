@@ -1486,6 +1486,38 @@ const Generator = {
       } finally { this._tierCap = prev; }
     }
 
+    // ── Swap one exercise, leave the rest of the day alone ──
+    // Reached from the exercise sheet. The replacement comes from the same
+    // pool the block was built from, minus everything already in the day,
+    // and inherits the minutes so the block still adds up.
+    if (intent.action === 'swap_exercise') {
+      const blocks = instance.blocks.map(b => ({ ...b, exercises: [...(b.exercises || [])] }));
+      const bi = blocks.findIndex(b => b.key === intent.blockKey);
+      if (bi === -1) return null;
+      const ei = blocks[bi].exercises.findIndex(e => e.id === intent.exerciseId);
+      if (ei === -1) return null;
+
+      const used = new Set();
+      instance.blocks.forEach(b => (b.exercises || []).forEach(e => used.add(e.id)));
+      const pool = this._poolForBlock(blocks[bi], instance).filter(id => !used.has(id));
+      if (!pool.length) return null;
+
+      const painTags  = this._parsePainTags(instance.pain);
+      const resolveEx = this._resolveExFactory(profile, painTags.avoid);
+      const lastSeen  = History.getExerciseLastSeenMap(60);
+      // Longest-unseen first, so a swap is also a rotation rather than
+      // whatever happens to sit next in the library.
+      const ordered = pool.slice().sort((a, b) => (lastSeen[a] || '') < (lastSeen[b] || '') ? -1 : 1);
+
+      const old = blocks[bi].exercises[ei];
+      let pick = null;
+      for (const id of ordered) { pick = resolveEx(id); if (pick) break; }
+      if (!pick) return null;
+      pick.allocatedMinutes = old.allocatedMinutes;
+      blocks[bi].exercises[ei] = pick;
+      return { ...instance, blocks, swapped: { from: old.id, to: pick.id } };
+    }
+
     // ── Reshuffle: same shape, different picks ──
     if (intent.action === 'reshuffle') {
       const used = new Set();
@@ -1533,6 +1565,28 @@ const Generator = {
   // not stored anywhere — a pure function of those, same as generateFromScaffold
   // itself). Fixed-content blocks (Reading, Breakfast, Meditate, Light Work)
   // just get their duration bumped, no pool involved.
+  // The pool a given block was drawn from — re-derived, never stored, the
+  // same way _regenerateBlockAtDuration derives it. Shared so a single-
+  // exercise swap and a whole-block resize can never disagree about where
+  // a block's exercises are allowed to come from.
+  _poolForBlock(block, instance) {
+    const key = block.key || '';
+    if (key === 'open' || key === 'close') return [];
+    if (key === 'complementary') {
+      return this._poolForCoordDomain(block.coordDomain || instance.coordDomain);
+    }
+    if (key.startsWith('main-focus:')) {
+      return this._poolForTag(key.replace('main-focus:', ''));
+    }
+    if (key === 'mobility' || key === 'accessory') {
+      const slotKey = instance.themeOverride || instance.weekday;
+      const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[slotKey] : null;
+      const tags = (slot && slot[key] && slot[key].tags) || [];
+      return [...new Set(tags.flatMap(t => this._poolForTag(t)))];
+    }
+    return [];
+  },
+
   _regenerateBlockAtDuration(block, newDuration, instance, profile) {
     // Fixed-content blocks just take the new duration; there is no pool to
     // re-draw from.
