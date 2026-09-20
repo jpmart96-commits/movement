@@ -275,7 +275,19 @@ Object.assign(DB, {
     if (Array.isArray(cacheRows))               cacheRows.forEach(r => localStorage.setItem('pb_'+r.cache_key,  JSON.stringify(r.data)));
     if (Array.isArray(scaffold) && scaffold[0]) localStorage.setItem('pb_week_scaffold',    JSON.stringify(scaffold[0].data));
     if (Array.isArray(instances))               instances.forEach(r => localStorage.setItem('pb_daily_instance_'+r.date, JSON.stringify(r.data)));
-    if (Array.isArray(monthPlan) && monthPlan[0]) localStorage.setItem('pb_month_plan',      JSON.stringify(monthPlan[0].data));
+    // A remote plan older than the shipped seed must not overwrite it, or a
+    // pull silently reinstates the previous block on a device that has just
+    // been updated — which is exactly how the 21 Sep plan kept coming back.
+    if (Array.isArray(monthPlan) && monthPlan[0]) {
+      const remotePlan = monthPlan[0].data;
+      const seedV = (typeof MONTH_PLAN_SEED !== 'undefined' && MONTH_PLAN_SEED.seedVersion) || 0;
+      if (((remotePlan && remotePlan.seedVersion) || 0) >= seedV) {
+        localStorage.setItem('pb_month_plan', JSON.stringify(remotePlan));
+      } else {
+        console.log('Pull: ignoring month_plan seedVersion',
+          (remotePlan && remotePlan.seedVersion) || 0, '< shipped', seedV);
+      }
+    }
 
     console.log('Pull complete');
   },

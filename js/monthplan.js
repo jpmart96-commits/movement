@@ -30,11 +30,18 @@ const MonthPlan = {
   // time the app runs, so the .ics feed has something to serve.
   ensureSeeded() {
     if (typeof DB === 'undefined') return null;
-    if (!DB.get(this.KEY) && typeof MONTH_PLAN_SEED !== 'undefined') {
-      DB.set(this.KEY, MONTH_PLAN_SEED);
-      return MONTH_PLAN_SEED;
+    const seed = (typeof MONTH_PLAN_SEED !== 'undefined') ? MONTH_PLAN_SEED : null;
+    if (!seed) return DB.get(this.KEY);
+    const stored = DB.get(this.KEY);
+    // Supersede by version, not just by absence. There is no in-app plan
+    // editor yet, so a stored plan is only ever a copy of an older seed and
+    // there is nothing of the user's to protect by keeping it. If an editor
+    // ever lands, this needs to stop clobbering user edits.
+    if (!stored || (stored.seedVersion || 0) < (seed.seedVersion || 0)) {
+      DB.set(this.KEY, seed);
+      return seed;
     }
-    return DB.get(this.KEY);
+    return stored;
   },
 
   dayFor(date) {

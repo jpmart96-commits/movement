@@ -408,6 +408,13 @@
 </div>
 
 <!-- Manual session log modal (global) — log a session you did without the generator -->
+<div class="modal-backdrop" id="day-sheet-backdrop" style="display:none" onclick="closeDaySheet()">
+  <div class="modal modal-tall" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeDaySheet()">&#10005;</button>
+    <div id="day-sheet-body"></div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="manual-log-backdrop" style="display:none" onclick="closeManualLogModal()">
   <div class="modal modal-tall" onclick="event.stopPropagation()">
     <button class="modal-close" onclick="closeManualLogModal()">✕</button>
@@ -625,7 +632,7 @@ function renderHome() {
       h += `<div class="mv-eyebrow" style="margin:1.2rem 0 .5rem">Week ${wk.n} &middot; ${wk.label}${preBlock ? ' &middot; starts ' + Utils.formatDate(plan.blockStart) : ''}</div>
       <div class="mv-week">${wdays.map(d => {
         const dd = new Date(d.date + 'T12:00:00');
-        return `<div class="mv-day ${d.date===tk?'today':''}" title="${escAttr(d.theme)}">
+        return `<div class="mv-day ${d.date===tk?'today':''}" title="${escAttr(d.theme)}" role="button" tabindex="0" style="cursor:pointer" onclick="openDaySheet('${d.date}')">
           <div class="mv-day-dow">${['S','M','T','W','T','F','S'][dd.getDay()]}</div>
           <div class="mv-day-num">${dd.getDate()}</div>
           <div class="mv-day-dot" style="background:${DAY_DOT[_dayKind(d)]}"></div>
@@ -2882,6 +2889,90 @@ function deleteSession(id){ if(!confirm('Delete?'))return; History.deleteSession
 let _ml = { exercises: [] };
 
 const _ML_THEME_IDS = ['weights','calisthenics','gymnastics-conditioning','mobility-movement','flexibility','weighted-mobility','yoga','power-plyo','cardio','coordination'];
+
+// ── Day sheet ────────────────────────────────────────────────
+// Tap any day in the week strip to read it. Read-only on purpose — a
+// mis-tap on a calendar strip should never change anything.
+//
+// Content comes from, in order: a completed session, a saved instance for
+// that date, or a fresh generation. Once a week is generated ahead of time
+// the first two cover every day and nothing is generated here at all.
+const _DS_DOW = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const _DS_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function openDaySheet(dateStr) {
+  const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
+  const day  = plan ? (plan.days  || []).find(d => d.date === dateStr) : null;
+  const wk   = (plan && day) ? (plan.weeks || []).find(w => w.n === day.week) : null;
+
+  let sess = (typeof DB !== 'undefined') ? DB.get('daily_instance_' + dateStr) : null;
+  let source;
+  if (sess && sess.status === 'completed') {
+    source = 'Completed \u2014 this is what you logged.';
+  } else if (sess) {
+    source = 'Saved for this day.';
+  } else {
+    try {
+      sess = Generator.generateFromScaffold({
+        date: new Date(dateStr + 'T12:00:00'),
+        profile: (typeof App !== 'undefined') ? App.profile : null,
+        sleep: 0, energy: 0, pain: '', focus: '',
+      });
+      source = 'Built just now to show the shape of the day. Not saved \u2014 the exercises can still move.';
+    } catch (e) {
+      sess = null;
+      source = 'Could not build this day: ' + e.message;
+    }
+  }
+
+  const dd = new Date(dateStr + 'T12:00:00');
+  let h = '<div class="modal-title">' + _DS_DOW[dd.getDay()] + ' ' + dd.getDate() + ' ' + _DS_MON[dd.getMonth()] + '</div>';
+
+  if (day) {
+    h += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:-.2rem 0 .7rem">'
+       +   '<span style="width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;background:' + DAY_DOT[_dayKind(day)] + '"></span>'
+       +   '<strong style="font-size:1rem">' + (day.benchmark ? '\u2605 ' : '') + escAttr(day.theme) + '</strong>'
+       +   '<span style="font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">' + escAttr(day.load) + '</span>'
+       + '</div>';
+    if (wk) h += '<div style="font-size:.75rem;color:var(--text3);margin-bottom:.55rem">Week ' + wk.n + ' \u00b7 ' + escAttr(wk.label) + '</div>';
+    if (day.coordDomain) h += '<div style="font-size:.78rem;margin-bottom:.55rem">Complementary block: <strong>' + escAttr(day.coordDomain) + '</strong></div>';
+    if (day.focusNote)    h += '<div class="mv-card" style="margin-bottom:.8rem;font-size:.8rem;line-height:1.5">' + escAttr(day.focusNote) + '</div>';
+    if (day.intervalSpec) h += '<div class="mv-card mv-card--warm" style="margin-bottom:.8rem;font-size:.78rem;line-height:1.5">' + escAttr(day.intervalSpec) + '</div>';
+  } else {
+    h += '<div class="empty-state">No plan for this date.</div>';
+  }
+
+  if (sess && sess.blocks && sess.blocks.length) {
+    h += '<div style="font-size:.73rem;color:var(--text3);margin:.9rem 0 .55rem">'
+       + (sess.duration || 0) + ' min \u00b7 ' + sess.blocks.length + ' blocks</div>';
+    sess.blocks.forEach(function (b) {
+      h += '<div style="margin-bottom:.9rem">'
+         +   '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem">'
+         +     '<strong style="font-size:.86rem">' + escAttr(b.label) + '</strong>'
+         +     '<span style="font-size:.72rem;color:var(--text3);white-space:nowrap">' + (b.duration || 0) + ' min</span>'
+         +   '</div>';
+      if (b.note) h += '<div style="font-size:.74rem;color:var(--text3);line-height:1.45;margin:.2rem 0 .35rem">' + escAttr(b.note) + '</div>';
+      (b.exercises || []).forEach(function (e) {
+        h += '<div style="display:flex;justify-content:space-between;gap:.6rem;padding:.3rem 0;font-size:.79rem">'
+           +   '<span>' + escAttr(e.name)
+           +     (e.notes ? '<span style="display:block;font-size:.71rem;color:var(--text3);line-height:1.4;margin-top:.1rem">' + escAttr(e.notes) + '</span>' : '')
+           +   '</span>'
+           +   '<span style="color:var(--text3);white-space:nowrap">' + (e.allocatedMinutes ? e.allocatedMinutes + ' min' : '') + '</span>'
+           + '</div>';
+      });
+      h += '</div>';
+    });
+  }
+
+  h += '<div style="font-size:.72rem;color:var(--text3);margin-top:.9rem;font-style:italic">' + escAttr(source) + '</div>';
+
+  document.getElementById('day-sheet-body').innerHTML = h;
+  document.getElementById('day-sheet-backdrop').style.display = 'flex';
+}
+
+function closeDaySheet() {
+  document.getElementById('day-sheet-backdrop').style.display = 'none';
+}
 
 function openManualLogModal() {
   _ml = { exercises: [] };

@@ -36,6 +36,12 @@
 // ────────────────────────────────────────────────────────────
 
 const MONTH_PLAN_SEED = {
+  // Bumped whenever this file's plan changes. ensureSeeded() supersedes a
+  // stored plan with a lower version, and a pull refuses to downgrade past
+  // it — without that, the seed reaches storage exactly once and every
+  // later revision is silently ignored on the one device that matters.
+  "seedVersion": 2,
+
   "title": "Block 1 — Aerobic engine + strength",
   "blockStart": "2026-09-20",
   "blockEnd": "2026-10-25",
