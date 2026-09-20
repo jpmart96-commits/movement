@@ -3,19 +3,22 @@
    ───────────────────────────────────────────────────────────── */
 
 :root {
-  --bg:        #F5F5F7;
+  --bg:        #FAF9F5;
   --bg2:       #FFFFFF;
-  --bg3:       #EBEBED;
-  --text:      #1A1A2E;
-  --text2:     #5A5A72;
-  --text3:     #9A9AAA;
-  --border:    #E2E2E8;
-  --accent:    #185FA5;
-  --accent2:   #1D9E75;
-  --danger:    #C0392B;
-  --warn-bg:   #FFF4E0;
-  --warn-text: #8A5200;
-  --warn-bdr:  #F0C060;
+  --bg3:       #F2F0E9;
+  --text:      #1A1A18;
+  --text2:     #4A4A44;
+  --text3:     #6E6E67;
+  --border:    #E2DFD5;
+  --accent:    #2563EB;
+  --accent2:   #0E7A5F;
+  --warm:      #B4611A;
+  --domain:    #9C6B10;
+  --danger:    #AE3820;
+  --warn-bg:   #FDF6EC;
+  --warn-text: #7A6344;
+  --warn-bdr:  #ECD7BA;
+  --on-accent: #FFFFFF;
   --radius:    12px;
   --radius-sm: 8px;
   --nav-h:     64px;
@@ -23,18 +26,49 @@
   --safe-b:    env(safe-area-inset-bottom, 0px);
 }
 
+/* Themes are chosen, not dictated. The OS preference still decides by
+   default, but an explicit data-theme on <html> overrides it either way
+   (Settings -> Appearance). The two dark blocks are identical on purpose:
+   plain CSS has no way to share a declaration list across selectors, and
+   keeping them literal beats a build step for one file. */
 @media (prefers-color-scheme: dark) {
-  :root {
-    --bg:      #111118;
-    --bg2:     #1C1C24;
-    --bg3:     #27272F;
-    --text:    #F0F0F8;
-    --text2:   #9A9AB0;
-    --text3:   #666678;
-    --border:  #2E2E3A;
-    --accent:  #4A9EE8;
-    --accent2: #1D9E75;
+  :root:not([data-theme="light"]) {
+    --bg:      #0E0F11;
+    --bg2:     #17181B;
+    --bg3:     #1E2024;
+    --text:    #F2F2F0;
+    --text2:   #B4B7BD;
+    --text3:   #8A8D94;
+    --border:  #24262B;
+    --accent:  #4C8DF6;
+    --accent2: #3FB68B;
+    --warm:    #E0854A;
+    --domain:  #E0A83C;
+    --danger:  #C4563C;
+    --warn-bg: #1A1512;
+    --warn-text: #D9B48E;
+    --warn-bdr:  #3A2A1C;
+    --on-accent: #0B1220;
   }
+}
+
+:root[data-theme="dark"] {
+    --bg:      #0E0F11;
+    --bg2:     #17181B;
+    --bg3:     #1E2024;
+    --text:    #F2F2F0;
+    --text2:   #B4B7BD;
+    --text3:   #8A8D94;
+    --border:  #24262B;
+    --accent:  #4C8DF6;
+    --accent2: #3FB68B;
+    --warm:    #E0854A;
+    --domain:  #E0A83C;
+    --danger:  #C4563C;
+    --warn-bg: #1A1512;
+    --warn-text: #D9B48E;
+    --warn-bdr:  #3A2A1C;
+    --on-accent: #0B1220;
 }
 
 /* ── RESET ───────────────────────────────────────────────── */

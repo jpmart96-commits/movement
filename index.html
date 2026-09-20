@@ -313,6 +313,16 @@
     </button>
     <div class="collapsible-body collapsed" id="s-rest">
       <div class="card" style="margin:0">
+        <div class="section-label">Appearance</div>
+        <div class="setting-row" style="gap:.5rem">
+          <span>Theme</span>
+          <div style="display:flex;gap:.25rem">
+            <button type="button" data-theme-opt="system" aria-pressed="true"  onclick="setTheme('system')" style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:.375rem .625rem;font:inherit;font-size:.8125rem;cursor:pointer;background:var(--accent);color:var(--on-accent,#fff)">System</button>
+            <button type="button" data-theme-opt="light"  aria-pressed="false" onclick="setTheme('light')"  style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:.375rem .625rem;font:inherit;font-size:.8125rem;cursor:pointer;background:var(--bg3);color:var(--text2)">Light</button>
+            <button type="button" data-theme-opt="dark"   aria-pressed="false" onclick="setTheme('dark')"   style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:.375rem .625rem;font:inherit;font-size:.8125rem;cursor:pointer;background:var(--bg3);color:var(--text2)">Dark</button>
+          </div>
+        </div>
+        <div class="section-label">Rest timers</div>
         <div class="setting-row"><span>Heavy strength (s)</span><input type="number" class="num-input" id="rest-heavy" min="0" max="600" step="15" onchange="saveSetting('defaultRestHeavy',+this.value)"></div>
         <div class="setting-row"><span>Accessories (s)</span><input type="number" class="num-input" id="rest-acc" min="0" max="600" step="15" onchange="saveSetting('defaultRestAcc',+this.value)"></div>
         <div class="setting-row"><span>Skill work (s)</span><input type="number" class="num-input" id="rest-skill" min="0" max="600" step="15" onchange="saveSetting('defaultRestSkill',+this.value)"></div>
@@ -454,6 +464,32 @@
   </div>
 </div>
 
+<script>
+// Applied before the first paint so a chosen theme never flashes the other
+// one on load. Reads localStorage directly rather than waiting for Profile,
+// which is not defined yet at this point in the document.
+(function () {
+  try {
+    var p = JSON.parse(localStorage.getItem('pb_profile') || '{}');
+    var t = (p.settings && p.settings.theme) || 'system';
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  } catch (e) {}
+})();
+function applyTheme(t) {
+  if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  else delete document.documentElement.dataset.theme;
+}
+function setTheme(t) {
+  applyTheme(t);
+  saveSetting('theme', t);
+  document.querySelectorAll('[data-theme-opt]').forEach(function (b) {
+    var on = b.getAttribute('data-theme-opt') === t;
+    b.style.background = on ? 'var(--accent)' : 'var(--bg3)';
+    b.style.color = on ? 'var(--on-accent, #fff)' : 'var(--text2)';
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+</script>
 <script src="data/library.js"></script>
 <script src="data/scaffold.js"></script>
 <script src="data/monthplan.js"></script>
@@ -2401,6 +2437,9 @@ function toggleSection(id) {
 
 function renderSettings() {
   const s = App.profile.settings;
+  // Reflect the stored choice on the segmented control. setTheme also saves,
+  // which is harmless here (same value back), and keeps one code path.
+  setTheme(s.theme || 'system');
   document.getElementById('rest-heavy').value  = s.defaultRestHeavy;
   document.getElementById('rest-acc').value    = s.defaultRestAcc;
   document.getElementById('rest-skill').value  = s.defaultRestSkill;
