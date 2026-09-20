@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/rework.css">
 </head>
 <body>
 
@@ -62,46 +63,12 @@
 
 <!-- ═══ HOME ═══════════════════════════════════════════════════ -->
 <main id="screen-home" class="screen active">
-  <header class="screen-header">
-    <h1 class="logo">Movement</h1>
-    <button class="btn-ghost" style="width:auto;padding:.3rem .6rem;font-size:.8rem" onclick="navTo('settings')" aria-label="Settings">&#9881;</button>
-  </header>
+  <div id="block-body"></div>
+</main>
 
-  <!-- where you are in the block -->
-  <section class="card" id="block-card"></section>
-
-  <!-- today / tomorrow -->
-  <section class="card today-card">
-    <div class="today-day" id="today-day">Monday</div>
-    <div class="scaffold-theme-line" id="scaffold-theme-line" style="opacity:.7;margin:-.25rem 0 .5rem"></div>
-    <div id="block-focus-note"></div>
-    <button class="btn-primary" id="scaffold-cta" onclick="startScaffoldToday()">Today's Plan &#8599;</button>
-    <button class="btn-ghost" style="margin-top:.5rem" onclick="startToday()">Compose manually</button>
-    <button class="btn-ghost" onclick="openManualLogModal()">Log a past session</button>
-  </section>
-
-  <section class="card active-session-banner" id="active-banner" style="display:none">
-    <div class="banner-label">Session in progress</div>
-    <div class="banner-info" id="banner-info"></div>
-    <button class="btn-primary" onclick="navTo('session')">Continue &rarr;</button>
-  </section>
-
-  <!-- the week -->
-  <div class="section-label">This week</div>
-  <div id="block-week"></div>
-
-  <!-- next benchmark -->
-  <div id="block-benchmark"></div>
-
-  <section class="card">
-    <div class="stat-row">
-      <div class="stat-item"><div class="stat-val" id="stat-sessions">&mdash;</div><div class="stat-lbl">Sessions</div></div>
-      <div class="stat-item"><div class="stat-val" id="stat-streak">&mdash;</div><div class="stat-lbl">Streak</div></div>
-      <div class="stat-item"><div class="stat-val" id="stat-last">&mdash;</div><div class="stat-lbl">Last</div></div>
-    </div>
-  </section>
-  <div class="section-label">Recent</div>
-  <div id="home-recent"></div>
+<!-- ═══ TODAY ═══════════════════════════════════════════════════ -->
+<main id="screen-today" class="screen">
+  <div id="today-body"></div>
 </main>
 
 <!-- ═══ PROGRESS ═══════════════════════════════════════ -->
@@ -260,6 +227,10 @@
 
 <!-- ═══ LOG ══════════════════════════════════════════════════════ -->
 <main id="screen-log" class="screen">
+  <div style="padding:.4rem 0 .9rem">
+    <div class="logo" style="font-size:1.45rem">Log</div>
+    <div style="font-size:.76rem;color:var(--text3);margin-top:.15rem">What actually happened</div>
+  </div>
   <!-- Calendar -->
   <div class="section-label">Calendar</div>
   <div class="card" id="cal-wrap">
@@ -526,10 +497,6 @@ function setTheme(t) {
 // NAVIGATION
 // ─────────────────────────────────────────────────────────────
 function navTo(screen) {
-  if (screen === 'today') {
-    if (LiveSession.getSession()) return navTo('session');
-    return startScaffoldToday();
-  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('screen-' + screen)?.classList.add('active');
@@ -537,6 +504,7 @@ function navTo(screen) {
   App.screen = screen;
   document.getElementById('fab').style.display = screen === 'settings' ? 'flex' : 'none';
   if (screen === 'home')     renderHome();
+  if (screen === 'today')    renderToday();
   if (screen === 'progress') renderProgress();
   if (screen === 'generate') { renderThemeList(); initGenerateDuration(); }
   if (screen === 'goals')    renderGoals();
@@ -559,177 +527,164 @@ function escAttr(s) {
 // ─────────────────────────────────────────────────────────────
 // HOME
 // ─────────────────────────────────────────────────────────────
-function renderHome() {
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  document.getElementById('today-day').textContent = days[new Date().getDay()];
+// ─────────────────────────────────────────────────────────────
+// BLOCK — the home screen.
+// Ported from the design canvas: block card with the four-week bar,
+// today's card with the note and an edge-to-edge CTA, the week as seven
+// dated chips, and the next benchmark. Everything below the block card
+// still renders with no plan loaded.
+// ─────────────────────────────────────────────────────────────
+const DOMAIN_LABEL = (typeof COORD_DOMAIN_LABELS !== 'undefined') ? COORD_DOMAIN_LABELS : {};
+const DAY_DOT = { strength: 'var(--accent)', aerobic: 'var(--accent2)', test: 'var(--warm)', light: 'var(--text3)' };
 
-  // Scaffold theme line + resume state (project_scaffold_revamp)
-  const weekdayKeys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-  const wk = weekdayKeys[new Date().getDay()];
-  const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[wk] : null;
-  const themeLine = document.getElementById('scaffold-theme-line');
+function _dayKind(d) {
+  if (!d) return 'light';
+  if (d.benchmark) return 'test';
+  if (d.variant === 'light') return 'light';
+  if (/strength/i.test(d.theme)) return 'strength';
+  return 'aerobic';
+}
+
+function renderHome() {
+  const el = document.getElementById('block-body');
+  if (!el) return;
+  const now = new Date();
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const wkKeys = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[wkKeys[now.getDay()]] : null;
+  const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
+  const prog = plan ? MonthPlan.progress(now) : null;
+  const planDay = plan ? MonthPlan.dayFor(now) : null;
   const existing = DB.get(_todayInstanceKey());
   const done = !!existing && existing.status === 'completed';
-  if (themeLine) {
-    if (done) {
-      themeLine.textContent = `Today's plan is done \u2713 ${existing.theme}${existing.themeOverride ? ' (swapped)' : ''}`;
-    } else if (existing) {
-      themeLine.textContent = `Today's plan is ready: ${existing.theme}${existing.themeOverride ? ' (swapped)' : ''}${existing.fasting ? ' · fasted' : ''}`;
-    } else if (slot) {
-      themeLine.textContent = `${slot.theme}${slot.fasting ? ' · fasted' : ''}`;
-    } else {
-      themeLine.textContent = '';
-    }
-  }
-  const cta = document.getElementById('scaffold-cta');
-  if (cta) cta.textContent = done ? "Today's Plan \u2713" : (existing ? "Resume Today's Plan \u2197" : "Today's Plan \u2197");
+  const live = LiveSession.getSession();
+  const idx = History.getIndex(100);
 
-  renderBlockContext();
-
-  const banner = document.getElementById('active-banner');
-  if (LiveSession.getSession()) {
-    banner.style.display = 'block';
-    const prog = LiveSession.getProgress();
-    document.getElementById('banner-info').textContent = `${prog.done}/${prog.total} done · ${prog.elapsed}m elapsed`;
-    document.querySelector('.session-nav').style.display = 'flex';
-  } else { banner.style.display = 'none'; }
-
-  const index = History.getIndex(100);
-  document.getElementById('stat-sessions').textContent = index.length;
-  document.getElementById('stat-last').textContent = index[0] ? Utils.daysSince(index[0].date) + 'd ago' : '—';
-
+  // streak
   let streak = 0, check = new Date(); check.setHours(0,0,0,0); check = check.getTime();
-  for (const s of [...index].sort((a,b)=>new Date(b.date)-new Date(a.date))) {
-    const d = new Date(s.date); d.setHours(0,0,0,0);
+  for (const r of [...idx].sort((a,b)=>new Date(b.date)-new Date(a.date))) {
+    const d = new Date(r.date); d.setHours(0,0,0,0);
     if (d.getTime()===check||d.getTime()===check-86400000){streak++;check=d.getTime()-86400000;}else break;
   }
-  document.getElementById('stat-streak').textContent = streak;
 
-  // Stale high-priority goals
-  const stale = History.getStaledGoals(7).filter(g => {
-    const pg = Custom.getAllGoals().find(x => x.id === g.id);
-    return pg && pg.priority <= 2;
-  }).slice(0,3);
-  // The stale-goal flags moved to Progress, where the full ladder lives.
-  // Kept null-safe rather than deleted so an older cached index.html that
-  // still has the container keeps working.
-  const flagsEl = document.getElementById('goal-flags');
-  if (flagsEl) flagsEl.innerHTML = stale.length
-    ? `<div class="section-label">Needs attention</div>${stale.map(g => {
-        const pg = Custom.getAllGoals().find(x => x.id === g.id);
-        const ms = goalMilestoneInfo(g.id);
-        const last = History.getGoalLastPracticed(g.id);
-        return `<div class="card flag-card" onclick="navTo('goals')">
-          <div class="flag-name">${pg.name}</div>
-          <div class="flag-ms">${ms?.current||'—'}</div>
-          ${last?`<div class="flag-age">${Utils.daysSince(last)}d ago</div>`:'<div class="flag-age">never logged</div>'}
+  let h = '';
+
+  // top bar
+  h += `<div style="display:flex;align-items:baseline;justify-content:space-between;padding:.4rem 0 .9rem">
+    <div class="logo">MOVEMENT</div>
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <span style="font-size:.72rem;color:var(--text3)">${days[now.getDay()].slice(0,3)} ${now.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getMonth()]}</span>
+      <button class="mv-cal-nav" style="font-size:1rem" onclick="navTo('settings')" aria-label="Settings">&#9881;</button>
+    </div>
+  </div>`;
+
+  // block card
+  if (plan) {
+    const weeks = plan.weeks || [];
+    const cur = prog && prog.week;
+    h += `<div class="mv-card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.2rem">
+        <span class="mv-eyebrow mv-eyebrow--warm">Block</span>
+        <span style="font-size:.68rem;color:var(--text3)">${Utils.formatDate(plan.blockStart)} &ndash; ${Utils.formatDate(plan.blockEnd)}</span>
+      </div>
+      <div class="mv-display" style="font-size:1.25rem;margin-bottom:.8rem">${plan.title || 'Current block'}</div>
+      <div class="mv-weekbar">${weeks.map(w=>`<i class="${w.n===cur?'on':''}"></i>`).join('')}</div>
+      <div class="mv-weekbar-labels">${weeks.map(w=>`<span class="${w.n===cur?'on':''}">${w.label}</span>`).join('')}</div>
+      ${prog && prog.dayNumber ? `<div style="margin-top:.7rem;font-size:.76rem;color:var(--text2)">Day ${prog.dayNumber} of ${prog.totalDays}</div>` : ''}
+    </div>`;
+  }
+
+  // today card
+  const theme = (planDay && planDay.theme) || (existing && existing.theme) || (slot && slot.theme) || '—';
+  const mins  = existing ? existing.duration : (slot ? (slot.variant === 'light' ? 85 : 140) : null);
+  const chips = [];
+  if (planDay && planDay.coordDomain) chips.push(`<span class="mv-chip mv-chip--accent">${DOMAIN_LABEL[planDay.coordDomain] || planDay.coordDomain}</span>`);
+  chips.push(`<span class="mv-chip">${slot && slot.variant === 'light' ? '09:00 – 10:25' : '09:00 – 11:20'}</span>`);
+  if (planDay && planDay.load) chips.push(`<span class="mv-chip">${planDay.load}</span>`);
+  h += `<div class="mv-card mv-card--flush">
+    <div style="padding:1rem 1rem .9rem">
+      <div class="mv-eyebrow" style="margin-bottom:.35rem">Today${prog && prog.dayNumber ? ' · day ' + prog.dayNumber : ''}</div>
+      <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.6rem">
+        <div class="mv-display" style="font-size:1.6rem">${theme}</div>
+        ${mins ? `<div style="font-size:.8rem;color:var(--text3)">${mins} min</div>` : ''}
+      </div>
+      <div class="mv-chips" style="margin-bottom:.8rem">${chips.join('')}</div>
+      ${planDay && planDay.focusNote ? `<div class="mv-note">${planDay.focusNote}</div>` : (slot && slot.fuel ? `<div class="mv-note">${slot.fuel}</div>` : '')}
+    </div>
+    <button class="mv-cta mv-cta--edge" onclick="${done ? "navTo('log')" : 'startScaffoldToday()'}">${done ? 'Today’s plan is done ✓' : (existing ? 'Resume today’s plan ↗' : 'Open today ↗')}</button>
+  </div>`;
+
+  if (live) {
+    const pr = LiveSession.getProgress();
+    h += `<div class="mv-card" style="border-color:var(--accent2)">
+      <div class="mv-eyebrow mv-eyebrow--green" style="margin-bottom:.25rem">Session in progress</div>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:.6rem">${pr.done}/${pr.total} done &middot; ${pr.elapsed}m elapsed</div>
+      <button class="mv-cta" onclick="navTo('session')">Continue &rarr;</button>
+    </div>`;
+  }
+
+  h += `<button class="mv-ghost" onclick="startToday()">Compose manually</button>
+        <button class="mv-ghost" onclick="openManualLogModal()">Log a past session</button>`;
+
+  // week strip
+  if (plan && prog && prog.week) {
+    const wk = (plan.weeks || []).find(w => w.n === prog.week);
+    const wdays = wk ? (plan.days || []).filter(d => d.date >= wk.start && d.date <= wk.end) : [];
+    const tk = MonthPlan._key(now);
+    if (wdays.length) {
+      h += `<div class="mv-eyebrow" style="margin:1.2rem 0 .5rem">Week ${wk.n} &middot; ${wk.label}</div>
+      <div class="mv-week">${wdays.map(d => {
+        const dd = new Date(d.date + 'T12:00:00');
+        return `<div class="mv-day ${d.date===tk?'today':''}" title="${escAttr(d.theme)}">
+          <div class="mv-day-dow">${['S','M','T','W','T','F','S'][dd.getDay()]}</div>
+          <div class="mv-day-num">${dd.getDate()}</div>
+          <div class="mv-day-dot" style="background:${DAY_DOT[_dayKind(d)]}"></div>
         </div>`;
-      }).join('')}` : '';
+      }).join('')}</div>
+      <div class="mv-legend">
+        <span><i style="background:var(--accent)"></i>strength</span>
+        <span><i style="background:var(--accent2)"></i>aerobic</span>
+        <span><i style="background:var(--warm)"></i>test</span>
+        <span><i style="background:var(--text3)"></i>light</span>
+      </div>`;
+    }
+  }
 
-  document.getElementById('home-recent').innerHTML = History.getIndex(5).map(sessionRow).join('') || '<div class="empty-state">No sessions yet.</div>';
+  // next benchmark
+  if (plan) {
+    const next = MonthPlan.upcomingBenchmarks(now)[0];
+    if (next) h += `<div class="mv-card mv-card--warm" style="margin-top:1rem;display:flex;gap:.7rem;align-items:flex-start">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--warm)" stroke-width="1.8" stroke-linejoin="round" style="flex-shrink:0;margin-top:.1rem"><polygon points="12 2 15.1 8.6 22 9.6 17 14.5 18.2 21.4 12 18.1 5.8 21.4 7 14.5 2 9.6 8.9 8.6 12 2"/></svg>
+      <div>
+        <div style="font-size:.85rem;font-weight:600;margin-bottom:.2rem">${Utils.formatDate(next.date)} &mdash; ${next.theme}</div>
+        <div style="font-size:.76rem;line-height:1.45;color:var(--warn-text)">${next.focusNote || ''}</div>
+      </div>
+    </div>`;
+  }
+
+  // stats + recent
+  h += `<div class="mv-card" style="margin-top:1rem;display:flex;text-align:center">
+    <div style="flex:1"><div class="mv-stat-v">${idx.length}</div><div class="mv-stat-k">Sessions</div></div>
+    <div style="flex:1"><div class="mv-stat-v">${streak}</div><div class="mv-stat-k">Streak</div></div>
+    <div style="flex:1"><div class="mv-stat-v">${idx[0] ? Utils.daysSince(idx[0].date)+'d' : '—'}</div><div class="mv-stat-k">Last</div></div>
+  </div>
+  <div class="mv-eyebrow" style="margin:1.2rem 0 .5rem">Recent</div>
+  ${History.getIndex(5).map(sessionRow).join('') || '<div class="empty-state">No sessions yet.</div>'}`;
+
+  el.innerHTML = h;
 }
 
-// ────────────────────────────────────────────────────────────
-// BLOCK CONTEXT — where today sits in the four-week plan.
-// Everything here degrades to nothing when no plan covers today, so the
-// screen still works outside a block.
-// ────────────────────────────────────────────────────────────
-const DOMAIN_LABEL = (typeof COORD_DOMAIN_LABELS !== 'undefined') ? COORD_DOMAIN_LABELS : {};
-
-function _dayColor(d) {
-  if (!d) return 'var(--text3)';
-  if (d.benchmark) return 'var(--warm)';
-  if (d.variant === 'light') return 'var(--text3)';
-  if (/strength/i.test(d.theme)) return 'var(--accent)';
-  return 'var(--accent2)';
-}
-
-function renderBlockContext() {
-  const card  = document.getElementById('block-card');
-  const note  = document.getElementById('block-focus-note');
-  const weekEl = document.getElementById('block-benchmark');
-  const weekBox = document.getElementById('block-week');
-  const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
-  const today = new Date();
-  const prog = plan ? MonthPlan.progress(today) : null;
-
-  if (!plan) {
-    if (card) card.style.display = 'none';
-    [note, weekEl, weekBox].forEach(el => { if (el) el.innerHTML = ''; });
-    return;
-  }
-  if (card) card.style.display = '';
-
-  // ── block header + week bar
-  const weeks = plan.weeks || [];
-  const curWeek = prog && prog.week;
-  if (card) {
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.15rem">
-        <div style="font-size:.7rem;letter-spacing:.12em;font-weight:600;color:var(--warm)">BLOCK</div>
-        <div style="font-size:.7rem;color:var(--text3)">${Utils.formatDate(plan.blockStart)} – ${Utils.formatDate(plan.blockEnd)}</div>
-      </div>
-      <div style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;letter-spacing:-.01em;line-height:1.25;margin-bottom:.7rem">${plan.title || 'Current block'}</div>
-      <div style="display:flex;gap:.25rem;margin-bottom:.4rem">
-        ${weeks.map(w => `<div style="flex:1;height:6px;border-radius:3px;background:${w.n === curWeek ? 'var(--accent)' : 'var(--bg3)'}"></div>`).join('')}
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--text3)">
-        ${weeks.map(w => `<span style="${w.n === curWeek ? 'color:var(--text);font-weight:600' : ''}">${w.label}</span>`).join('')}
-      </div>
-      ${prog && prog.dayNumber ? `<div style="margin-top:.6rem;font-size:.78rem;color:var(--text2)">Day ${prog.dayNumber} of ${prog.totalDays}</div>` : ''}`;
-  }
-
-  // ── today's note from the plan
-  const day = MonthPlan.dayFor(today);
-  if (note) {
-    const bits = [];
-    if (day && day.coordDomain) bits.push(`<span style="font-size:.72rem;padding:.2rem .5rem;border-radius:999px;background:var(--bg3);color:var(--text2)">${DOMAIN_LABEL[day.coordDomain] || day.coordDomain}</span>`);
-    if (day && day.load) bits.push(`<span style="font-size:.72rem;padding:.2rem .5rem;border-radius:999px;background:var(--bg3);color:var(--text2)">${day.load}</span>`);
-    note.innerHTML = `
-      ${bits.length ? `<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.5rem">${bits.join('')}</div>` : ''}
-      ${day && day.focusNote ? `<div style="font-size:.8rem;line-height:1.45;color:var(--text2);padding-left:.6rem;border-left:2px solid var(--warm);margin-bottom:.6rem">${day.focusNote}</div>` : ''}`;
-  }
-
-  // ── the seven days of the current week
-  if (weekBox) {
-    const wk = weeks.find(w => w.n === curWeek);
-    const days = wk ? (plan.days || []).filter(d => d.date >= wk.start && d.date <= wk.end) : [];
-    const todayKey = MonthPlan._key(today);
-    weekBox.innerHTML = days.length ? `<div class="card" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.3rem">
-      ${days.map(d => {
-        const isToday = d.date === todayKey;
-        return `<div title="${escAttr(d.theme)}" style="text-align:center;padding:.4rem .1rem;border-radius:9px;background:${isToday ? 'var(--bg3)' : 'transparent'};border:1px solid ${isToday ? 'var(--accent)' : 'transparent'}">
-          <div style="font-size:.62rem;color:var(--text3)">${['S','M','T','W','T','F','S'][new Date(d.date + 'T12:00:00').getDay()]}</div>
-          <div style="font-size:.8rem;font-weight:600;margin:.15rem 0">${+d.date.slice(8)}</div>
-          <div style="width:6px;height:6px;border-radius:3px;margin:0 auto;background:${_dayColor(d)}"></div>
-        </div>`;
-      }).join('')}
-    </div>` : '';
-  }
-
-  // ── the next test, so it never arrives as a surprise
-  if (weekEl) {
-    const next = MonthPlan.upcomingBenchmarks(today)[0];
-    weekEl.innerHTML = next ? `<div class="card" style="border-color:var(--warn-bdr);background:var(--warn-bg)">
-      <div style="font-size:.7rem;letter-spacing:.12em;font-weight:600;color:var(--warm);margin-bottom:.25rem">NEXT BENCHMARK</div>
-      <div style="font-size:.9rem;font-weight:600;margin-bottom:.2rem">${Utils.formatDate(next.date)} — ${next.theme}</div>
-      <div style="font-size:.78rem;line-height:1.45;color:var(--warn-text)">${next.focusNote || ''}</div>
-    </div>` : '';
-  }
-}
-
-// ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // PROGRESS — is the block working?
-// Six sections: the plan, the engine, best efforts, easy-day discipline,
-// strength against the block targets, and the movement ladders. Every one
-// renders an honest empty state rather than a zero, because on day one
-// almost all of this is genuinely unknown.
-// ────────────────────────────────────────────────────────────
+// Ported from the design canvas. Six sections, each with an honest
+// empty state: on day one almost all of this is genuinely unknown and
+// a zero would be a lie.
+// ─────────────────────────────────────────────────────────────
 let _openMove = null;
 function toggleMove(id) { _openMove = (_openMove === id) ? null : id; renderProgress(); }
 
-// Walk recent sessions once and pull out every cardio log. Capped: this is
-// localStorage, one read per session, and nothing here needs deep history.
+// One pass over recent sessions, pulling out every cardio log. Capped —
+// this is localStorage, one read per session.
 function _cardioLogs(limit = 40) {
   const out = [];
   History.getIndex(limit).forEach(row => {
@@ -737,136 +692,251 @@ function _cardioLogs(limit = 40) {
     if (!s || !s.blocks) return;
     s.blocks.forEach(b => (b.exercises || []).forEach(ex => {
       if (ex.cardioLog && (ex.cardioLog.duration || ex.cardioLog.distanceKm)) {
-        out.push({ ...ex.cardioLog, date: s.date, name: ex.name, sessionId: row.id });
+        out.push({ ...ex.cardioLog, date: s.date, name: ex.name });
       }
     }));
   });
   return out.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
-function _card(eyebrow, color, body) {
-  return `<section class="card">
-    <div style="font-size:.7rem;letter-spacing:.12em;font-weight:600;color:${color};margin-bottom:.55rem">${eyebrow}</div>
-    ${body}
-  </section>`;
+function _mvCard(eyebrow, tone, body, extra) {
+  return `<div class="mv-card"${extra || ''}>
+    <div class="mv-eyebrow ${tone}" style="margin-bottom:.6rem">${eyebrow}</div>${body}</div>`;
 }
 
 function renderProgress() {
   const el = document.getElementById('progress-body');
   if (!el) return;
   const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
-  const s = App.profile.settings || {};
+  const st = App.profile.settings || {};
   const idx = History.getIndex(200);
   const doneDates = new Set(idx.map(r => (r.date || '').slice(0, 10)));
   const cardio = _cardioLogs();
-  let html = '';
+  const z2ceil = (st.hrZones && st.hrZones.z2) || 153;
+  let h = `<div style="padding:.4rem 0 .9rem">
+    <div class="logo" style="font-size:1.45rem">Progress</div>
+    <div style="font-size:.76rem;color:var(--text3);margin-top:.15rem">${plan ? plan.title : 'No block loaded'}</div>
+  </div>`;
 
   // 1 — the plan
   if (plan && Array.isArray(plan.days)) {
-    const done = plan.days.filter(d => doneDates.has(d.date)).length;
-    html += _card('THE PLAN', 'var(--text3)', `
-      <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.6rem">
-        <div class="big-figure" style="font-size:2.2rem">${done}<span style="font-size:1rem;color:var(--text3);font-weight:500">/${plan.days.length}</span></div>
+    const n = plan.days.filter(d => doneDates.has(d.date)).length;
+    h += _mvCard('The plan', '', `
+      <div style="display:flex;align-items:baseline;gap:.5rem;margin-bottom:.7rem">
+        <div class="mv-display" style="font-size:2.2rem">${n}<span style="font-size:1rem;color:var(--text3);font-weight:500">/${plan.days.length}</span></div>
         <div style="font-size:.78rem;color:var(--text2)">sessions done</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:3px">
-        ${plan.days.map(d => {
-          const isDone = doneDates.has(d.date);
-          const c = isDone ? 'var(--accent)' : (d.benchmark ? 'var(--warm)' : 'transparent');
-          return `<div title="${escAttr(d.date + ' · ' + d.theme)}" style="height:17px;border-radius:4px;background:${c};border:1px solid ${isDone || d.benchmark ? 'transparent' : 'var(--border)'}"></div>`;
-        }).join('')}
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:.45rem;font-size:.66rem;color:var(--text3)">
-        ${(plan.weeks || []).map(w => `<span>${w.label}</span>`).join('')}
-      </div>`);
+      <div class="mv-grid28">${plan.days.map(d => {
+        const cls = doneDates.has(d.date) ? 'done' : (d.benchmark ? 'bench' : '');
+        return `<i class="${cls}" title="${escAttr(d.date + ' · ' + d.theme)}"></i>`;
+      }).join('')}</div>
+      <div class="mv-weekbar-labels" style="margin-top:.5rem">${(plan.weeks||[]).map(w=>`<span>${w.label}</span>`).join('')}</div>
+      <div class="mv-legend"><span><i style="background:var(--accent)"></i>done</span><span><i style="background:var(--warm)"></i>benchmark</span></div>`);
   }
 
   // 2 — the engine
   const tests = cardio.filter(c => c.isBenchmark);
-  html += _card('THE ENGINE', 'var(--accent2)', `
-    <div style="display:flex;gap:.6rem;margin-bottom:.6rem">
-      <div style="flex:1"><div class="big-figure" style="font-size:1.55rem;color:${tests.length ? 'var(--text)' : 'var(--text3)'}">${tests.length ? tests[0].distanceKm + '<span style="font-size:.85rem;font-weight:500;color:var(--text3)">km</span>' : '—'}</div><div style="font-size:.68rem;color:var(--text3);margin-top:.1rem">@150bpm / 30min</div></div>
-      <div style="flex:1"><div class="big-figure" style="font-size:1.55rem;color:${s.vo2max ? 'var(--text)' : 'var(--text3)'}">${s.vo2max || '—'}</div><div style="font-size:.68rem;color:var(--text3);margin-top:.1rem">VO2 max</div></div>
-      <div style="flex:1"><div class="big-figure" style="font-size:1.55rem;color:${s.restingHR ? 'var(--text)' : 'var(--text3)'}">${s.restingHR || '—'}</div><div style="font-size:.68rem;color:var(--text3);margin-top:.1rem">resting HR</div></div>
+  const stat = (v, k) => `<div><div class="mv-stat-v" style="color:${v ? 'var(--text)' : 'var(--text3)'}">${v || '—'}</div><div class="mv-stat-k">${k}</div></div>`;
+  h += _mvCard('The engine', 'mv-eyebrow--green', `
+    <div class="mv-stat3" style="margin-bottom:.7rem">
+      ${stat(tests.length ? tests[0].distanceKm + '<span style="font-size:.85rem;font-weight:500;color:var(--text3)">km</span>' : null, '@' + z2ceil + 'bpm / 30min')}
+      ${stat(st.vo2max, 'VO2 max')}
+      ${stat(st.restingHR, 'resting HR')}
     </div>
-    <div style="font-size:.76rem;color:var(--text2);line-height:1.45;padding-top:.55rem;border-top:1px solid var(--border)">${tests.length ? 'Same cap and route every block — distance is the only thing that can move.' : 'No fixed-HR test logged yet. Run 30 minutes capped at 150bpm and record the distance.'}</div>`);
+    <div class="mv-body" style="padding-top:.6rem;border-top:1px solid var(--border)">${tests.length
+      ? 'Same cap and route every block — distance is the only thing that can move.'
+      : 'No fixed-HR test logged yet. Run 30 minutes capped at ' + z2ceil + 'bpm and record the distance.'}</div>`);
 
   // 3 — best efforts
-  const best = (km) => {
-    const hits = cardio.filter(c => c.distanceKm && c.distanceKm >= km * 0.97 && c.duration);
+  const best = km => {
+    const hits = cardio.filter(c => c.distanceKm >= km * 0.97 && c.duration);
     if (!hits.length) return null;
     const b = hits.reduce((a, c) => (c.duration / c.distanceKm < a.duration / a.distanceKm ? c : a));
     return { t: Utils.formatMMSS(Math.round(b.duration * (km / b.distanceKm))), when: Utils.formatDate(b.date), hr: b.avgHR };
   };
-  html += _card('BEST EFFORTS', 'var(--text3)', [1, 5, 10].map(km => {
+  h += _mvCard('Best efforts', '', [1, 5, 10].map(km => {
     const b = best(km);
-    return `<div style="display:flex;align-items:baseline;gap:.6rem;padding:.4rem 0;border-bottom:1px solid var(--border)">
+    return `<div class="mv-row">
       <div style="width:3.2rem;font-size:.78rem;font-weight:600">${km} km</div>
-      <div style="flex:1;font-size:.85rem;${b ? '' : 'color:var(--text3)'}">${b ? b.t : '—'}</div>
+      <div style="flex:1;font-size:.85rem;font-variant-numeric:tabular-nums;color:${b?'var(--text)':'var(--text3)'}">${b ? b.t : '—'}</div>
       <div style="font-size:.7rem;color:var(--text3)">${b ? b.when + (b.hr ? ' · HR ' + b.hr : '') : 'no run yet'}</div>
     </div>`;
   }).join(''));
 
   // 4 — easy-day discipline
   const easy = cardio.filter(c => c.zones).slice(0, 10).reverse();
-  html += _card('EASY-DAY DISCIPLINE', 'var(--text3)', `
-    <div style="font-size:.76rem;color:var(--text2);margin-bottom:.55rem">Share of each easy session actually at or under ${(s.hrZones && s.hrZones.z2) || 153} bpm.</div>
+  h += _mvCard('Easy-day discipline', '', `
+    <div class="mv-body" style="margin-bottom:.6rem">Share of each easy session actually at or under ${z2ceil} bpm.</div>
     ${easy.length ? `<div style="display:flex;align-items:flex-end;gap:4px;height:58px">
       ${easy.map(c => {
-        const pct = (c.zones.z1.pct || 0) + (c.zones.z2.pct || 0);
-        return `<div title="${escAttr(Utils.formatDate(c.date) + ' · ' + pct + '%')}" style="flex:1;height:${Math.max(3, pct)}%;background:${pct >= 60 ? 'var(--accent2)' : 'var(--danger)'};border-radius:3px 3px 0 0"></div>`;
+        const pct = Math.round((c.zones.z1.pct || 0) + (c.zones.z2.pct || 0));
+        return `<div title="${escAttr(Utils.formatDate(c.date) + ' · ' + pct + '%')}" style="flex:1;height:${Math.max(4,pct)}%;background:${pct>=60?'var(--accent2)':'var(--danger)'};border-radius:3px 3px 0 0"></div>`;
       }).join('')}
-    </div>` : `<div style="font-size:.78rem;color:var(--text3)">No runs with heart-rate data imported yet.</div>`}`);
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:.4rem;font-size:.66rem;color:var(--text3)"><span>oldest</span><span>target 80%+</span></div>`
+    : `<div style="font-size:.78rem;color:var(--text3)">No runs with heart-rate data imported yet.</div>`}`);
 
-  // 5 — strength against the block targets
-  const targets = (plan && plan.targets) || [];
-  const liftRows = targets.filter(t => /squat|deadlift|bench|press|pull/i.test(t.metric)).map(t => `
-    <div style="margin-bottom:.6rem">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.2rem">
+  // 5 — strength
+  const lifts = ((plan && plan.targets) || []).filter(t => /squat|deadlift|bench|press|pull/i.test(t.metric));
+  if (lifts.length) h += _mvCard('Strength', 'mv-eyebrow--accent', lifts.map(t => `
+    <div style="margin-bottom:.7rem">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.25rem">
         <div style="font-size:.82rem;font-weight:500">${t.metric}</div>
-        <div style="font-size:.74rem;color:var(--text3)">${t.from} <span style="opacity:.5">→</span> <span style="color:var(--text)">${t.to}</span></div>
+        <div style="font-size:.74rem;color:var(--text3);font-variant-numeric:tabular-nums">${t.from} <span style="opacity:.5">→</span> <span style="color:var(--text)">${t.to}</span></div>
       </div>
-      <div style="height:4px;border-radius:2px;background:var(--bg3)"><div style="height:4px;border-radius:2px;background:var(--accent);width:0%"></div></div>
-    </div>`).join('');
-  if (liftRows) html += _card('STRENGTH', 'var(--accent)', liftRows);
+      <div class="mv-bar"><i style="width:0%"></i></div>
+    </div>`).join(''));
 
-  // 6 — movement ladders
+  // 6 — movements
   const goals = Custom.getAllGoals().filter(g => g.priority <= 2).slice(0, 6);
-  html += _card('MOVEMENTS', 'var(--domain)', `
-    <div style="font-size:.76rem;color:var(--text2);margin-bottom:.6rem">Not block targets. They progress inside the daily blocks — this is where you notice them move.</div>
+  h += _mvCard('Movements', 'mv-eyebrow--domain', `
+    <div class="mv-body" style="margin-bottom:.7rem">Not block targets. They progress inside the daily blocks — this is where you notice them move.</div>
     ${goals.map(g => {
       const at = Profile.getGoalMilestone(App.profile, g.id) || 0;
-      const total = (g.milestones || []).length;
+      const ms = g.milestones || [];
       const open = _openMove === g.id;
-      return `<div style="border:1px solid ${open ? 'var(--border)' : 'transparent'};background:${open ? 'var(--bg3)' : 'transparent'};border-radius:11px;padding:${open ? '.6rem' : '0 0 .1rem'};margin-bottom:.55rem">
-        <button type="button" onclick="toggleMove('${g.id}')" style="background:none;border:none;padding:0;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.25rem">
+      return `<div class="mv-move ${open?'open':''}">
+        <button type="button" class="mv-move-head" onclick="toggleMove('${g.id}')">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem">
             <div style="font-size:.85rem;font-weight:600">${g.name}</div>
-            <div style="font-size:.72rem;color:var(--text3)">${at}/${total} ${open ? '▾' : '▸'}</div>
+            <div style="font-size:.72rem;color:var(--text3)">${at}/${ms.length}</div>
           </div>
-          <div style="display:flex;gap:3px;margin-bottom:.25rem">
-            ${(g.milestones || []).map((_, i) => `<div style="flex:1;height:5px;border-radius:2px;background:${i < at ? 'var(--domain)' : 'var(--bg3)'}"></div>`).join('')}
-          </div>
-          <div style="font-size:.76rem;color:var(--text2)">${(g.milestones || [])[at] || 'complete'}</div>
+          <div class="mv-rungs" style="margin-bottom:.3rem">${ms.map((_,k)=>`<i class="${k<at?'on':''}"></i>`).join('')}</div>
+          <div style="font-size:.76rem;color:var(--text2)">${ms[at] || 'complete'}</div>
         </button>
-        ${open ? `<div style="margin-top:.6rem;padding-top:.5rem;border-top:1px solid var(--border)">
-          ${(g.milestones || []).map((m, i) => `<div style="display:flex;align-items:flex-start;gap:.5rem;padding:.25rem 0">
-            <div style="width:14px;height:14px;border-radius:7px;flex-shrink:0;margin-top:.1rem;border:1.5px solid ${i < at ? 'var(--domain)' : 'var(--border)'};background:${i < at ? 'var(--domain)' : 'transparent'}"></div>
-            <div style="flex:1;font-size:.78rem;line-height:1.4;color:${i < at ? 'var(--text)' : 'var(--text3)'}">${m}</div>
-            ${i === at ? '<div style="font-size:.6rem;font-weight:700;letter-spacing:.08em;color:var(--domain);border:1px solid var(--warn-bdr);background:var(--warn-bg);border-radius:5px;padding:.1rem .35rem">HERE</div>' : ''}
+        ${open ? `<div style="margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--border)">
+          <div class="mv-eyebrow" style="margin-bottom:.4rem">The ladder</div>
+          ${ms.map((m,k)=>`<div class="mv-step">
+            <div class="mv-step-dot ${k<at?'on':''}"></div>
+            <div style="flex:1;font-size:.78rem;line-height:1.4;color:${k<at?'var(--text)':'var(--text3)'}">${m}</div>
+            ${k===at?'<div class="mv-here">HERE</div>':''}
           </div>`).join('')}
-          <div style="font-size:.66rem;letter-spacing:.1em;font-weight:600;color:var(--text3);margin:.7rem 0 .35rem">FEEDS IT</div>
-          <div style="display:flex;flex-wrap:wrap;gap:.3rem">
-            ${(g.feedExercises || []).map(id => {
-              const ex = LIBRARY.find(e => e.id === id) || Custom.getAllExercises().find(e => e.id === id);
-              return ex ? `<span style="font-size:.72rem;padding:.2rem .5rem;border-radius:999px;background:var(--bg2);border:1px solid var(--border);color:var(--text2)">${ex.name}</span>` : '';
-            }).join('')}
-          </div>
+          <div class="mv-eyebrow" style="margin:.8rem 0 .4rem">Feeds it</div>
+          <div class="mv-chips">${(g.feedExercises||[]).map(fid=>{
+            const ex = LIBRARY.find(e=>e.id===fid) || Custom.getAllExercises().find(e=>e.id===fid);
+            return ex ? `<span class="mv-chip">${ex.name}</span>` : '';
+          }).join('')}</div>
         </div>` : ''}
       </div>`;
     }).join('')}`);
 
-  el.innerHTML = html;
+  el.innerHTML = h;
+}
+
+// ─────────────────────────────────────────────────────────────
+// TODAY — the plan for the day, before you start it.
+// Three levels: a closed block lists its exercise names, opening it
+// shows the doses, tapping an exercise opens the detail view. Generates
+// a preview without persisting anything; only Start writes the record.
+// ─────────────────────────────────────────────────────────────
+let _todayOpen = 'main-focus';
+
+function _todayPlan() {
+  const key = _todayInstanceKey();
+  const stored = DB.get(key);
+  if (stored) return { session: stored, stored: true };
+  const gen = Generator.generateFromScaffold({
+    date: new Date(), profile: App.profile,
+    sleep: App.checkin.sleep, energy: App.checkin.energy,
+    pain: App.checkin.pain, focus: App.checkin.focus,
+  });
+  return { session: gen, stored: false };
+}
+
+function toggleTodayBlock(key) {
+  _todayOpen = (_todayOpen === key) ? null : key;
+  renderToday();
+}
+
+function startTodayFromPlan() {
+  const { session, stored } = _todayPlan();
+  if (!session) { alert('No plan for today.'); return; }
+  if (!stored) DB.set(_todayInstanceKey(), session);
+  _startSession(DB.get(_todayInstanceKey()) || session);
+}
+
+function _clockAdd(hhmm, mins) {
+  const [h, m] = hhmm.split(':').map(Number);
+  const t = h * 60 + m + mins;
+  return `${String(Math.floor(t / 60) % 24).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+}
+
+function _dose(ex) {
+  const bits = [];
+  if (ex.allocatedMinutes) bits.push(ex.allocatedMinutes + 'm');
+  if (ex.lastLog && ex.lastLog.weight) bits.push(ex.lastLog.weight + 'kg');
+  else if (ex.pr && ex.pr.reps) bits.push('PR ' + ex.pr.reps);
+  return bits.join(' · ');
+}
+
+function renderToday() {
+  const el = document.getElementById('today-body');
+  if (!el) return;
+  const live = LiveSession.getSession();
+  const { session } = live ? { session: live } : _todayPlan();
+  const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
+  const planDay = plan ? MonthPlan.dayFor(new Date()) : null;
+  const prog = plan ? MonthPlan.progress(new Date()) : null;
+
+  if (!session) {
+    el.innerHTML = `<div style="padding:.4rem 0 .9rem"><div class="logo" style="font-size:1.45rem">Today</div></div>
+      <div class="mv-card"><div class="mv-body">No plan for today. The block runs ${plan ? Utils.formatDate(plan.blockStart) + ' – ' + Utils.formatDate(plan.blockEnd) : 'later'}.</div></div>`;
+    return;
+  }
+
+  const d = new Date();
+  const head = `${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]} ${d.getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][d.getMonth()]}`
+    + (prog && prog.week ? ` · WEEK ${prog.week}` : '') + ` · ${session.duration} MIN`;
+
+  let h = `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.6rem;padding:.4rem 0 .9rem;border-bottom:1px solid var(--border);margin-bottom:.9rem">
+    <div>
+      <div class="mv-eyebrow" style="margin-bottom:.25rem">${head}</div>
+      <div class="mv-display" style="font-size:1.5rem">${session.theme || 'Today'}</div>
+    </div>
+    ${session.weekday ? `<button class="mv-pill" style="flex-shrink:0;margin-top:.2rem;border-color:color-mix(in srgb,var(--accent) 35%,var(--bg2));background:color-mix(in srgb,var(--accent) 12%,var(--bg2));color:var(--accent);font-weight:600" onclick="openAdjust()">Adjust</button>` : ''}
+  </div>`;
+
+  if (planDay && planDay.focusNote) h += `<div class="mv-note" style="margin-bottom:.9rem">${planDay.focusNote}</div>`;
+
+  // the timeline
+  let clock = session.variant === 'light' ? '09:00' : '09:00';
+  h += session.blocks.map(b => {
+    const at = clock;
+    clock = _clockAdd(clock, b.duration || 0);
+    const open = _todayOpen === b.key;
+    return `<div class="mv-blk ${open ? 'open' : ''}">
+      <button type="button" class="mv-blk-head" onclick="toggleTodayBlock('${escAttr(b.key)}')">
+        <span class="mv-blk-time">${at}</span>
+        <span class="mv-blk-rail" style="background:${b.color || 'var(--text3)'}"></span>
+        <span class="mv-blk-label">${b.label}</span>
+        <span class="mv-blk-meta">${b.duration}m · ${b.exercises.length}</span>
+        <svg class="mv-blk-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+      ${!open ? `<div class="mv-blk-summary">${b.exercises.map(e => e.name).join(' · ')}</div>` : `
+      <div class="mv-blk-body">
+        ${b.note ? `<div class="mv-body" style="padding:.5rem 0 .2rem">${b.note}</div>` : ''}
+        ${b.exercises.map(e => `<button type="button" class="mv-ex" onclick="openExView('${escAttr(e.id)}')">
+          <span class="mv-ex-bullet"></span>
+          <span class="mv-ex-name">${e.name}</span>
+          <span class="mv-ex-dose">${_dose(e)}</span>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>`).join('')}
+      </div>`}
+    </div>`;
+  }).join('');
+
+  // footer
+  const slot = (typeof WEEK_SCAFFOLD !== 'undefined' && session.weekday) ? WEEK_SCAFFOLD[session.themeOverride || session.weekday] : null;
+  const z2 = (App.profile.settings.hrZones && App.profile.settings.hrZones.z2) || 153;
+  h += `<div style="margin-top:1rem">
+    <div class="mv-tiles">
+      ${slot && slot.fuel ? `<div class="mv-tile"><div class="mv-tile-k">Fuel</div><div class="mv-tile-v">${slot.fuel}</div></div>` : ''}
+      <div class="mv-tile"><div class="mv-tile-k">Easy cap</div><div class="mv-tile-v">${z2} bpm</div></div>
+    </div>
+    <button class="mv-cta" onclick="${live ? "navTo('session')" : 'startTodayFromPlan()'}">${live ? 'Continue session →' : 'Start session'}</button>
+  </div>`;
+
+  el.innerHTML = h;
 }
 
 function sessionRow(s) {
@@ -958,35 +1028,48 @@ function openAdjust() {
     .sort((a, b) => a.gap - b.gap).slice(0, 4).map(x => x.d);
 
   body.innerHTML = `
-    ${cardio ? `<div class="section-label">Swap the main focus</div>
-    <button class="btn-ghost" style="text-align:left" onclick="adjustApply({action:'swap_modality',modality:'${isBike ? 'run' : 'bike'}'},'Swapped to ${isBike ? 'the run' : 'the bike'}')">
-      <div style="font-weight:600">${isBike ? 'Bike \u2192 run' : 'Run \u2192 indoor bike'}</div>
-      <div style="font-size:.76rem;color:var(--text3);margin-top:.15rem">Same duration, same heart-rate cap. Still counts as today's aerobic session.</div>
+    ${cardio ? `<div class="mv-eyebrow" style="margin:.2rem 0 .5rem">Swap the main focus</div>
+    <button type="button" class="mv-opt" onclick="adjustApply({action:'swap_modality',modality:'${isBike ? 'run' : 'bike'}'},'Swapped to ${isBike ? 'the run' : 'the bike'}')">
+      <span class="mv-opt-rail" style="background:var(--accent2)"></span>
+      <span style="flex:1">
+        <span class="mv-opt-t" style="display:block">${isBike ? 'Bike → run' : 'Run → indoor bike'}</span>
+        <span class="mv-opt-d" style="display:block">Same duration, same heart-rate cap. Still counts as today’s aerobic session.</span>
+      </span>
     </button>` : ''}
 
-    ${near.length ? `<div class="section-label">Trade days with</div>
-    <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.5rem">
-      ${near.map(d => `<button class="btn-xs" onclick="tradeDays('${d.date}')">${Utils.formatDate(d.date)} \u00b7 ${escAttr(d.theme)}</button>`).join('')}
+    ${near.length ? `<div class="mv-eyebrow" style="margin:1rem 0 .5rem">Trade days with</div>
+    <div class="mv-chips" style="margin-bottom:.6rem">
+      ${near.map(d => `<button class="mv-pill" onclick="tradeDays('${d.date}')">${Utils.formatDate(d.date)} · ${escAttr(d.theme)}</button>`).join('')}
     </div>` : ''}
 
-    <div class="section-label">Change the dose</div>
-    <div style="display:flex;gap:.4rem;margin-bottom:.75rem">
-      <button class="btn-ghost" style="flex:1" onclick="adjustApply({action:'scale_session',factor:0.65},'Shortened to about two thirds')">Shorter</button>
-      <button class="btn-ghost" style="flex:1" onclick="adjustApply({action:'lighter',maxTier:'moderate'},'Capped at moderate intensity')">Lighter</button>
-      <button class="btn-ghost" style="flex:1" onclick="adjustApply({action:'reshuffle'},'Reshuffled \u2014 same shape, different picks')">Reshuffle</button>
+    <div class="mv-eyebrow" style="margin:1rem 0 .5rem">Change the dose</div>
+    <div class="mv-opt-row">
+      <button type="button" class="mv-opt" style="flex:1" onclick="adjustApply({action:'scale_session',factor:0.65},'Shortened to about two thirds')">
+        <span class="mv-opt-t">Shorter</span><span class="mv-opt-d">140 → ~95 min</span>
+      </button>
+      <button type="button" class="mv-opt" style="flex:1" onclick="adjustApply({action:'lighter',maxTier:'moderate'},'Capped at moderate intensity')">
+        <span class="mv-opt-t">Lighter</span><span class="mv-opt-d">drop one tier</span>
+      </button>
+      <button type="button" class="mv-opt" style="flex:1" onclick="adjustApply({action:'reshuffle'},'Reshuffled — same shape, different picks')">
+        <span class="mv-opt-t">Reshuffle</span><span class="mv-opt-d">same shape</span>
+      </button>
     </div>
 
-    <div class="section-label">Or just say it</div>
-    <div style="display:flex;gap:.4rem">
-      <input id="chat-override-input" type="text" placeholder="It's raining, swap the run for the bike" style="flex:1" onkeydown="if(event.key==='Enter')sendChatOverride()">
-      <button id="chat-override-send" class="btn-primary" style="width:auto;padding:.5rem .9rem" onclick="sendChatOverride()">Send</button>
-    </div>
-    <div id="chat-override-log" style="max-height:140px;overflow-y:auto;margin-top:.5rem">
-      ${(session.chatLog || []).map(m => `<div style="margin:.3rem 0;font-size:.82rem;${m.role === 'user' ? 'text-align:right;opacity:.8' : ''}">${escAttr(m.text)}</div>`).join('')}
+    <div class="mv-eyebrow" style="margin:1rem 0 .5rem">Or just say it</div>
+    <div class="mv-card" style="margin-bottom:.6rem">
+      <label for="chat-override-input" style="font-size:.7rem;color:var(--text3);display:block;margin-bottom:.45rem">The plan adapts and tells you what it changed.</label>
+      <div style="display:flex;gap:.4rem">
+        <input id="chat-override-input" type="text" placeholder="It’s raining, swap the run for the bike" style="flex:1" onkeydown="if(event.key==='Enter')sendChatOverride()">
+        <button id="chat-override-send" class="mv-cta" style="width:auto;padding:.6rem 1rem" onclick="sendChatOverride()">Send</button>
+      </div>
+      <div id="chat-override-log" style="max-height:140px;overflow-y:auto;margin-top:.5rem">
+        ${(session.chatLog || []).map(m => `<div style="margin:.3rem 0;font-size:.8rem;${m.role === 'user' ? 'text-align:right;opacity:.8' : 'color:var(--text2)'}">${escAttr(m.text)}</div>`).join('')
+          || '<div style="font-size:.74rem;color:var(--text3)">&ldquo;groggy, make it lighter&rdquo; &nbsp;·&nbsp; &ldquo;rest today, train Sunday instead&rdquo;</div>'}
+      </div>
     </div>
 
-    <div class="card" style="margin-top:.75rem;background:var(--warn-bg);border-color:var(--warn-bdr)">
-      <div style="font-size:.78rem;line-height:1.5;color:var(--warn-text)"><strong>Only today.</strong> Nothing here changes the week template or the rest of the block, and the calendar follows within the hour.</div>
+    <div class="mv-card mv-card--warm" style="margin-bottom:0">
+      <div style="font-size:.78rem;line-height:1.5;color:var(--warn-text)"><strong style="color:var(--warm)">Only today.</strong> Nothing here changes the week template or the rest of the block, and the calendar follows within the hour.</div>
     </div>`;
   document.getElementById('adjust-backdrop').style.display = 'flex';
 }
