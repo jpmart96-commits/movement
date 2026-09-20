@@ -1027,7 +1027,7 @@ const Generator = {
   _fitToTime(ids, targetMin, resolveEx, lastSeenMap, painCaution, preferRaisesHR, recentMuscleIntensity) {
     const picked = [];
     if (!targetMin || targetMin <= 0) return picked;
-    let ordered = this._orderByGroupRecency(ids, lastSeenMap);
+    let ordered = this._orderByGroupRecency(this._applyPoolFilters(ids), lastSeenMap);
 
     if (painCaution && painCaution.size) {
       const safe = ordered.filter(id => !this._isPainCaution(id, painCaution));
@@ -1434,7 +1434,95 @@ const Generator = {
       };
     }
 
+    // ── Swap the cardio modality for this date only (rain, gym closed) ──
+    // Rebuilds just the cardio block; everything else on the day is left
+    // exactly as it is, including anything already logged.
+    if (intent.action === 'swap_modality') {
+      const want = intent.modality === 'bike' ? 'z2-cycling' : 'easy-run';
+      const blocks = instance.blocks.map(b => ({ ...b }));
+      const idx = blocks.findIndex(b => /^main-focus:cardio$/.test(b.key || '') || b.key === 'cardio');
+      if (idx === -1) return null;
+      const painTags = this._parsePainTags(instance.pain);
+      const resolveEx = this._resolveExFactory(profile, painTags.avoid);
+      const ex = resolveEx(want);
+      if (!ex) return null;
+      const old = blocks[idx].exercises && blocks[idx].exercises[0];
+      ex.allocatedMinutes = blocks[idx].duration;
+      // Carry the prescription across — an interval day stays an interval day
+      // whichever machine it happens on.
+      if (old && old.notes) ex.notes = old.notes;
+      if (old && old.cardioLog) ex.cardioLog = old.cardioLog;
+      blocks[idx] = { ...blocks[idx], exercises: [ex] };
+      return { ...instance, blocks, modalitySwapped: intent.modality || 'bike' };
+    }
+
+    // ── Shorter: scale every block, keep the shape ──
+    // Fixed-content blocks just shrink. Pool-backed blocks are refitted at
+    // the new duration so the exercise count follows the time rather than
+    // leaving ten exercises in a twenty-minute block.
+    if (intent.action === 'scale_session') {
+      const f = Math.min(1, Math.max(0.3, Number(intent.factor) || 0.7));
+      const blocks = instance.blocks.map(b => {
+        if (!b.duration) return { ...b };
+        const nd = Math.max(5, Math.round(b.duration * f));
+        return this._regenerateBlockAtDuration(b, nd, instance, profile) || { ...b, duration: nd };
+      });
+      return { ...instance, blocks, duration: blocks.reduce((s, b) => s + (b.duration || 0), 0), scaledBy: f };
+    }
+
+    // ── Lighter: same time, lower intensity ──
+    // Caps the tier every pool can draw from, so a heavy day becomes a
+    // moderate one without becoming a short one.
+    if (intent.action === 'lighter') {
+      const cap = intent.maxTier || 'moderate';
+      const prev = this._tierCap;
+      this._tierCap = cap;
+      try {
+        const blocks = instance.blocks.map(b =>
+          this._regenerateBlockAtDuration(b, b.duration, instance, profile) || { ...b });
+        return { ...instance, blocks, tierCapped: cap };
+      } finally { this._tierCap = prev; }
+    }
+
+    // ── Reshuffle: same shape, different picks ──
+    if (intent.action === 'reshuffle') {
+      const used = new Set();
+      instance.blocks.forEach(b => (b.exercises || []).forEach(e => used.add(e.id)));
+      const prev = this._avoidIds;
+      this._avoidIds = used;
+      try {
+        const blocks = instance.blocks.map(b =>
+          this._regenerateBlockAtDuration(b, b.duration, instance, profile) || { ...b });
+        return { ...instance, blocks };
+      } finally { this._avoidIds = prev; }
+    }
+
     return null; // 'note_only' or unrecognized action — caller handles the fallback message
+  },
+
+  // Intensity ordering, used by the 'lighter' override. Set transiently on
+  // the Generator rather than threaded through every signature, because the
+  // cap applies to a whole regeneration pass and nothing else reads it.
+  _TIER_RANK: { flexibility: 0, light: 1, moderate: 2, heavy: 3, explosive: 4 },
+  _tierCap: null,
+  _avoidIds: null,
+
+  _applyPoolFilters(ids) {
+    let out = ids;
+    if (this._tierCap) {
+      const cap = this._TIER_RANK[this._tierCap];
+      const kept = out.filter(id => {
+        const ex = LIBRARY.find(e => e.id === id);
+        const r = ex && this._TIER_RANK[ex.intensityTier];
+        return r === undefined || r === null ? true : r <= cap;
+      });
+      if (kept.length) out = kept;   // never empty a block to honour a cap
+    }
+    if (this._avoidIds && this._avoidIds.size) {
+      const kept = out.filter(id => !this._avoidIds.has(id));
+      if (kept.length) out = kept;
+    }
+    return out;
   },
 
   // Regenerates a single block's exercise list at a new duration, reusing
@@ -1463,7 +1551,15 @@ const Generator = {
     }
 
     if (block.key.startsWith('main-focus:')) {
-      const tag  = block.key.replace('main-focus:', '');
+      const tag = block.key.replace('main-focus:', '');
+      // Cardio is the one tag _getModalityBlocks fills with exactly one
+      // exercise. Re-pooling it here handed back "Easy run, Long run" on
+      // every resize, so the existing pick is kept and only retimed.
+      if (tag === 'cardio') {
+        const ex = (block.exercises || [])[0];
+        if (ex) return { ...block, duration: newDuration, exercises: [{ ...ex, allocatedMinutes: newDuration }] };
+        return { ...block, duration: newDuration };
+      }
       const pool = this._poolForTag(tag);
       return { ...block, duration: newDuration, exercises: this._fitToTime(pool, newDuration, resolveEx, lastSeenMap, painTags.caution) };
     }
@@ -2097,16 +2193,21 @@ const ChatOverride = {
 
     const system = `You interpret a single natural-language request about TODAY's already-generated movement practice session and translate it into ONE structured action. You never invent exercises, durations, or new blocks yourself — you only choose among the existing blocks/themes given to you. Return ONLY valid JSON, no markdown fences, no commentary outside the JSON:
 {
-  "action": "theme_swap" | "correlation_flip" | "remove_block" | "note_only",
+  "action": "theme_swap" | "swap_modality" | "scale_session" | "lighter" | "reshuffle" | "remove_block" | "note_only",
   "targetTheme": "<week scaffold key, only for theme_swap>",
-  "mode": "correlated" | "anti_correlated",
+  "modality": "run" | "bike",
+  "factor": <0.3-1.0, only for scale_session>,
+  "maxTier": "light" | "moderate",
   "blockKey": "<block key from today's blocks, only for remove_block>",
   "giveMinutesTo": "<another block key to receive the freed time, optional, only for remove_block>",
   "reply": "1-2 plain sentences, conversational, confirming what you changed — or, for note_only, briefly explaining you couldn't map this to a concrete change"
 }
 Rules:
 - "theme_swap": requests to replace today's whole plan with a different day-type (e.g. "swap today for the rest day", "I'm exhausted, make today active rest instead"). targetTheme must be exactly one of the week-scaffold keys listed below — never invent one.
-- "correlation_flip": requests to make warm-up/skill training lighter and unrelated to today's Main Focus (mode: anti_correlated), or to restore the normal priming relationship (mode: correlated).
+- "swap_modality": the aerobic work should happen on the other machine — rain, a closed gym, a sore ankle. "run" or "bike". Duration and heart-rate cap are unchanged; only the exercise swaps.
+- "scale_session": less time today. 'factor' is the fraction of the normal session to keep — "half" is 0.5, "a bit shorter" is about 0.75. Every block shrinks; the shape stays.
+- "lighter": the same time but easier — groggy, sore, run down. 'maxTier' caps how hard anything picked may be: "moderate" for most cases, "light" when they sound genuinely wrecked.
+- "reshuffle": bored of these exercises, wants different ones at the same shape and duration.
 - "remove_block": requests to cut/drop one specific existing block. blockKey must be exactly one of today's actual block keys listed below — never invent one. If the request also names where the freed time should go ("more time for reading"), set giveMinutesTo to that block's key; otherwise omit it (freed time is simply dropped from the session).
 - If the request doesn't clearly map to one of these three, use "note_only" and explain briefly why in reply — never guess at a change you're not confident about.`;
 
