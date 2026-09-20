@@ -73,7 +73,6 @@
 
 <!-- ═══ PROGRESS ═══════════════════════════════════════ -->
 <main id="screen-progress" class="screen">
-  <header class="screen-header"><h1 class="logo">Progress</h1></header>
   <div id="progress-body"></div>
 </main>
 
@@ -792,8 +791,13 @@ function renderProgress() {
   h += _mvCard('Movements', 'mv-eyebrow--domain', `
     <div class="mv-body" style="margin-bottom:.7rem">Not block targets. They progress inside the daily blocks — this is where you notice them move.</div>
     ${goals.map(g => {
-      const at = Profile.getGoalMilestone(App.profile, g.id) || 0;
-      const ms = g.milestones || [];
+      // goalMilestoneInfo is the helper that already handles custom goals and
+      // their overrides; Profile.getGoalMilestone returns {current,next,idx},
+      // and using it directly rendered "[object Object]/9" with every ladder
+      // reading as complete.
+      const info = goalMilestoneInfo(g.id);
+      const ms = Custom.getMilestones(g.id) || [];
+      const at = info ? info.idx : 0;
       const open = _openMove === g.id;
       return `<div class="mv-move ${open?'open':''}">
         <button type="button" class="mv-move-head" onclick="toggleMove('${g.id}')">
@@ -829,7 +833,9 @@ function renderProgress() {
 // shows the doses, tapping an exercise opens the detail view. Generates
 // a preview without persisting anything; only Start writes the record.
 // ─────────────────────────────────────────────────────────────
-let _todayOpen = 'main-focus';
+// Which block starts open. Resolved per session rather than hardcoded: the
+// main-focus block is keyed 'main-focus:<tag>', and a light day has none.
+let _todayOpen;
 
 function _todayPlan() {
   const key = _todayInstanceKey();
@@ -882,6 +888,12 @@ function renderToday() {
     el.innerHTML = `<div style="padding:.4rem 0 .9rem"><div class="logo" style="font-size:1.45rem">Today</div></div>
       <div class="mv-card"><div class="mv-body">No plan for today. The block runs ${plan ? Utils.formatDate(plan.blockStart) + ' – ' + Utils.formatDate(plan.blockEnd) : 'later'}.</div></div>`;
     return;
+  }
+
+  if (_todayOpen === undefined) {
+    const main = session.blocks.find(b => (b.key || '').startsWith('main-focus'));
+    const biggest = [...session.blocks].sort((a, b) => (b.exercises.length) - (a.exercises.length))[0];
+    _todayOpen = (main || biggest || {}).key || null;
   }
 
   const d = new Date();

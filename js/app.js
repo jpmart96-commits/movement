@@ -90,7 +90,9 @@ const Profile = {
       // z5 being everything above z4. User-supplied 2026-09-20. Used by
       // js/import.js to report what zone a run was actually spent in, which
       // is the whole point of a Zone2 day having a Zone2 label.
-      hrZones: { z1: 133, z2: 148, z3: 155, z4: 185 },
+      // Karvonen from RHR 54 / max 196. Each value is that zone's ceiling;
+      // z5 is everything above z4. Easy work means at or under z2.
+      hrZones: { z1: 133, z2: 153, z3: 168, z4: 182 },
       // Physiology the app cannot derive on its own. Shown on Progress and
       // used to sanity-check the zone model.
       restingHR: null,
