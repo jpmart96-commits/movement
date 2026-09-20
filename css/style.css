@@ -1510,3 +1510,110 @@ body.compose-drag-active { overscroll-behavior: none; }
 .lift-hist-date { color: var(--text3); flex-shrink: 0; width: 84px; }
 .lift-hist-sets { color: var(--text); flex: 1; }
 .lift-hist-e1rm { color: var(--accent2); font-weight: 500; flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════════════════
+   REWORK — type, rhythm and surfaces
+   Appended deliberately: later rules win, so this restyles the app
+   without surgery on forty existing declarations. Space Grotesk does
+   the headings and every figure you are meant to read at a glance;
+   IBM Plex Sans does everything you actually read.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --radius:    15px;
+  --radius-sm: 10px;
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+}
+
+/* Headings and figures — the display face earns its keep on numbers */
+.logo {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+#screen-home .logo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.stat-val, .big-figure {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.stat-lbl { font-size: .7rem; letter-spacing: .02em; }
+
+/* Eyebrows: the small caps that label every section */
+.section-label {
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  color: var(--text3);
+  margin: 1.1rem 0 .5rem;
+}
+.screen-header + .section-label,
+.section-label:first-child { margin-top: 0; }
+
+/* Surfaces — more air, softer corners, a real edge */
+.card {
+  padding: .95rem 1rem;
+  margin-bottom: .75rem;
+  border-radius: var(--radius);
+}
+.today-card { border-left: 3px solid var(--accent); }
+.today-day {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--text);
+  margin-bottom: .2rem;
+}
+.scaffold-theme-line { font-size: .82rem; color: var(--text2); opacity: 1 !important; }
+
+/* Controls */
+.btn-primary {
+  color: var(--on-accent, #fff);
+  font-weight: 600;
+  font-size: .95rem;
+  border-radius: 12px;
+  padding: .875rem 1rem;
+  letter-spacing: -0.005em;
+}
+.btn-ghost {
+  border-radius: 12px;
+  font-size: .875rem;
+  font-weight: 500;
+  padding: .8rem 1rem;
+}
+.btn-xs {
+  font-family: var(--font-body);
+  font-size: .74rem;
+  padding: .35rem .6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text2);
+  cursor: pointer;
+}
+
+/* Session blocks: the collapsed summary is the plan as it reads on paper */
+.bh-title { font-weight: 600; font-size: .95rem; }
+.bh-dur   { font-size: .7rem; color: var(--text3); }
+.bh-summary { font-family: var(--font-body); }
+.block-wrap { border-radius: var(--radius); }
+
+/* Nav */
+.nav-btn span { font-size: .66rem; letter-spacing: .01em; font-weight: 500; }
