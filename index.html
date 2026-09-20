@@ -69,7 +69,7 @@
       <input type="checkbox" id="scaffold-anti-correlated">
       Lighter today — warm-up/skill unrelated to Main Focus
     </label>
-    <button class="btn-primary" onclick="startScaffoldToday()">Today's Plan ↗</button>
+    <button class="btn-primary" id="scaffold-cta" onclick="startScaffoldToday()">Today's Plan ↗</button>
     <button class="btn-ghost" style="margin-top:.5rem" onclick="startToday()">Compose manually</button>
     <button class="btn-ghost" onclick="openManualLogModal()">Log a past session</button>
   </section>
@@ -504,8 +504,11 @@ function renderHome() {
   const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[wk] : null;
   const themeLine = document.getElementById('scaffold-theme-line');
   const existing = DB.get(_todayInstanceKey());
+  const done = !!existing && existing.status === 'completed';
   if (themeLine) {
-    if (existing) {
+    if (done) {
+      themeLine.textContent = `Today's plan is done \u2713 ${existing.theme}${existing.themeOverride ? ' (swapped)' : ''}`;
+    } else if (existing) {
       themeLine.textContent = `Today's plan is ready: ${existing.theme}${existing.themeOverride ? ' (swapped)' : ''}${existing.fasting ? ' · fasted' : ''}`;
     } else if (slot) {
       themeLine.textContent = `${slot.theme}${slot.fasting ? ' · fasted' : ''}`;
@@ -513,8 +516,12 @@ function renderHome() {
       themeLine.textContent = '';
     }
   }
+  const cta = document.getElementById('scaffold-cta');
+  if (cta) cta.textContent = done ? "Today's Plan \u2713" : (existing ? "Resume Today's Plan \u2197" : "Today's Plan \u2197");
   const antiBox = document.getElementById('scaffold-anti-correlated');
-  if (antiBox) antiBox.disabled = !!existing; // mode is locked once today's plan is generated
+  // Mode is locked while today's plan is live; a finished day unlocks it
+  // again so a deliberate second session can be generated in the other mode.
+  if (antiBox) antiBox.disabled = !!existing && !done;
 
   const banner = document.getElementById('active-banner');
   if (LiveSession.getSession()) {
@@ -589,6 +596,20 @@ function startScaffoldToday(themeOverride) {
   const d = new Date();
   const key = _todayInstanceKey(d);
   let session = DB.get(key);
+
+  // Today's plan is already finished (LiveSession.complete wrote the
+  // completed session back to this key) — open the log rather than silently
+  // restarting it from zero. A second session the same day is still
+  // possible, it just has to be asked for explicitly.
+  if (session && session.status === 'completed') {
+    if (session.id && confirm("Today's plan is already done. Open it? (Cancel to generate a second session for today.)")) {
+      openSessionModal(session.id);
+      return;
+    }
+    if (!session.id && !confirm("Today's plan is already done. Generate a fresh one?")) return;
+    DB.remove(key);
+    session = null;
+  }
 
   if (!session) {
     const antiCorrelated = document.getElementById('scaffold-anti-correlated')?.checked;

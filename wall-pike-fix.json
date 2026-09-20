@@ -1,0 +1,378 @@
+{
+  "custom_exercises": [
+    {
+      "id": "custom_ex_1781454076909",
+      "link": "https://www.youtube.com/watch?v=ifi7-8jRvBI",
+      "name": "Wall Pike Pulses",
+      "goals": [],
+      "notes": "",
+      "energy": "Low",
+      "logType": "reps",
+      "segment": "skill",
+      "category": "Body Movement",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [],
+      "frequency": "",
+      "restGroup": "skill",
+      "difficulty": 3,
+      "subcategory": "Gymnastics Conditioning",
+      "defaultState": "active",
+      "instructions": ""
+    },
+    {
+      "id": "custom_ex_scapular-pull-up",
+      "link": "https://www.youtube.com/results?search_query=scapular+pull+up+tutorial",
+      "name": "Scapular pull-up",
+      "goals": [
+        "ring-muscle-up"
+      ],
+      "notes": "Keep arms straight \u2014 this is a shoulder blade movement only, not a bend of the elbows.",
+      "energy": "Med",
+      "logType": "reps",
+      "segment": "main",
+      "category": "Gym",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Pull-up bar"
+      ],
+      "frequency": "3x week",
+      "restGroup": "skill",
+      "difficulty": 2,
+      "subcategory": "Pulling",
+      "defaultState": "active",
+      "instructions": "Hang from bar with arms fully extended. Depress and retract shoulder blades without bending elbows \u2014 body rises 2\u20133cm. Lower back to full hang. Repeat."
+    },
+    {
+      "id": "custom_ex_pullup-negative",
+      "link": "https://www.youtube.com/results?search_query=pull+up+negative+eccentric+tutorial",
+      "name": "Pull-up negative",
+      "goals": [
+        "ring-muscle-up"
+      ],
+      "notes": "Control the descent for a full 5\u20138 seconds \u2014 the eccentric is where the strength gains happen.",
+      "energy": "Med",
+      "logType": "reps",
+      "segment": "main",
+      "category": "Gym",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Pull-up bar"
+      ],
+      "frequency": "3x week",
+      "restGroup": "skill",
+      "difficulty": 3,
+      "subcategory": "Pulling",
+      "defaultState": "active",
+      "instructions": "Jump or step to the top position (chin over bar). Slowly lower yourself over 5\u20138 seconds with full control. Drop, reset, repeat."
+    },
+    {
+      "id": "custom_ex_false-grip-dead-hang",
+      "link": "https://www.youtube.com/results?search_query=false+grip+dead+hang+rings+tutorial",
+      "name": "False grip dead hang",
+      "goals": [
+        "ring-muscle-up"
+      ],
+      "notes": "The wrist crease must sit on top of the ring \u2014 if it slips, the muscle-up transition becomes impossible.",
+      "energy": "Low",
+      "logType": "hold",
+      "segment": "main",
+      "category": "Rings",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Rings"
+      ],
+      "frequency": "Daily",
+      "restGroup": "skill",
+      "difficulty": 3,
+      "subcategory": "Holds",
+      "defaultState": "active",
+      "instructions": "Place wrist crease over the top of each ring, fingers wrapping underneath. Hang with full body weight in false grip. Hold for target duration without letting grip slip."
+    },
+    {
+      "id": "custom_ex_false-grip-ring-row",
+      "link": "https://www.youtube.com/results?search_query=false+grip+ring+row+tutorial",
+      "name": "False grip ring row",
+      "goals": [
+        "ring-muscle-up"
+      ],
+      "notes": "Maintain false grip throughout the full range \u2014 it will feel like it wants to slip at the top; resist that.",
+      "energy": "Med",
+      "logType": "reps",
+      "segment": "main",
+      "category": "Rings",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Rings"
+      ],
+      "frequency": "3x week",
+      "restGroup": "skill",
+      "difficulty": 4,
+      "subcategory": "Pulling",
+      "defaultState": "active",
+      "instructions": "Set rings at chest height, adopt false grip, hang under rings at an angle. Pull chest to rings keeping wrists in false grip position. Lower with control."
+    },
+    {
+      "id": "custom_ex_ring-dip-negative",
+      "link": "https://www.youtube.com/results?search_query=ring+dip+negative+tutorial",
+      "name": "Ring dip negative",
+      "goals": [
+        "ring-muscle-up"
+      ],
+      "notes": "Keep rings turned out at the top and control the wobble \u2014 the instability is the point.",
+      "energy": "Med",
+      "logType": "reps",
+      "segment": "main",
+      "category": "Rings",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Rings"
+      ],
+      "frequency": "3x week",
+      "restGroup": "skill",
+      "difficulty": 4,
+      "subcategory": "Pushing",
+      "defaultState": "active",
+      "instructions": "Start in ring support hold (arms locked, rings turned out). Slowly lower into bottom of dip over 4\u20136 seconds. Step down or jump back to top and repeat."
+    },
+    {
+      "id": "custom_ex_back-to-wall-hs",
+      "link": "https://www.youtube.com/results?search_query=back+to+wall+handstand+hold+tutorial",
+      "name": "Back-to-wall handstand hold",
+      "goals": [
+        "handstand"
+      ],
+      "notes": "Back-to-wall forces honest alignment \u2014 hollow body, no banana arch, and you learn where the real balance point lives.",
+      "energy": "Med",
+      "logType": "hold",
+      "segment": "skill",
+      "category": "Body Movement",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Wall"
+      ],
+      "frequency": "Daily",
+      "restGroup": "skill",
+      "difficulty": 3,
+      "subcategory": "Handstand",
+      "defaultState": "active",
+      "instructions": "Walk feet up wall until body is vertical, back facing wall, heels lightly touching. Engage hollow body (ribs down, glutes on). Hold, then practice pulling one heel off the wall at a time."
+    },
+    {
+      "id": "custom_ex_shrimp-squat",
+      "link": "https://www.youtube.com/results?search_query=shrimp+squat+progression+tutorial",
+      "name": "Shrimp squat",
+      "goals": [
+        "pistol-squat"
+      ],
+      "notes": "Keep the rear knee hovering just off the floor at the bottom \u2014 don't let it crash down.",
+      "energy": "Med",
+      "logType": "reps",
+      "segment": "main",
+      "category": "Gym",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [],
+      "frequency": "3x week",
+      "restGroup": "strength-acc",
+      "difficulty": 3,
+      "subcategory": "Legs",
+      "defaultState": "active",
+      "instructions": "Stand on one leg, hold rear foot behind you with same-side hand. Squat down until rear knee nearly touches floor. Drive through front foot to stand. Progress by lowering rear knee closer to floor."
+    },
+    {
+      "id": "custom_ex_one-leg-lsit",
+      "link": "https://www.youtube.com/results?search_query=one+leg+L+sit+progression+tutorial",
+      "name": "One-leg L-sit",
+      "goals": [
+        "l-sit"
+      ],
+      "notes": "The extended leg must be fully locked and horizontal \u2014 a bent or drooping leg is a tuck sit, not a one-leg L-sit.",
+      "energy": "Med",
+      "logType": "hold",
+      "segment": "main",
+      "category": "Body Movement",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Parallettes"
+      ],
+      "frequency": "3x week",
+      "restGroup": "skill",
+      "difficulty": 3,
+      "subcategory": "Gymnastics Conditioning",
+      "defaultState": "active",
+      "instructions": "From tuck sit on parallettes, extend one leg forward to horizontal, keeping the other tucked. Hold. Alternate legs. Progress to both legs extended."
+    },
+    {
+      "id": "custom_ex_single-leg-box-squat",
+      "link": "https://www.youtube.com/results?search_query=single+leg+box+squat+pistol+progression",
+      "name": "Single-leg box squat",
+      "goals": [
+        "pistol-squat"
+      ],
+      "notes": "Start with a high box and lower it over weeks \u2014 this is pure progressive overload for the pistol pattern.",
+      "energy": "Med",
+      "logType": "reps",
+      "segment": "main",
+      "category": "Gym",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Box"
+      ],
+      "frequency": "3x week",
+      "restGroup": "strength-acc",
+      "difficulty": 2,
+      "subcategory": "Legs",
+      "defaultState": "active",
+      "instructions": "Stand on one leg in front of a box. Extend free leg forward, squat down to sit lightly on box. Pause, then drive up through heel to stand. Reduce box height as strength increases."
+    },
+    {
+      "id": "custom_ex_copenhagen-plank",
+      "link": "https://www.youtube.com/results?search_query=copenhagen+plank+tutorial+adductor",
+      "name": "Copenhagen plank",
+      "goals": [
+        "middle-splits"
+      ],
+      "notes": "The top leg drives up into the bench \u2014 this is adductor loading, not just a side plank.",
+      "energy": "Med",
+      "logType": "hold",
+      "segment": "main",
+      "category": "Gym",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Bench"
+      ],
+      "frequency": "3x week",
+      "restGroup": "strength-acc",
+      "difficulty": 3,
+      "subcategory": "Core",
+      "defaultState": "active",
+      "instructions": "Side plank position with top foot resting on a bench. Drive top leg up into the bench actively while holding plank alignment. Bottom leg can float or touch floor depending on level."
+    },
+    {
+      "id": "custom_ex_assisted-pistol-squat",
+      "link": "https://www.youtube.com/results?search_query=assisted+pistol+squat+counterbalance+tutorial",
+      "name": "Assisted pistol squat",
+      "goals": [
+        "pistol-squat"
+      ],
+      "notes": "Use the counterbalance to learn the movement pattern, not to avoid the hard part \u2014 gradually reduce assistance.",
+      "energy": "Med",
+      "logType": "reps",
+      "segment": "main",
+      "category": "Gym",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [],
+      "frequency": "3x week",
+      "restGroup": "strength-acc",
+      "difficulty": 3,
+      "subcategory": "Legs",
+      "defaultState": "active",
+      "instructions": "Hold a pole, TRX, or extend arms forward holding a light weight as counterbalance. Lower into pistol squat with free leg extended. Stand using minimal assistance. Reduce support progressively."
+    },
+    {
+      "id": "custom_ex_pistol-squat",
+      "link": "https://www.youtube.com/results?search_query=pistol+squat+tutorial+form",
+      "name": "Pistol squat",
+      "goals": [
+        "pistol-squat"
+      ],
+      "notes": "Free leg stays extended and off the floor throughout \u2014 if it touches, it's a different exercise.",
+      "energy": "High",
+      "logType": "reps",
+      "segment": "main",
+      "category": "Gym",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [],
+      "frequency": "2x week",
+      "restGroup": "strength-heavy",
+      "difficulty": 5,
+      "subcategory": "Legs",
+      "defaultState": "active",
+      "instructions": "Stand on one leg, extend free leg forward parallel to floor. Squat all the way down (hip crease below knee) keeping heel grounded. Drive through heel to stand fully. Keep torso upright."
+    },
+    {
+      "id": "custom_ex_hanging-knee-raise",
+      "link": "https://www.youtube.com/results?search_query=hanging+knee+raise+tutorial+core",
+      "name": "Hanging knee raise",
+      "goals": [
+        "l-sit"
+      ],
+      "notes": "Avoid swinging \u2014 initiate from the hip flexors with a slight posterior tilt, not from momentum.",
+      "energy": "Med",
+      "logType": "reps",
+      "segment": "main",
+      "category": "Gym",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Pull-up bar"
+      ],
+      "frequency": "3x week",
+      "restGroup": "strength-acc",
+      "difficulty": 2,
+      "subcategory": "Core",
+      "defaultState": "active",
+      "instructions": "Dead hang from bar. Engage core and raise knees toward chest without swinging. Lower with control. Progress to one leg extended, then both legs."
+    },
+    {
+      "id": "custom_ex_tuck-back-lever",
+      "link": "https://www.youtube.com/results?search_query=tuck+back+lever+rings+tutorial+progression",
+      "name": "Tuck back lever hold",
+      "goals": [
+        "back-lever"
+      ],
+      "notes": "Hips must be at ring height \u2014 if they drop below, you've lost the lever position and are just hanging.",
+      "energy": "High",
+      "logType": "hold",
+      "segment": "main",
+      "category": "Rings",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Rings"
+      ],
+      "frequency": "3x week",
+      "restGroup": "skill",
+      "difficulty": 4,
+      "subcategory": "Lever",
+      "defaultState": "active",
+      "instructions": "From skin the cat, hold the inverted position. Tuck knees to chest and rotate until body is parallel to ground, face down. Hold with hips at ring level. Progression: tuck \u2192 advanced tuck \u2192 straddle \u2192 full."
+    },
+    {
+      "id": "custom_ex_tuck-front-lever",
+      "link": "https://www.youtube.com/results?search_query=tuck+front+lever+rings+tutorial+progression",
+      "name": "Tuck front lever hold",
+      "goals": [
+        "front-lever"
+      ],
+      "notes": "Pull the rings toward your hips actively \u2014 passive hanging will never build the front lever.",
+      "energy": "High",
+      "logType": "hold",
+      "segment": "main",
+      "category": "Rings",
+      "imageUrl": "",
+      "isCustom": true,
+      "equipment": [
+        "Rings"
+      ],
+      "frequency": "3x week",
+      "restGroup": "skill",
+      "difficulty": 5,
+      "subcategory": "Lever",
+      "defaultState": "active",
+      "instructions": "From inverted hang, tuck knees to chest and lower body until parallel to ground, face up. Actively pull rings down toward hips. Hold. Progression: tuck \u2192 advanced tuck \u2192 straddle \u2192 full."
+    }
+  ]
+}
