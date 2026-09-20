@@ -379,6 +379,28 @@ const History = {
     return Math.round(weight * (1 + reps / 30) * 10) / 10;
   },
 
+  // What a set actually loaded. A bodyweight lift logs reps and no weight —
+  // a pull-up set is "6", not "6 at 74kg" — so estimateOneRM returned null
+  // and the Tracked lifts card read "No sets logged yet" under a column of
+  // real work. A weightless set on a weight+reps exercise was loaded by
+  // bodyweight, so say so. logType is the guard: 'reps' exercises (toes to
+  // bar, hollow rocks) are not lifts and stay out of the 1RM math entirely.
+  // Falls back to null when no bodyweight is on file, which is the old
+  // behaviour rather than a guess.
+  setLoad(exerciseId, set) {
+    if (set.weight) return set.weight;
+    if (!set.reps) return null;
+    const lib = (typeof LIBRARY !== 'undefined') ? LIBRARY.find(l => l.id === exerciseId) : null;
+    if (!lib || lib.logType !== 'weight+reps') return null;
+    const bw = (typeof Profile !== 'undefined') ? Profile.load()?.settings?.bodyweightKg : null;
+    return bw || null;
+  },
+
+  // Estimated 1RM for one set, bodyweight included where it applies.
+  estimateSet(exerciseId, set) {
+    return this.estimateOneRM(this.setLoad(exerciseId, set), set.reps);
+  },
+
   // Best estimated 1RM ever logged for this exercise, from completed
   // session history, with the set that produced it.
   getBestEstimate(exerciseId, limit = 50) {
@@ -386,9 +408,10 @@ const History = {
     let best = null;
     hist.forEach(h => {
       h.sets.forEach(s => {
-        const e1rm = this.estimateOneRM(s.weight, s.reps);
+        const e1rm = this.estimateSet(exerciseId, s);
         if (e1rm && (!best || e1rm > best.e1rm)) {
-          best = { e1rm, weight: s.weight, reps: s.reps, date: h.date };
+          best = { e1rm, weight: this.setLoad(exerciseId, s), reps: s.reps,
+                   bodyweight: !s.weight, date: h.date };
         }
       });
     });
@@ -1151,14 +1174,20 @@ const Generator = {
     const d = date ? new Date(date) : new Date();
     const WEEKDAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const weekdayKey = WEEKDAY_KEYS[d.getDay()];
-    const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[themeOverride || weekdayKey] : null;
-    if (!slot) return null;
-
     // The month plan decides what today is FOR; the scaffold and generator
     // decide what that means in exercises. Absent a plan the week stands on
     // its own exactly as before, so this layer is additive.
     const planDay   = (typeof MonthPlan !== 'undefined') ? MonthPlan.dayFor(d) : null;
     const loadScale = (typeof MonthPlan !== 'undefined') ? MonthPlan.loadScaleFor(d) : 1;
+
+    // A plan day may borrow another day-type's whole skeleton. The second
+    // quality session of a build week lands on a Saturday, whose own template
+    // is the long easy run; without this the plan's theme changed only the
+    // LABEL while the generator still built the template's day underneath.
+    // An explicit themeOverride (chat) still wins over the plan.
+    const slotKey = themeOverride || (planDay && planDay.dayType) || weekdayKey;
+    const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[slotKey] : null;
+    if (!slot) return null;
 
     const variant   = slot.variant || 'standard';
     const durations = this._scaffoldBlockDurations(variant);
@@ -1222,6 +1251,15 @@ const Generator = {
       mainBlocks.forEach(b => {
         b.key = 'main-focus:' + b.key;
         b.mainFocus = true;
+        // A named protocol on the day beats the generator's generic
+        // "N min hard / M min easy, repeat for the block" fallback. A
+        // Norwegian 4x4 is four four-minute efforts, not a fill pattern,
+        // and when the protocol changes week to week the plan is what
+        // knows it — the scaffold only knows the day-type.
+        const ivSpec = (planDay && planDay.intervalSpec) || (slot.mainFocus && slot.mainFocus.intervalSpec);
+        if (ivSpec && /(^|:)cardio$/.test(b.key || '')) {
+          (b.exercises || []).forEach(e => { e.notes = ivSpec; });
+        }
         if (slot.mainFocus.note) b.note = slot.mainFocus.note;
         if (planDay && planDay.focusNote) b.note = planDay.focusNote + (b.note ? '  |  ' + b.note : '');
         bank(b);
@@ -1266,6 +1304,9 @@ const Generator = {
       } : null,
       themes: mainTags.length ? mainTags : ['mobility-movement'],
       themeOverride: themeOverride || null,
+      // The day-type actually used, so a later block resize re-pools from
+      // the borrowed skeleton rather than from the calendar weekday.
+      dayType: slotKey,
       variant,
       coordDomain: domain,
       fuel: slot.fuel || '',
@@ -1579,7 +1620,7 @@ const Generator = {
       return this._poolForTag(key.replace('main-focus:', ''));
     }
     if (key === 'mobility' || key === 'accessory') {
-      const slotKey = instance.themeOverride || instance.weekday;
+      const slotKey = instance.themeOverride || instance.dayType || instance.weekday;
       const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[slotKey] : null;
       const tags = (slot && slot[key] && slot[key].tags) || [];
       return [...new Set(tags.flatMap(t => this._poolForTag(t)))];
@@ -1621,7 +1662,7 @@ const Generator = {
     }
 
     if (block.key === 'mobility' || block.key === 'accessory') {
-      const slotKey = instance.themeOverride || instance.weekday;
+      const slotKey = instance.themeOverride || instance.dayType || instance.weekday;
       const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[slotKey] : null;
       const tags = (slot && slot[block.key] && slot[block.key].tags) || [];
       const pool = [...new Set(tags.flatMap(t => this._poolForTag(t)))];
@@ -1932,14 +1973,21 @@ const Generator = {
         // on every session of tier 3+, so a week with two runs, a long easy
         // run and a bike day generated four identical indoor cycling blocks.
         // Ankle/knee pain still overrides to the bike.
-        const byModality = cardioModality === 'run' ? 'easy-run'
-                         : cardioModality === 'bike' ? 'z2-cycling' : null;
-        const cardioId = preferBike ? 'z2-cycling'
-                       : (byModality || (tier >= 3 ? 'z2-cycling' : 'easy-run'));
-        const cardioEx = resolveEx(cardioId) || resolveEx('z2-cycling') || resolveEx('easy-run');
+        // The mode picks the exercise, not just its note. Before this an
+        // interval day generated "Easy run" with an intervals note glued on,
+        // so history recorded a 4x4 VO2max session as an easy run and every
+        // zone stat downstream judged it against a zone-2 standard.
+        const isIntervals = cardioMode === 'intervals';
+        const runId  = isIntervals ? 'interval-run'     : 'easy-run';
+        const bikeId = isIntervals ? 'interval-cycling' : 'z2-cycling';
+        const byModality = cardioModality === 'run' ? runId
+                         : cardioModality === 'bike' ? bikeId : null;
+        const cardioId = preferBike ? bikeId
+                       : (byModality || (tier >= 3 ? bikeId : runId));
+        const cardioEx = resolveEx(cardioId) || resolveEx(bikeId) || resolveEx(runId);
         if (cardioEx) cardioEx.allocatedMinutes = dur; // one exercise fills the whole block, no transition buffer needed
         const swapNote = preferBike && cardioEx?.id === 'z2-cycling' ? ' Swapped to the bike — easier on the ankle/knee today.' : '';
-        if (cardioMode === 'intervals') {
+        if (isIntervals) {
           if (cardioEx) {
             const work = useExt ? '3 min' : '2 min';
             const rest = useExt ? '2 min' : '90s';

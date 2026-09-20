@@ -1068,7 +1068,7 @@ function renderToday() {
   }).join('');
 
   // footer
-  const slot = (typeof WEEK_SCAFFOLD !== 'undefined' && session.weekday) ? WEEK_SCAFFOLD[session.themeOverride || session.weekday] : null;
+  const slot = (typeof WEEK_SCAFFOLD !== 'undefined' && session.weekday) ? WEEK_SCAFFOLD[session.themeOverride || session.dayType || session.weekday] : null;
   const z2 = (App.profile.settings.hrZones && App.profile.settings.hrZones.z2) || 153;
   h += `<div style="margin-top:1rem">
     <div class="mv-tiles">
@@ -2002,8 +2002,8 @@ function renderSessionScreen() {
 function liveBestEstimate(ex) {
   let best = History.getBestEstimate(ex.id);
   (ex.sets||[]).forEach(s => {
-    const e1rm = History.estimateOneRM(s.weight, s.reps);
-    if (e1rm && (!best || e1rm > best.e1rm)) best = { e1rm, weight: s.weight, reps: s.reps, date: 'today' };
+    const e1rm = History.estimateSet(ex.id, s);
+    if (e1rm && (!best || e1rm > best.e1rm)) best = { e1rm, weight: History.setLoad(ex.id, s), reps: s.reps, bodyweight: !s.weight, date: 'today' };
   });
   return best;
 }
@@ -2719,7 +2719,7 @@ function _logLifts() {
     const hist = History.getExerciseHistory(id, 12);   // newest first
     const pts = hist.map(h => {
       const best = (h.sets || []).reduce((a, s) => {
-        const e = History.estimateOneRM(s.weight, s.reps);
+        const e = History.estimateSet(id, s);
         return (e && (!a || e > a)) ? e : a;
       }, null);
       return best ? { e: best, date: h.date, sets: h.sets } : null;
@@ -2736,7 +2736,10 @@ function _logLifts() {
     const prev = pts.length > 1 ? pts[pts.length - 2] : null;
     const delta = prev ? Math.round((last.e - prev.e) * 10) / 10 : null;
     const dTone = !delta ? 'var(--text3)' : (delta > 0 ? 'var(--accent2)' : 'var(--danger)');
-    const top = (last.sets || []).reduce((a, s) => (s.weight && (!a || s.weight > a.weight)) ? s : a, null);
+    const top = (last.sets || []).reduce((a, s) => {
+      const w = History.setLoad(id, s);
+      return (w && (!a || w > a.w)) ? { w, reps: s.reps, added: !!s.weight } : a;
+    }, null);
 
     const tail = pts.slice(-6);
     const lo = Math.min(...tail.map(p => p.e)), hi = Math.max(...tail.map(p => p.e));
@@ -2756,7 +2759,7 @@ function _logLifts() {
         <polyline points="${poly}" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <div style="width:3.6rem;text-align:right;flex-shrink:0">
-        <div style="font-size:.82rem;font-weight:600;font-variant-numeric:tabular-nums">${top && top.weight ? top.weight : Math.round(last.e)}</div>
+        <div style="font-size:.82rem;font-weight:600;font-variant-numeric:tabular-nums">${top ? (top.added ? top.w : top.reps + '\u00d7') : Math.round(last.e)}</div>
         <div style="font-size:.64rem;color:${dTone}">${delta === null ? '—' : (delta > 0 ? '+' : '') + delta}</div>
       </div>
     </button>`;
@@ -2822,19 +2825,19 @@ function openLiftHistory(id) {
 
   let html = `<div class="modal-title">${ex.name}</div>`;
   html += `<div class="lift-hist-summary">${best
-    ? `Est. 1RM <strong>${best.e1rm}kg</strong><span class="lift-hist-summary-sub"> (${best.weight}kg × ${best.reps} on ${Utils.formatDate(best.date)})</span>`
+    ? `Est. 1RM <strong>${best.e1rm}kg</strong><span class="lift-hist-summary-sub"> (${best.bodyweight ? 'bodyweight' : best.weight + 'kg'} × ${best.reps} on ${Utils.formatDate(best.date)})</span>`
     : 'No sets logged yet.'}</div>`;
 
   const rows = hist.map(h => {
-    const weighted = (h.sets || []).filter(s => s.weight && s.reps);
+    const weighted = (h.sets || []).filter(s => s.reps && History.setLoad(id, s));
     if (!weighted.length) return '';
     const sessionBest = weighted.reduce((a, s) => {
-      const e1rm = History.estimateOneRM(s.weight, s.reps);
-      return (!a || e1rm > a.e1rm) ? { e1rm, weight: s.weight, reps: s.reps } : a;
+      const e1rm = History.estimateSet(id, s);
+      return (!a || e1rm > a.e1rm) ? { e1rm, weight: History.setLoad(id, s), reps: s.reps } : a;
     }, null);
     return `<div class="lift-hist-row">
       <div class="lift-hist-date">${Utils.formatDate(h.date)}</div>
-      <div class="lift-hist-sets">${weighted.map(s => `${s.weight}kg×${s.reps}`).join(', ')}</div>
+      <div class="lift-hist-sets">${weighted.map(s => s.weight ? `${s.weight}kg×${s.reps}` : `BW×${s.reps}`).join(', ')}</div>
       ${sessionBest ? `<div class="lift-hist-e1rm">${sessionBest.e1rm}kg e1RM</div>` : ''}
     </div>`;
   }).filter(Boolean).join('');
