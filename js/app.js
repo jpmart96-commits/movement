@@ -1143,6 +1143,12 @@ const Generator = {
     const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[themeOverride || weekdayKey] : null;
     if (!slot) return null;
 
+    // The month plan decides what today is FOR; the scaffold and generator
+    // decide what that means in exercises. Absent a plan the week stands on
+    // its own exactly as before, so this layer is additive.
+    const planDay   = (typeof MonthPlan !== 'undefined') ? MonthPlan.dayFor(d) : null;
+    const loadScale = (typeof MonthPlan !== 'undefined') ? MonthPlan.loadScaleFor(d) : 1;
+
     const variant   = slot.variant || 'standard';
     const durations = this._scaffoldBlockDurations(variant);
     const tier      = this.getTier(this._skeletonTotalMinutes(variant));
@@ -1169,7 +1175,9 @@ const Generator = {
     blocks.push(open);
 
     // ── COMPLEMENTARY — one coordination domain, explored properly.
-    const domain = this.coordDomainFor(d);
+    // Pinned by the plan when there is one, so the block's published
+    // schedule and what the app actually generates can never drift apart.
+    const domain = (planDay && planDay.coordDomain) || this.coordDomainFor(d);
     blocks.push(bank(this._buildComplementaryBlock({
       domain, durationMin: durations['complementary'], resolveEx, lastSeenMap, painCaution,
     })));
@@ -1191,7 +1199,7 @@ const Generator = {
     let mainTags = [];
     if (slot.mainFocus && durations['main-focus'] > 0) {
       mainTags = slot.mainFocus.tags || [];
-      const mainDur = Math.min(durations['main-focus'], 60);
+      const mainDur = Math.min(Math.round(durations['main-focus'] * loadScale), 60);
       const mainDurations = {};
       mainTags.forEach(t => { mainDurations[t] = Math.round(mainDur / mainTags.length); });
       const { blocks: mainBlocks } = this._getModalityBlocks({
@@ -1204,6 +1212,7 @@ const Generator = {
         b.key = 'main-focus:' + b.key;
         b.mainFocus = true;
         if (slot.mainFocus.note) b.note = slot.mainFocus.note;
+        if (planDay && planDay.focusNote) b.note = planDay.focusNote + (b.note ? '  |  ' + b.note : '');
         bank(b);
       });
       blocks.push(...mainBlocks);
@@ -1239,7 +1248,11 @@ const Generator = {
       id: null,
       date: this._localDateKey(d),
       weekday: weekdayKey,
-      theme: slot.theme,
+      theme: (planDay && planDay.theme) || slot.theme,
+      planBlock: planDay ? {
+        week: planDay.week, load: planDay.load, benchmark: !!planDay.benchmark,
+        focusNote: planDay.focusNote || '',
+      } : null,
       themes: mainTags.length ? mainTags : ['mobility-movement'],
       themeOverride: themeOverride || null,
       variant,
