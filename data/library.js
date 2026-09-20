@@ -291,6 +291,7 @@ const LIBRARY = [
   },
   {
     id: 'eye-cars',
+    coordDomain: 'vision',
     name: 'Eye CARs',
     modality: ['rest'], category: 'Somatic', subcategory: 'Eye Training',
     modalityTags: ['coordination'],
@@ -303,6 +304,7 @@ const LIBRARY = [
   },
   {
     id: 'near-far-focus',
+    coordDomain: 'vision',
     name: 'Near / far focus shifts',
     modality: ['rest'], category: 'Somatic', subcategory: 'Eye Training',
     modalityTags: ['coordination'],
@@ -315,6 +317,7 @@ const LIBRARY = [
   },
   {
     id: 'peripheral-tracking',
+    coordDomain: 'vision',
     name: 'Peripheral tracking',
     modality: ['rest'], category: 'Somatic', subcategory: 'Eye Training',
     modalityTags: ['coordination'],
@@ -1181,6 +1184,7 @@ const LIBRARY = [
   // ── OBJECT MANIPULATION ────────────────────────────────────
   {
     id: 'ball-eye-patched',
+    coordDomain: 'vision',
     name: 'Ping pong ball vs wall — eye patched',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Tennis Ball',
     modalityTags: ['coordination'],
@@ -1193,6 +1197,7 @@ const LIBRARY = [
   },
   {
     id: 'tennis-ball-punch',
+    coordDomain: 'ball-reaction',
     name: 'Punch tennis ball vs wall',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Tennis Ball',
     modalityTags: ['coordination'],
@@ -1205,6 +1210,7 @@ const LIBRARY = [
   },
   {
     id: 'tennis-ball-floor',
+    coordDomain: 'ball-reaction',
     name: 'Floor tennis ball taps',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Tennis Ball',
     modalityTags: ['coordination'],
@@ -1217,6 +1223,7 @@ const LIBRARY = [
   },
   {
     id: 'tennis-ball-dribble',
+    coordDomain: 'ball-reaction',
     name: 'Tennis ball wall dribble',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Tennis Ball',
     modalityTags: ['coordination'],
@@ -1229,6 +1236,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-static',
+    coordDomain: 'balance',
     name: 'Balance stick — static hold',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1241,6 +1249,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-walking',
+    coordDomain: 'balance',
     name: 'Balance stick — walking',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1253,6 +1262,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-transfer',
+    coordDomain: 'balance',
     name: 'Balance stick — hand to hand transfer',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1265,6 +1275,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-grip-types',
+    coordDomain: 'stick',
     name: 'Stick grip types — pronated / supinated / eagle',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1277,6 +1288,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-hip-pike-slide',
+    coordDomain: 'stick',
     name: 'Stick koan — hip pike slide',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1289,6 +1301,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-overhead-behind-back',
+    coordDomain: 'stick',
     name: 'Stick koan — overhead / behind-back holds',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1301,6 +1314,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-fingertip-stepover',
+    coordDomain: 'stick',
     name: 'Stick koan — fingertip step-over',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1313,6 +1327,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-hop-jump-over',
+    coordDomain: 'stick',
     name: 'Stick koan — hop and jump over',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1325,6 +1340,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-seated-hip-to-butt',
+    coordDomain: 'stick',
     name: 'Stick koan — seated hip-to-butt slide',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1337,6 +1353,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-360-rotation',
+    coordDomain: 'stick',
     name: 'Stick koan — 360° body rotation',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1349,6 +1366,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-two-stick-tangle',
+    coordDomain: 'stick',
     name: 'Stick koan — two-stick tangle',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1361,6 +1379,7 @@ const LIBRARY = [
   },
   {
     id: 'stick-feet-balance-transition',
+    coordDomain: 'stick',
     name: 'Stick koan — feet balance to prone transition',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Stick Balancing',
     modalityTags: ['coordination'],
@@ -1373,6 +1392,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-cascade',
+    coordDomain: 'objects',
     name: 'Juggling — 3 ball cascade',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1385,6 +1405,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-variations',
+    coordDomain: 'objects',
     name: 'Juggling — variations / tricks',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1397,6 +1418,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-columns',
+    coordDomain: 'objects',
     name: 'Juggling — columns',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1409,6 +1431,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-reverse-cascade',
+    coordDomain: 'objects',
     name: 'Juggling — reverse cascade',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1421,6 +1444,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-half-shower',
+    coordDomain: 'objects',
     name: 'Juggling — half shower',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1433,6 +1457,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-shower',
+    coordDomain: 'objects',
     name: 'Juggling — shower',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1445,6 +1470,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-tennis',
+    coordDomain: 'objects',
     name: 'Juggling — tennis',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1457,6 +1483,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-mills-mess',
+    coordDomain: 'objects',
     name: 'Juggling — Mills Mess',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1469,6 +1496,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-box',
+    coordDomain: 'objects',
     name: 'Juggling — box',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1481,6 +1509,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-windmill',
+    coordDomain: 'objects',
     name: 'Juggling — windmill',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1493,6 +1522,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-factory',
+    coordDomain: 'objects',
     name: 'Juggling — factory',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1505,6 +1535,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-441-siteswap',
+    coordDomain: 'objects',
     name: 'Juggling — 441 (siteswap)',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1517,6 +1548,7 @@ const LIBRARY = [
   },
   {
     id: 'juggling-under-leg',
+    coordDomain: 'objects',
     name: 'Juggling — under the leg',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Juggling',
     modalityTags: ['coordination'],
@@ -1529,6 +1561,7 @@ const LIBRARY = [
   },
   {
     id: 'indian-clubs-basic',
+    coordDomain: 'objects',
     name: 'Indian clubs — basic swings',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Indian Clubs',
     modalityTags: ['coordination'],
@@ -1541,6 +1574,7 @@ const LIBRARY = [
   },
   {
     id: 'indian-clubs-flows',
+    coordDomain: 'objects',
     name: 'Indian clubs — flows',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Indian Clubs',
     modalityTags: ['coordination'],
@@ -1553,6 +1587,7 @@ const LIBRARY = [
   },
   {
     id: 'contact-juggling',
+    coordDomain: 'objects',
     name: 'Contact juggling — palm roll',
     modality: ['skill'], category: 'Object Manipulation', subcategory: 'Contact Juggling',
     modalityTags: ['coordination'],
@@ -2492,6 +2527,7 @@ const LIBRARY = [
   // ── BODY MOVEMENT — BALANCE ────────────────────────────────
   {
     id: 'balance-board',
+    coordDomain: 'balance',
     name: 'Balance board',
     modality: ['movement'], category: 'Body Movement', subcategory: 'Balance',
     modalityTags: ['coordination'],
@@ -4031,6 +4067,90 @@ const LIBRARY = [
     restGroup: 'flexibility', intensityTier: 'flexibility', logType: 'hold',
     notes: 'Cross one leg over, rotate toward the bent knee',
     link: 'https://www.youtube.com/results?search_query=seated+spinal+twist+yoga+tutorial',
+    defaultState: 'active',
+  },
+  {
+    id: 'keepie-uppies',
+    name: 'Football keepie-uppies',
+    modality: ['skill'], category: 'Object Manipulation', subcategory: 'Reaction',
+    modalityTags: ['coordination'],
+    coordDomain: 'ball-reaction',
+    difficulty: 2, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: [], frequency: '2x week',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'Both feet, thighs, chest. Count consecutive touches before the ball lands.',
+    instructions: 'Juggle the ball continuously without letting it touch the ground. Alternate feet. Progress to thigh, chest and head touches, then to fixed sequences.',
+    link: 'https://www.youtube.com/results?search_query=football+keepie+uppies+tutorial',
+    defaultState: 'active',
+  },
+  {
+    id: 'reaction-ball-wall',
+    name: 'Reaction ball - wall catches',
+    modality: ['skill'], category: 'Object Manipulation', subcategory: 'Reaction',
+    modalityTags: ['coordination'],
+    coordDomain: 'ball-reaction',
+    difficulty: 3, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: [], frequency: '2x week',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'The irregular bounce is the point - you cannot pre-plan the catch.',
+    instructions: 'Throw a reaction ball (or any irregular bouncy ball) against a wall and catch it after one bounce. Vary distance and throw speed. Progress to single hand, then weak hand only.',
+    link: 'https://www.youtube.com/results?search_query=reaction+ball+wall+drill',
+    defaultState: 'active',
+  },
+  {
+    id: 'two-ball-wall-alternating',
+    name: 'Two-ball wall alternating',
+    modality: ['skill'], category: 'Object Manipulation', subcategory: 'Reaction',
+    modalityTags: ['coordination'],
+    coordDomain: 'ball-reaction',
+    difficulty: 3, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: ['Tennis balls'], frequency: '2x week',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'Both balls in the air at once - forces independent hand timing.',
+    instructions: 'Stand facing a wall with a tennis ball in each hand. Throw and catch alternately against the wall, keeping a steady rhythm. Progress by speeding up, then by crossing hands.',
+    link: 'https://www.youtube.com/results?search_query=two+ball+wall+toss+coordination+drill',
+    defaultState: 'active',
+  },
+  {
+    id: 'drop-catch-reaction',
+    name: 'Tennis ball drop-catch',
+    modality: ['skill'], category: 'Object Manipulation', subcategory: 'Reaction',
+    modalityTags: ['coordination'],
+    coordDomain: 'ball-reaction',
+    difficulty: 2, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: ['Tennis balls'], frequency: '2x week',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'Drop from shoulder height, catch with the opposite hand before the second bounce.',
+    instructions: 'Hold a ball at shoulder height, release it without warning yourself, and catch it with the other hand after one bounce. Lower the drop height and shorten the reaction window as it gets easy.',
+    link: 'https://www.youtube.com/results?search_query=tennis+ball+drop+catch+reaction+drill',
+    defaultState: 'active',
+  },
+  {
+    id: 'saccade-chart',
+    name: 'Saccadic jumps - two targets',
+    modality: ['skill'], category: 'Object Manipulation', subcategory: 'Reaction',
+    modalityTags: ['coordination'],
+    coordDomain: 'vision',
+    difficulty: 2, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: [], frequency: '2x week',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'Eyes only - the head stays perfectly still.',
+    instructions: 'Place two small targets on a wall at shoulder width, a full arm length away. Jump your gaze between them as fast as you can while keeping the head motionless. Widen the targets as control improves.',
+    link: 'https://www.youtube.com/results?search_query=saccade+eye+training+drill',
+    defaultState: 'active',
+  },
+  {
+    id: 'gaze-stabilisation',
+    name: 'Gaze stabilisation - head turns',
+    modality: ['skill'], category: 'Object Manipulation', subcategory: 'Reaction',
+    modalityTags: ['coordination'],
+    coordDomain: 'vision',
+    difficulty: 2, energy: 'Low', segment: 'objManip',
+    goals: [], equipment: [], frequency: '2x week',
+    restGroup: 'somatic', intensityTier: 'light', logType: 'hold',
+    notes: 'Vestibulo-ocular work: the target stays sharp while the head moves.',
+    instructions: 'Fix your gaze on a small target held at full arm length. Turn your head side to side, then up and down, keeping the target in sharp focus throughout. Build speed only while the target stays clear.',
+    link: 'https://www.youtube.com/results?search_query=gaze+stabilization+VOR+exercise',
     defaultState: 'active',
   },
 ];

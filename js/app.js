@@ -1136,19 +1136,16 @@ const Generator = {
   // per the 2026-08-06 decision in project_scaffold_revamp. recentMuscleIntensity
   // is still threaded through purely for pool *ordering* (same signal
   // _fitToTime already uses elsewhere), not as a gating feature.
-  generateFromScaffold({ date, correlationMode, themeOverride, profile, sleep, energy, pain, focus }) {
+  generateFromScaffold({ date, themeOverride, profile, sleep, energy, pain, focus, correlationMode }) {
     const d = date ? new Date(date) : new Date();
     const WEEKDAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const weekdayKey = WEEKDAY_KEYS[d.getDay()];
     const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[themeOverride || weekdayKey] : null;
     if (!slot) return null;
 
-    const fasting = slot.fasting;
-    const mode    = correlationMode === 'anti_correlated' ? 'antiCorrelated' : 'correlated';
-    const priming = slot.priming[mode];
-
-    const durations = this._scaffoldBlockDurations(fasting);
-    const tier      = this.getTier(this._skeletonTotalMinutes(fasting));
+    const variant   = slot.variant || 'standard';
+    const durations = this._scaffoldBlockDurations(variant);
+    const tier      = this.getTier(this._skeletonTotalMinutes(variant));
     const lowEnergy = (sleep > 0 && sleep < 3) || (energy > 0 && energy < 3);
     const useExt    = tier >= 3 && !lowEnergy;
     const lastSeenMap = History.getExerciseLastSeenMap(30);
@@ -1159,100 +1156,101 @@ const Generator = {
 
     const blocks = [];
 
-    // Light Work — fixed daily constants, not a generated pool.
-    blocks.push(this._buildDailyConstantsBlock(durations['light-work']));
+    // Nothing should appear twice in one day. Thursday's Yoga accessory was
+    // re-drawing the same three poses its own Mobility block had just used,
+    // because both pull from the same tag. Each block's picks are banked
+    // here and filtered out of every later pool.
+    const used = new Set();
+    const fresh = pool => pool.filter(id => !used.has(id));
+    const bank  = block => { (block.exercises || []).forEach(e => used.add(e.id)); return block; };
 
-    // Breakfast — only on non-fasting days (fasted days delay it past Main Focus).
-    if (!fasting && durations['breakfast'] > 0) {
-      blocks.push({
-        key: 'breakfast', label: 'Breakfast', icon: 'coffee', color: '#BA7517', bg: '#FAEEDA',
-        duration: durations['breakfast'], note: 'Eat. No heavy loading before this settles.',
-        exercises: [{ id: 'breakfast', name: 'Eat + digest', logType: 'none', notes: '',
-          sets: [], completed: false, skipped: false, link: null }],
-      });
+    // ── OPEN — the four daily constants, every day, no exceptions.
+    const open = this._buildDailyConstantsBlock(durations['open']);
+    blocks.push(open);
+
+    // ── COMPLEMENTARY — one coordination domain, explored properly.
+    const domain = this.coordDomainFor(d);
+    blocks.push(bank(this._buildComplementaryBlock({
+      domain, durationMin: durations['complementary'], resolveEx, lastSeenMap, painCaution,
+    })));
+
+    // ── MOBILITY & FLEXIBILITY
+    if (durations['mobility'] > 0) {
+      const mobTags = (slot.mobility && slot.mobility.tags) || ['mobility-movement'];
+      const mobPool = fresh([...new Set(mobTags.flatMap(t => this._poolForTag(t)))]);
+      blocks.push(bank({
+        key: 'mobility', label: 'Mobility & Flexibility', icon: 'flame', color: '#1D9E75', bg: '#E1F5EE',
+        duration: durations['mobility'], note: (slot.mobility && slot.mobility.note) || '',
+        exercises: this._fitToTime(mobPool, durations['mobility'], resolveEx, lastSeenMap, painCaution, false, recentMuscleIntensity),
+        rotationNote: this._rotationNote(mobPool, lastSeenMap),
+      }));
     }
 
-    // Meditate — same fixed pool as the manual generator.
-    const meditateIds = tier >= 3 ? ['box-breathing', 'visualization', 'trataka'] : ['box-breathing', 'visualization'];
-    blocks.push({
-      key: 'meditate', label: 'Meditate', icon: 'brain', color: '#7F77DD', bg: '#EEEDFE',
-      duration: durations['meditation'], note: 'Mental rehearsal before skill.',
-      exercises: this._fitToTime(meditateIds, durations['meditation'], resolveEx, null, painCaution),
-    });
-
-    // Warm-up — primed pool, replacing the generic CARs pool the manual generator uses.
-    const warmupPool = [...new Set((priming.warmup || []).flatMap(t => this._poolForTag(t)))];
-    blocks.push({
-      key: 'warmup', label: 'Warm-up', icon: 'flame', color: '#1D9E75', bg: '#E1F5EE',
-      duration: durations['warmup'],
-      note: mode === 'correlated' ? `Primes today's Main Focus (${slot.theme}).` : 'Deliberately light/unrelated today.',
-      exercises: this._fitToTime(warmupPool, durations['warmup'], resolveEx, lastSeenMap, painCaution, false, recentMuscleIntensity),
-      rotationNote: this._rotationNote(warmupPool, lastSeenMap),
-    });
-
-    // Skill Training — primed pool. Doesn't exist as a distinct block in the
-    // manual generator (there, "skill" is just pooled time split across
-    // whatever tags are selected) — this is the new explicit block the
-    // scaffold's skeleton calls for.
-    const skillPool = [...new Set((priming.skill || []).flatMap(t => this._poolForTag(t)))];
-    blocks.push({
-      key: 'skill', label: 'Skill Training', icon: 'star', color: '#D8890A', bg: '#FBEEDA',
-      duration: durations['skill'],
-      note: mode === 'correlated' ? `Primes today's Main Focus (${slot.theme}).` : 'Deliberately light/unrelated today.',
-      exercises: this._fitToTime(skillPool, durations['skill'], resolveEx, lastSeenMap, painCaution, false, recentMuscleIntensity),
-      rotationNote: this._rotationNote(skillPool, lastSeenMap),
-    });
-
-    // Reading — fixed buffer block, same pattern as Breakfast.
-    if (durations['reading'] > 0) {
-      blocks.push({
-        key: 'reading', label: 'Reading', icon: 'book', color: '#5F5E5A', bg: '#F1EFE8',
-        duration: durations['reading'], note: '',
-        exercises: [{ id: 'reading', name: 'Reading', logType: 'none', notes: '',
-          sets: [], completed: false, skipped: false, link: null }],
+    // ── MAIN FOCUS — the day's spine. Reuses the same modality-block
+    // machinery the manual generator uses, capped at 60min.
+    let mainTags = [];
+    if (slot.mainFocus && durations['main-focus'] > 0) {
+      mainTags = slot.mainFocus.tags || [];
+      const mainDur = Math.min(durations['main-focus'], 60);
+      const mainDurations = {};
+      mainTags.forEach(t => { mainDurations[t] = Math.round(mainDur / mainTags.length); });
+      const { blocks: mainBlocks } = this._getModalityBlocks({
+        themes: mainTags, tier, durations: mainDurations, lowEnergy, useExt, profile, focus,
+        resolveEx, lastSeenMap, recentMuscleIntensity, painAvoid, painCaution,
+        cardioMode: slot.mainFocus.cardioMode,
+        cardioModality: slot.mainFocus.modality,
       });
+      mainBlocks.forEach(b => {
+        b.key = 'main-focus:' + b.key;
+        b.mainFocus = true;
+        if (slot.mainFocus.note) b.note = slot.mainFocus.note;
+        bank(b);
+      });
+      blocks.push(...mainBlocks);
     }
 
-    // Main Focus — reuse the same modality-block machinery the manual
-    // generator uses, capped at 60min per the doc's design principle.
-    const mainTags = slot.mainFocus.tags;
-    const mainDur  = Math.min(durations['main-focus'], 60);
-    const mainDurations = {};
-    mainTags.forEach(t => { mainDurations[t] = Math.round(mainDur / mainTags.length); });
-    const { blocks: mainBlocks } = this._getModalityBlocks({
-      themes: mainTags, tier, durations: mainDurations, lowEnergy, useExt, profile, focus,
-      resolveEx, lastSeenMap, recentMuscleIntensity, painAvoid, painCaution,
-      cardioMode: slot.mainFocus.cardioMode,
-    });
-    mainBlocks.forEach(b => { b.key = 'main-focus:' + b.key; b.mainFocus = true; });
-    blocks.push(...mainBlocks);
+    // ── ACCESSORY & SKILL — hangs, handstand work, whatever supports
+    // the long-horizon goals without being the point of the day.
+    if (durations['accessory'] > 0) {
+      const accTags = (slot.accessory && slot.accessory.tags) || ['calisthenics'];
+      const accPool = fresh([...new Set(accTags.flatMap(t => this._poolForTag(t)))]);
+      blocks.push(bank({
+        key: 'accessory', label: 'Accessory & Skill', icon: 'star', color: '#185FA5', bg: '#E4EEF9',
+        duration: durations['accessory'], note: (slot.accessory && slot.accessory.note) || '',
+        exercises: this._fitToTime(accPool, durations['accessory'], resolveEx, lastSeenMap, painCaution, false, recentMuscleIntensity),
+        rotationNote: this._rotationNote(accPool, lastSeenMap),
+      }));
+    }
 
-    // Cool-down — merge cooldown pools from Main Focus tags only (Warm-up/
-    // Skill Training priming tags don't need their own wind-down).
+    // ── CLOSE — down-regulation. Cool-down pools of the day's main tags,
+    // falling back to a body scan on days with no main focus.
     const coolIdsRaw = [...new Set(mainTags.flatMap(t => this._MODALITY_COOLDOWN[t] || []))];
-    const coolIds = coolIdsRaw.length ? coolIdsRaw : ['body-scan'];
-    const coolDur = durations['cooldown'] || 10;
+    const coolIds = fresh(coolIdsRaw.length ? coolIdsRaw : ['body-scan', 'breathing-478']);
+    const coolDur = durations['close'] || 10;
     blocks.push({
-      key: 'cooldown', label: 'Cool-down', icon: 'moon', color: '#5F5E5A', bg: '#F1EFE8',
-      duration: coolDur, note: '', exercises: this._fitToTime(coolIds, coolDur, resolveEx),
+      key: 'close', label: 'Close', icon: 'moon', color: '#5F5E5A', bg: '#F1EFE8',
+      duration: coolDur, note: 'Down-regulate. Finish calm.',
+      exercises: this._fitToTime(coolIds, coolDur, resolveEx),
     });
 
     const built = blocks.filter(b => b.exercises.length > 0);
 
     return {
       id: null,
-      date: d.toISOString().slice(0, 10),
+      date: this._localDateKey(d),
       weekday: weekdayKey,
       theme: slot.theme,
-      // `themes` (modality tag ids) rather than the human-readable `theme`
-      // label is what Utils.getSessionLabel/getSessionColor actually key
-      // off (see getSessionThemeIds) — set both so history/calendar/session
-      // header render with real colors/icons instead of the generic
-      // unrecognized-id fallback.
-      themes: mainTags,
+      themes: mainTags.length ? mainTags : ['mobility-movement'],
       themeOverride: themeOverride || null,
-      correlationMode: mode,
-      fasting,
+      variant,
+      coordDomain: domain,
+      fuel: slot.fuel || '',
+      // Kept for compatibility with existing daily_instance records and
+      // ChatOverride's correlation_flip intent. The priming/anti-correlated
+      // mechanic belonged to the old scaffold, where Warm-up and Skill were
+      // selected to prime Main Focus. The new skeleton has no primed blocks,
+      // so this is inert.
+      correlationMode: correlationMode === 'anti_correlated' ? 'anti_correlated' : 'correlated',
       duration: built.reduce((sum, b) => sum + (b.duration || 0), 0),
       tier,
       sleep, energy, pain, focus,
@@ -1268,6 +1266,53 @@ const Generator = {
     };
   },
 
+  // Local calendar date — never toISOString().slice(0,10), which files an
+  // evening session under the previous day anywhere east of UTC.
+  _localDateKey(d) {
+    const p = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+  },
+
+  // ── COORDINATION DOMAIN ROTATION ────────────────────────────
+  // Which single domain today explores. Five domains against a seven-day
+  // week drift past each other (5 and 7 are coprime), so over 35 days
+  // every domain lands on every day type.
+  coordDomainFor(date) {
+    if (typeof COORD_DOMAINS === 'undefined' || !COORD_DOMAINS.length) return null;
+    const anchorStr = (typeof COORD_ANCHOR_DATE !== 'undefined') ? COORD_ANCHOR_DATE : '2026-09-21';
+    const [ay, am, ad] = anchorStr.split('-').map(Number);
+    const anchor = new Date(ay, am - 1, ad);
+    const day = new Date(date); day.setHours(0, 0, 0, 0); anchor.setHours(0, 0, 0, 0);
+    const days = Math.round((day - anchor) / 86400000);
+    const n = COORD_DOMAINS.length;
+    return COORD_DOMAINS[((days % n) + n) % n];
+  },
+
+  // Coordination exercises in one domain. Overrides are applied first so a
+  // re-domained exercise moves day immediately.
+  _poolForCoordDomain(domain) {
+    if (!domain) return [];
+    return LIBRARY.filter(ex => {
+      const ov = Overrides.get(ex.id);
+      const dom  = (ov && ov.coordDomain) || ex.coordDomain;
+      const tags = (ov && ov.modalityTags) || ex.modalityTags || [];
+      return dom === domain && tags.includes('coordination');
+    }).map(ex => ex.id);
+  },
+
+  _buildComplementaryBlock({ domain, durationMin, resolveEx, lastSeenMap, painCaution }) {
+    const pool  = this._poolForCoordDomain(domain);
+    const label = (typeof COORD_DOMAIN_LABELS !== 'undefined' && COORD_DOMAIN_LABELS[domain]) || domain || 'Complementary';
+    return {
+      key: 'complementary', label: 'Complementary \u2014 ' + label,
+      icon: 'star', color: '#D8890A', bg: '#FBEEDA',
+      duration: durationMin, coordDomain: domain,
+      note: 'One domain today. Stay with it long enough to actually be in it.',
+      exercises: this._fitToTime(pool, durationMin, resolveEx, lastSeenMap, painCaution),
+      rotationNote: this._rotationNote(pool, lastSeenMap),
+    };
+  },
+
   // Minutes between two 'HH:MM' clock strings.
   _clockDiffMin(from, to) {
     const [fh, fm] = from.split(':').map(Number);
@@ -1275,26 +1320,26 @@ const Generator = {
     return (th * 60 + tm) - (fh * 60 + fm);
   },
 
-  // Per-block minutes from SKELETON_BLOCKS (data/scaffold.js) for the given
-  // fasting variant. A block with no window for this variant (Breakfast on
-  // a fasting day) comes back 0.
-  _scaffoldBlockDurations(fasting) {
+  // Per-block minutes from SKELETON_BLOCKS for the given day variant
+  // ('standard' | 'light'). A block with no window for this variant
+  // (Main Focus on the light day) comes back 0 and is dropped.
+  _scaffoldBlockDurations(variant) {
     const out = {};
     if (typeof SKELETON_BLOCKS === 'undefined') return out;
+    const key = variant === 'light' ? 'light' : 'standard';
     SKELETON_BLOCKS.forEach(b => {
-      const window = fasting ? b.fasting : b.nonFasting;
+      const window = b[key];
       out[b.key] = window ? this._clockDiffMin(window[0], window[1]) : 0;
     });
     return out;
   },
 
-  _skeletonTotalMinutes(fasting) {
-    return Object.values(this._scaffoldBlockDurations(fasting)).reduce((a, b) => a + b, 0);
+  _skeletonTotalMinutes(variant) {
+    return Object.values(this._scaffoldBlockDurations(variant)).reduce((a, b) => a + b, 0);
   },
 
-  // Light Work block content — the four "daily constants" (data/scaffold.js
-  // DAILY_CONSTANTS), fixed every day with internal variation (grip/depth/
-  // style) rather than picked from a pool.
+  // Open block content — the four daily constants, fixed every day with
+  // internal variation rather than picked from a pool.
   _buildDailyConstantsBlock(durationMin) {
     const items = (typeof DAILY_CONSTANTS !== 'undefined' ? DAILY_CONSTANTS.items : []) || [];
     const exercises = items.map((it, i) => ({
@@ -1304,8 +1349,8 @@ const Generator = {
       allocatedMinutes: items.length ? Math.round((durationMin / items.length) * 2) / 2 : 0,
     }));
     return {
-      key: 'light-work', label: 'Light Work', icon: 'sun', color: '#1D9E75', bg: '#E1F5EE',
-      duration: durationMin, note: 'Daily constants — vary grip/depth/style day to day.', exercises,
+      key: 'open', label: 'Open', icon: 'sun', color: '#1D9E75', bg: '#E1F5EE',
+      duration: durationMin, note: 'Daily constants \u2014 vary grip, depth and style day to day.', exercises,
     };
   },
 
@@ -1377,30 +1422,38 @@ const Generator = {
   // itself). Fixed-content blocks (Reading, Breakfast, Meditate, Light Work)
   // just get their duration bumped, no pool involved.
   _regenerateBlockAtDuration(block, newDuration, instance, profile) {
-    if (['reading', 'breakfast', 'meditate', 'cooldown'].includes(block.key)) {
-      return { ...block, duration: newDuration };
-    }
-    if (block.key === 'light-work') {
-      return this._buildDailyConstantsBlock(newDuration);
-    }
+    // Fixed-content blocks just take the new duration; there is no pool to
+    // re-draw from.
+    if (block.key === 'close') return { ...block, duration: newDuration };
+    if (block.key === 'open')  return this._buildDailyConstantsBlock(newDuration);
 
-    const painTags   = this._parsePainTags(instance.pain);
-    const resolveEx  = this._resolveExFactory(profile, painTags.avoid);
+    const painTags    = this._parsePainTags(instance.pain);
+    const resolveEx   = this._resolveExFactory(profile, painTags.avoid);
     const lastSeenMap = History.getExerciseLastSeenMap(30);
 
+    // The day's coordination domain is recorded on the block itself, so a
+    // resize keeps the same theme rather than silently jumping domains.
+    if (block.key === 'complementary') {
+      return this._buildComplementaryBlock({
+        domain: block.coordDomain || instance.coordDomain,
+        durationMin: newDuration, resolveEx, lastSeenMap, painCaution: painTags.caution,
+      });
+    }
+
     if (block.key.startsWith('main-focus:')) {
-      const tag = block.key.replace('main-focus:', '');
+      const tag  = block.key.replace('main-focus:', '');
       const pool = this._poolForTag(tag);
       return { ...block, duration: newDuration, exercises: this._fitToTime(pool, newDuration, resolveEx, lastSeenMap, painTags.caution) };
     }
-    if (block.key === 'warmup' || block.key === 'skill') {
+
+    if (block.key === 'mobility' || block.key === 'accessory') {
       const slotKey = instance.themeOverride || instance.weekday;
       const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[slotKey] : null;
-      const mode = instance.correlationMode === 'anti_correlated' ? 'antiCorrelated' : 'correlated';
-      const tags = slot?.priming?.[mode]?.[block.key] || [];
+      const tags = (slot && slot[block.key] && slot[block.key].tags) || [];
       const pool = [...new Set(tags.flatMap(t => this._poolForTag(t)))];
       return { ...block, duration: newDuration, exercises: this._fitToTime(pool, newDuration, resolveEx, lastSeenMap, painTags.caution) };
     }
+
     return { ...block, duration: newDuration };
   },
 
@@ -1684,7 +1737,7 @@ const Generator = {
   // only special case left is Cardio, which still needs a single fixed
   // exercise pick (bike vs run) and a steady/intervals prescription rather
   // than a multi-exercise pool, same as it always has.
-  _getModalityBlocks({ themes, tier, durations, lowEnergy, useExt, profile, focus, resolveEx, lastSeenMap, recentMuscleIntensity, painAvoid, painCaution, cardioMode }) {
+  _getModalityBlocks({ themes, tier, durations, lowEnergy, useExt, profile, focus, resolveEx, lastSeenMap, recentMuscleIntensity, painAvoid, painCaution, cardioMode, cardioModality }) {
     const blocks = [];
     painAvoid   = painAvoid   || new Set();
     painCaution = painCaution || new Set();
@@ -1701,7 +1754,14 @@ const Generator = {
       if (!dur || dur <= 0) return;
 
       if (tag === 'cardio') {
-        const cardioId = preferBike ? 'z2-cycling' : (tier >= 3 ? 'z2-cycling' : 'easy-run');
+        // The day says which it is. Without this the branch picked the bike
+        // on every session of tier 3+, so a week with two runs, a long easy
+        // run and a bike day generated four identical indoor cycling blocks.
+        // Ankle/knee pain still overrides to the bike.
+        const byModality = cardioModality === 'run' ? 'easy-run'
+                         : cardioModality === 'bike' ? 'z2-cycling' : null;
+        const cardioId = preferBike ? 'z2-cycling'
+                       : (byModality || (tier >= 3 ? 'z2-cycling' : 'easy-run'));
         const cardioEx = resolveEx(cardioId) || resolveEx('z2-cycling') || resolveEx('easy-run');
         if (cardioEx) cardioEx.allocatedMinutes = dur; // one exercise fills the whole block, no transition buffer needed
         const swapNote = preferBike && cardioEx?.id === 'z2-cycling' ? ' Swapped to the bike — easier on the ankle/knee today.' : '';
