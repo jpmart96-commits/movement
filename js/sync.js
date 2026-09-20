@@ -189,6 +189,14 @@ Object.assign(DB, {
       }, 'user_id,date');
       return;
     }
+    // Hevy exercise-name aliases (js/import.js) — { normalizedHevyName:
+    // exerciseId }, learned each time the user confirms a mapping on the
+    // import screen. Stored in the generic `overrides` table since it is
+    // exactly that shape; pull() already restores it as 'pb_hevy_aliases'.
+    if (fullKey === 'pb_hevy_aliases') {
+      await _upsert('overrides', { user_id: uid, store_key: 'hevy_aliases', data: value }, 'user_id,store_key');
+      return;
+    }
     // Week scaffold override (project_scaffold_revamp) — user's edited copy
     // of the default WEEK_SCAFFOLD shipped in data/scaffold.js, if/when the
     // app grows a UI to edit it. Not written by anything yet.
@@ -196,6 +204,26 @@ Object.assign(DB, {
       await _upsert('week_scaffold', { user_id: uid, data: value }, 'user_id');
       return;
     }
+  },
+
+  // Replace a locally-stored list from the server, but refuse to replace a
+  // non-empty local list with an empty server one. An empty server response
+  // is ambiguous — it means "you have no rows" and "your rows are gone"
+  // equally — and only one of those should ever reach local storage.
+  // Returns what it did so pull() can report it.
+  _pullList(key, incoming) {
+    if (Array.isArray(incoming) && incoming.length) {
+      localStorage.setItem(key, JSON.stringify(incoming));
+      return 'replaced:' + incoming.length;
+    }
+    let localLen = 0;
+    try { localLen = (JSON.parse(localStorage.getItem(key) || '[]') || []).length; } catch {}
+    if (localLen > 0) {
+      console.warn(`Sync: server returned 0 rows for ${key} but this device holds ${localLen}. Keeping the local copy — nothing was deleted. Use Settings \u2192 Export backup JSON before signing in elsewhere.`);
+      return 'kept-local:' + localLen;
+    }
+    localStorage.setItem(key, '[]');
+    return 'both-empty';
   },
 
   // Pull all data from Supabase into localStorage
@@ -220,8 +248,15 @@ Object.assign(DB, {
     if (Array.isArray(profile)  && profile[0])  localStorage.setItem('pb_profile',          JSON.stringify(profile[0].data));
     if (Array.isArray(sidx)     && sidx[0])     localStorage.setItem('pb_session_index',    JSON.stringify(sidx[0].data));
     if (Array.isArray(sessions))                sessions.forEach(s  => localStorage.setItem('pb_'+s.session_key, JSON.stringify(s.data)));
-    if (Array.isArray(exes))                    localStorage.setItem('pb_custom_exercises', JSON.stringify(exes.map(e=>e.data)));
-    if (Array.isArray(goals))                   localStorage.setItem('pb_custom_goals',     JSON.stringify(goals.map(g=>g.data)));
+    // These two used to be written unconditionally, so a server that came
+    // back empty wrote `[]` straight over whatever the device was holding.
+    // On 2026-09-20 the Supabase auth user was recreated; every table
+    // cascade-deleted, and a pull would then have turned that server-side
+    // loss into a permanent local one on every device that opened the app.
+    // A pull may add or replace — it may never empty something that has
+    // content. See _pullList.
+    this._pullList('pb_custom_exercises', Array.isArray(exes)  ? exes.map(e => e.data)  : null);
+    this._pullList('pb_custom_goals',     Array.isArray(goals) ? goals.map(g => g.data) : null);
     if (Array.isArray(ovRows))                  ovRows.forEach(r   => localStorage.setItem('pb_'+r.store_key,   JSON.stringify(r.data)));
     if (Array.isArray(cacheRows))               cacheRows.forEach(r => localStorage.setItem('pb_'+r.cache_key,  JSON.stringify(r.data)));
     if (Array.isArray(scaffold) && scaffold[0]) localStorage.setItem('pb_week_scaffold',    JSON.stringify(scaffold[0].data));
