@@ -2326,6 +2326,20 @@ const LiveSession = {
       ? History.updateSession(this._session.loggedHistoryId, this._session)
       : History.saveSession(this._session);
     this._session.id = id;
+
+    // Scaffold-generated sessions own a per-date daily_instance record
+    // (project_scaffold_revamp Phase 4, key 'daily_instance_YYYY-MM-DD',
+    // synced to Supabase daily_instances). That record was written at
+    // generation time and never touched since, so without this write-back
+    // it still holds the *pristine* plan: reopening the app later the same
+    // day and tapping "Today's Plan" would restart the whole session from
+    // zero as if it had never been trained. Store the finished copy so the
+    // record is the truthful log of the day (status, sets, chat overrides)
+    // and startScaffoldToday can see it's done.
+    if (this._session.weekday && this._session.date) {
+      DB.set('daily_instance_' + this._session.date, this._session);
+    }
+
     DB.remove('active_session');
     return id;
   },
