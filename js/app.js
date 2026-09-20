@@ -91,6 +91,9 @@ const Profile = {
       // js/import.js to report what zone a run was actually spent in, which
       // is the whole point of a Zone2 day having a Zone2 label.
       hrZones: { z1: 133, z2: 148, z3: 155, z4: 185 },
+      // 'system' | 'light' | 'dark'. The stylesheet follows the OS unless
+      // <html data-theme> says otherwise; this is what sets it.
+      theme: 'system',
     },
   },
 
