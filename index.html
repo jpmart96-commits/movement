@@ -232,11 +232,6 @@
   </div>
   <div id="log-body"></div>
 
-  <!-- Exercise sheet (level 3 of Today / the live session) -->
-  <div id="ex-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeExSheet()">
-    <div class="mv-sheet" onclick="event.stopPropagation()" id="ex-sheet"></div>
-  </div>
-
   <!-- Session detail modal -->
   <div class="modal-backdrop" id="session-modal-backdrop" style="display:none" onclick="closeSessionModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -388,6 +383,12 @@
 
 <!-- FAB — add exercise (visible in settings) -->
 <button class="fab" id="fab" onclick="openExerciseModal()" title="Add exercise" style="display:none">+</button>
+
+<!-- Exercise sheet (global) — level 3 of Today / the live session. Must live
+     outside every .screen: a hidden screen hides its children, position:fixed or not. -->
+<div id="ex-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeExSheet()">
+  <div class="mv-sheet" onclick="event.stopPropagation()" id="ex-sheet"></div>
+</div>
 
 <!-- Exercise modal (global) -->
 <div class="modal-backdrop" id="ex-modal-backdrop" style="display:none" onclick="closeExerciseModal()">
