@@ -422,6 +422,7 @@ async function manualSync() {
     if (App.screen === 'goals')    renderGoals();
     if (App.screen === 'settings') renderSettings();
     if (App.screen === 'log')      renderLog();
+    if (App.screen === 'stats' && typeof renderStats === 'function') renderStats();
   } catch(e) {
     console.error('Sync error:', e);
     if (status) { status.textContent = 'Sync failed — check connection'; status.style.color = 'var(--danger)'; }

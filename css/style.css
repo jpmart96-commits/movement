@@ -24,6 +24,12 @@
   --nav-h:     64px;
   --header-h:  52px;
   --safe-b:    env(safe-area-inset-bottom, 0px);
+  /* Home-screen mode uses black-translucent + viewport-fit=cover, so the page
+     draws under the status bar / Dynamic Island. These insets push content
+     clear of it. They resolve to 0 in a normal browser tab and on desktop. */
+  --safe-t:    env(safe-area-inset-top, 0px);
+  --safe-l:    env(safe-area-inset-left, 0px);
+  --safe-r:    env(safe-area-inset-right, 0px);
 }
 
 /* Themes are chosen, not dictated. The OS preference still decides by
@@ -85,11 +91,23 @@ body {
 /* ── SCREENS ─────────────────────────────────────────────── */
 .screen {
   display: none;
-  padding: 1rem 1rem calc(var(--nav-h) + var(--safe-b) + 1rem);
+  padding: calc(var(--safe-t) + 1rem) calc(var(--safe-r) + 1rem) calc(var(--nav-h) + var(--safe-b) + 1rem) calc(var(--safe-l) + 1rem);
   min-height: 100dvh;
   animation: fadeIn .15s ease;
 }
 .screen.active { display: block; }
+
+/* Opaque strip behind the status bar so scrolled content doesn't show
+   through the clock/battery. Zero height when there's no top inset. */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--safe-t);
+  background: var(--bg);
+  z-index: 150;
+  pointer-events: none;
+}
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } }
 
 /* ── NAVIGATION ──────────────────────────────────────────── */
@@ -417,7 +435,7 @@ textarea.text-input { resize: vertical; min-height: 72px; }
   align-items: flex-start;
   padding: .75rem 0 1rem;
   position: sticky;
-  top: 0;
+  top: var(--safe-t);
   background: var(--bg);
   z-index: 10;
 }
@@ -718,6 +736,7 @@ textarea.text-input { resize: vertical; min-height: 72px; }
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  padding-top: var(--safe-t);
 }
 .modal {
   background: var(--bg2);

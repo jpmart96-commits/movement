@@ -388,11 +388,15 @@ const History = {
   // Falls back to null when no bodyweight is on file, which is the old
   // behaviour rather than a guess.
   setLoad(exerciseId, set) {
+    const lib = (typeof LIBRARY !== 'undefined') ? LIBRARY.find(l => l.id === exerciseId) : null;
+    const bw = (typeof Profile !== 'undefined') ? Profile.load()?.settings?.bodyweightKg : null;
+    // Pull-ups and dips: a logged weight is ADDED load (Hevy's "Weighted"
+    // variants log +10kg as 10), so the lift is bodyweight plus it. Without
+    // this a +10kg dip read as a 10kg lift and its e1RM collapsed to ~12.
+    if (lib && lib.bodyweightBase && bw && set.reps) return bw + (set.weight || 0);
     if (set.weight) return set.weight;
     if (!set.reps) return null;
-    const lib = (typeof LIBRARY !== 'undefined') ? LIBRARY.find(l => l.id === exerciseId) : null;
     if (!lib || lib.logType !== 'weight+reps') return null;
-    const bw = (typeof Profile !== 'undefined') ? Profile.load()?.settings?.bodyweightKg : null;
     return bw || null;
   },
 
