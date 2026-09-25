@@ -201,6 +201,7 @@ const Stats = {
     x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
     return x;
   },
+  _short(s) { const d = this._date(s); return d ? d.getDate() + ' ' + this._MON[d.getMonth()] : ''; },
   _MON: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
 
   periodKey(d, mode) {
@@ -313,6 +314,107 @@ const Stats = {
 };
 
 if (typeof module !== 'undefined' && module.exports) module.exports.Stats = Stats;
+
+// ─────────────────────────────────────────────────────────────
+// VITALS — daily watch measurements, merged by date.
+//
+// Filled from tools/health_vitals.py (Apple Health export → vitals.json),
+// imported through Settings → Data → Import vitals. Stored under
+// 'vitals' → Supabase overrides.store_key 'vitals'. A newer file replaces
+// the days it covers and leaves older days alone, so each re-export only
+// adds.
+//
+// Shape: { kind:'movement-vitals', version, source, updatedAt,
+//          days: { 'YYYY-MM-DD': { rhr, hrv, hrvN, vo2, sleep, deep, rem } } }
+// ─────────────────────────────────────────────────────────────
+const Vitals = {
+  KEY: 'vitals',
+  // A night under this is almost always the watch coming off or dying,
+  // not a real night. Shown, but kept out of the average.
+  PARTIAL_SLEEP_MIN: 180,
+
+  METRICS: {
+    rhr:   { label: 'Resting HR', unit: 'bpm', dec: 0, avg: 7 },
+    hrv:   { label: 'HRV',        unit: 'ms',  dec: 0, avg: 7, band: 60 },
+    vo2:   { label: 'VO2 max',    unit: 'ml/kg·min',    dec: 1, sparse: true },
+    sleep: { label: 'Sleep',      unit: '',    dec: 0, avg: 7, time: true },
+  },
+  ORDER: ['rhr', 'hrv', 'vo2', 'sleep'],
+
+  load() { return (typeof DB !== 'undefined' && DB.get(this.KEY)) || null; },
+
+  // Returns { added, updated, total } or throws on a file that isn't ours.
+  merge(doc) {
+    if (!doc || doc.kind !== 'movement-vitals' || !doc.days || typeof doc.days !== 'object') {
+      throw new Error('Not a vitals file — make it with tools/health_vitals.py');
+    }
+    const cur = this.load() || { kind: 'movement-vitals', version: 1, days: {} };
+    let added = 0, updated = 0;
+    Object.entries(doc.days).forEach(([d, v]) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !v || typeof v !== 'object') return;
+      if (cur.days[d]) updated++; else added++;
+      cur.days[d] = v;
+    });
+    cur.source = doc.source || cur.source || 'apple-health';
+    cur.version = doc.version || 1;
+    cur.updatedAt = new Date().toISOString();
+    const keys = Object.keys(cur.days).sort();
+    cur.days = Object.fromEntries(keys.map(k => [k, cur.days[k]]));
+    cur.range = keys.length ? [keys[0], keys[keys.length - 1]] : null;
+    DB.set(this.KEY, cur);
+    return { added, updated, total: keys.length };
+  },
+
+  _valid(metric, v) {
+    if (v == null || isNaN(v)) return false;
+    if (metric === 'sleep') return v >= this.PARTIAL_SLEEP_MIN;
+    return true;
+  },
+
+  // Daily points in [from, to] (YYYY-MM-DD, inclusive), oldest first.
+  series(metric, from, to) {
+    const doc = this.load();
+    if (!doc) return [];
+    return Object.keys(doc.days).filter(d => d >= from && d <= to && doc.days[d][metric] != null)
+      .sort().map(d => ({ date: d, v: doc.days[d][metric], partial: !this._valid(metric, doc.days[d][metric]) }));
+  },
+
+  // Trailing mean over `win` calendar days ending at `date`, from valid
+  // values only; null with fewer than half the window present.
+  _trailing(metric, date, win, minN) {
+    const doc = this.load(); if (!doc) return null;
+    const end = Stats._date(date);
+    const vals = [];
+    for (let i = 0; i < win; i++) {
+      const d = new Date(end); d.setDate(end.getDate() - i);
+      const r = doc.days[Stats._ymd(d)];
+      if (r && this._valid(metric, r[metric])) vals.push(r[metric]);
+    }
+    if (vals.length < (minN || Math.ceil(win / 2))) return null;
+    const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const sd = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length);
+    return { mean, sd, n: vals.length };
+  },
+
+  latest(metric) {
+    const doc = this.load(); if (!doc) return null;
+    const keys = Object.keys(doc.days).sort();
+    for (let i = keys.length - 1; i >= 0; i--) {
+      const v = doc.days[keys[i]][metric];
+      if (this._valid(metric, v)) return { date: keys[i], v };
+    }
+    return null;
+  },
+
+  fmt(metric, v) {
+    const m = this.METRICS[metric];
+    if (v == null) return '—';
+    if (m.time) return Stats.fmtMin(v);
+    return m.dec ? v.toFixed(m.dec) : String(Math.round(v));
+  },
+};
+
+if (typeof module !== 'undefined' && module.exports) module.exports.Vitals = Vitals;
 
 
 // ─────────────────────────────────────────────────────────────
@@ -430,6 +532,8 @@ function renderStats() {
     </div>
   </div>`;
 
+  h += _statsVitals(el, now);
+
   el.innerHTML = h;
 }
 
@@ -442,4 +546,155 @@ function _statsPlot(cols, ticks, data, showLbl, ref) {
     <div class="st-cols">${cols}</div>
   </div>
   <div class="st-x">${data.map((b, i) => `<span>${showLbl(i) ? b.label : ''}</span>`).join('')}</div>`;
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// STATS — body (vitals). Four small multiples, each its own y-scale —
+// never two measures on one axis. The window follows the Weekly/Monthly
+// toggle: 12 weeks or 6 months. The 7-day average is the line; the raw
+// daily reading sits faint behind it, because a single morning's HRV or
+// resting HR is mostly noise. HRV gets a band: your own trailing 60-day
+// mean ± 1 SD, the usual way to read whether today is unusual *for you*.
+// ─────────────────────────────────────────────────────────────
+const _vitalsHover = {};
+
+function _statsVitals(el, now) {
+  const doc = Vitals.load();
+  let h = `<div class="mv-eyebrow" style="margin:1.3rem 0 .55rem">Body</div>`;
+  if (!doc || !Object.keys(doc.days || {}).length) {
+    return h + `<div class="mv-card"><div class="st-empty">No watch vitals yet. Settings → Data → Import vitals, with a file made by <code>tools/health_vitals.py</code> from an Apple Health export.</div></div>`;
+  }
+  const to = Stats._ymd(now);
+  const f = new Date(now); f.setDate(f.getDate() - (_statsMode === 'month' ? 182 : 83));
+  const from = Stats._ymd(f);
+  const W = Math.max(240, ((el && el.clientWidth) || 360) - 34 - 34);   // card padding+border, y-label gutter
+  Vitals.ORDER.forEach(m => { h += _vitalCard(m, from, to, W); });
+  const upd = doc.range ? `Watch data ${Stats._short(doc.range[0])} – ${Stats._short(doc.range[1])}` : '';
+  h += `<div class="st-sub" style="margin:.2rem 0 1rem">${upd}. Nights under 3h are shown hollow and left out of the average.</div>`;
+  return h;
+}
+
+function _vitalCard(metric, from, to, W) {
+  const cfg = Vitals.METRICS[metric];
+  const pts = Vitals.series(metric, from, to);
+  const H = 86, PAD = 6;
+  const head = (big, sub) => `<div class="st-vhead">
+      <div><div class="st-title">${cfg.label}</div><div class="st-sub" id="vr-${metric}" style="margin:.1rem 0 0">${sub}</div></div>
+      <div class="st-vbig">${big}</div>
+    </div>`;
+  if (!pts.length) {
+    return `<div class="mv-card">${head('—', 'nothing in this window')}</div>`;
+  }
+
+  // x by calendar day across the window
+  const d0 = Stats._date(from), d1 = Stats._date(to);
+  const span = Math.max(1, Math.round((d1 - d0) / 86400000));
+  const xOf = date => PAD + (Math.round((Stats._date(date) - d0) / 86400000) / span) * (W - PAD * 2);
+
+  // averages / band
+  const avg = cfg.avg ? pts.map(p => ({ date: p.date, a: Vitals._trailing(metric, p.date, cfg.avg) })) : [];
+  const band = cfg.band ? pts.map(p => ({ date: p.date, b: Vitals._trailing(metric, p.date, cfg.band, 20) })) : [];
+
+  // y-scale: the line and band in full, the raw daily readings only
+  // between their 5th and 95th percentile — a single spike clips at the
+  // edge instead of squashing the trend flat.
+  const good = pts.filter(p => !p.partial).map(p => p.v).sort((a, b) => a - b);
+  const q = f => good[Math.min(good.length - 1, Math.max(0, Math.round(f * (good.length - 1))))];
+  const vals = (cfg.sparse ? good : [q(0.05), q(0.95)])
+    .concat(avg.filter(a => a.a).map(a => a.a.mean))
+    .concat(band.filter(b => b.b).flatMap(b => [b.b.mean - b.b.sd, b.b.mean + b.b.sd]));
+
+  // Clean ticks: a 1/2/5×10^k step (30/60/90-minute steps for sleep),
+  // bounds snapped out to it. Partial nights stay out of the scale and are
+  // pinned to the floor, so one dead-battery night can't flatten the chart.
+  const vmin = Math.min(...vals), vmax = Math.max(...vals);
+  const raw = Math.max((vmax - vmin) / 2.5, metric === 'sleep' ? 30 : 0.5);
+  const cands = metric === 'sleep' ? [30, 60, 90, 120, 180] : [0.5, 1, 2, 2.5, 5, 10, 15, 20, 25, 50];
+  const step = cands.find(c => c >= raw) || cands[cands.length - 1];
+  const lo = Math.floor(vmin / step) * step, hi = Math.max(Math.ceil(vmax / step) * step, lo + step);
+  const yOf = v => PAD + (1 - (Math.min(Math.max(v, lo), hi) - lo) / (hi - lo)) * (H - PAD * 2);
+  const ticks = []; for (let t = lo; t <= hi + 1e-9; t += step) ticks.push(t);
+  const fmtTick = t => metric === 'sleep' ? (t % 60 ? (t / 60).toFixed(1) : t / 60) + 'h' : (Number.isInteger(step) ? String(Math.round(t)) : t.toFixed(1));
+  const grid = ticks.map(t => `<line x1="0" x2="${W}" y1="${yOf(t).toFixed(1)}" y2="${yOf(t).toFixed(1)}" class="st-vgrid"/>
+      <text x="${W + 6}" y="${(yOf(t) + 3.5).toFixed(1)}" class="st-vtick">${fmtTick(t)}</text>`).join('');
+
+  let marks = '';
+  // HRV normal range
+  const bb = band.filter(b => b.b);
+  if (bb.length > 1) {
+    const top = bb.map(b => `${xOf(b.date).toFixed(1)},${yOf(b.b.mean + b.b.sd).toFixed(1)}`);
+    const bot = bb.slice().reverse().map(b => `${xOf(b.date).toFixed(1)},${yOf(b.b.mean - b.b.sd).toFixed(1)}`);
+    marks += `<polygon points="${top.concat(bot).join(' ')}" class="st-vband"/>`;
+  }
+  // raw daily values
+  if (!cfg.sparse) {
+    const segs = []; let cur = [];
+    pts.forEach(p => { if (p.partial) { if (cur.length) segs.push(cur); cur = []; } else cur.push(p); });
+    if (cur.length) segs.push(cur);
+    marks += segs.map(sg => `<polyline points="${sg.map(p => `${xOf(p.date).toFixed(1)},${yOf(p.v).toFixed(1)}`).join(' ')}" class="st-vraw"/>`).join('');
+    marks += pts.filter(p => p.partial).map(p => `<circle cx="${xOf(p.date).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="3" class="st-vpartial"/>`).join('');
+  }
+  // the line: 7-day average, or the estimates themselves for VO2 max
+  const line = cfg.sparse ? pts.map(p => ({ date: p.date, v: p.v })) : avg.filter(a => a.a).map(a => ({ date: a.date, v: a.a.mean }));
+  if (line.length > 1) marks += `<polyline points="${line.map(p => `${xOf(p.date).toFixed(1)},${yOf(p.v).toFixed(1)}`).join(' ')}" class="st-vline"/>`;
+  if (cfg.sparse) marks += line.map(p => `<circle cx="${xOf(p.date).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="4" class="st-vdot"/>`).join('');
+  else if (line.length) { const e = line[line.length - 1]; marks += `<circle cx="${xOf(e.date).toFixed(1)}" cy="${yOf(e.v).toFixed(1)}" r="4" class="st-vdot"/>`; }
+
+  // headline
+  const last = line[line.length - 1];
+  const big = last ? `${Vitals.fmt(metric, last.v)}<span>${cfg.unit}</span>` : '—';
+  let sub;
+  if (cfg.sparse) {
+    const best = pts.reduce((a, p) => (p.v > a.v ? p : a), pts[0]);
+    sub = `latest ${Stats._short(last.date)} · high ${Vitals.fmt(metric, best.v)} (${Stats._short(best.date)})`;
+  } else {
+    const base = Vitals._trailing(metric, to, 60, 20);
+    sub = `7-day avg${base ? ` · 60-day ${Vitals.fmt(metric, base.mean)}${cfg.unit ? ' ' + cfg.unit : ''}` : ''}`;
+  }
+
+  // hover / tap readout
+  _vitalsHover[metric] = { pts: pts.map(p => {
+    const a = avg.find(x => x.date === p.date);
+    return { x: xOf(p.date), y: yOf(p.v), date: p.date, v: p.v, partial: p.partial, a: a && a.a ? a.a.mean : null };
+  }), sub };
+
+  const xl = [from, Stats._ymd(new Date((d0.getTime() + d1.getTime()) / 2)), to];
+  return `<div class="mv-card">
+    ${head(big, sub)}
+    <svg class="st-vsvg" width="${W + 34}" height="${H + 16}" viewBox="0 0 ${W + 34} ${H + 16}" role="img"
+      aria-label="${cfg.label}, ${pts.length} readings from ${from} to ${to}"
+      onpointermove="vitalsHover('${metric}', event)" onpointerdown="vitalsHover('${metric}', event)" onpointerleave="vitalsHover('${metric}', null)">
+      ${grid}${marks}
+      <line id="vx-${metric}" x1="0" x2="0" y1="0" y2="${H}" class="st-vcross" style="display:none"/>
+      <circle id="vd-${metric}" r="4" class="st-vdot" style="display:none"/>
+      ${xl.map((d, i) => `<text x="${[PAD, W / 2, W - PAD][i]}" y="${H + 13}" text-anchor="${['start', 'middle', 'end'][i]}" class="st-vtick">${Stats._short(d)}</text>`).join('')}
+    </svg>
+  </div>`;
+}
+
+function vitalsHover(metric, ev) {
+  const hv = _vitalsHover[metric]; if (!hv) return;
+  const x = document.getElementById('vx-' + metric), dot = document.getElementById('vd-' + metric);
+  const ro = document.getElementById('vr-' + metric);
+  if (!x || !dot || !ro) return;
+  if (!ev) { x.style.display = dot.style.display = 'none'; ro.textContent = hv.sub; return; }
+  const box = ev.currentTarget.getBoundingClientRect();
+  const px = ev.clientX - box.left;
+  const p = hv.pts.reduce((a, q) => (Math.abs(q.x - px) < Math.abs(a.x - px) ? q : a), hv.pts[0]);
+  x.setAttribute('x1', p.x); x.setAttribute('x2', p.x); x.style.display = '';
+  dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y); dot.style.display = '';
+  const cfg = Vitals.METRICS[metric];
+  const u = cfg.unit ? ' ' + cfg.unit : '';
+  ro.textContent = `${Stats._short(p.date)} · ${Vitals.fmt(metric, p.v)}${u}` +
+    (p.partial ? ' (partial night)' : '') + (p.a != null ? ` · 7-day ${Vitals.fmt(metric, p.a)}${u}` : '');
+}
+
+// Width is measured at render; re-measure on rotation / resize.
+if (typeof window !== 'undefined') {
+  let _stRz;
+  window.addEventListener('resize', () => {
+    clearTimeout(_stRz);
+    _stRz = setTimeout(() => { if (typeof App !== 'undefined' && App.screen === 'stats') renderStats(); }, 200);
+  });
 }

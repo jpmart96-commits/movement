@@ -210,6 +210,13 @@ Object.assign(DB, {
       await _upsert('overrides', { user_id: uid, store_key: 'hevy_aliases', data: value }, 'user_id,store_key');
       return;
     }
+    // Watch vitals (js/stats.js Vitals) — daily resting HR / HRV / VO2 max /
+    // sleep, merged from tools/health_vitals.py output. Generic overrides
+    // row, so pull() restores it as 'pb_vitals' with no schema change.
+    if (fullKey === 'pb_vitals') {
+      await _upsert('overrides', { user_id: uid, store_key: 'vitals', data: value }, 'user_id,store_key');
+      return;
+    }
     // Week scaffold override (project_scaffold_revamp) — user's edited copy
     // of the default WEEK_SCAFFOLD shipped in data/scaffold.js, if/when the
     // app grows a UI to edit it. Not written by anything yet.
