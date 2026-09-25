@@ -2,3 +2,8 @@
 # samples/wall-pike-fix.json is deliberately NOT ignored — it is the only
 # surviving copy of 16 custom exercises (see 2026-09-20 data loss).
 samples/workout_*
+
+# Apple Health data - personal health records, never commit
+export.zip
+apple_health_export/
+vitals*.json

@@ -39,7 +39,7 @@
 <!-- App root — hidden until auth passes -->
 <div id="app-root" style="display:none">
 
-<!-- NAV: Home / Generate / Session(hidden) / Goals / Log / Settings -->
+<!-- NAV: Block / Today / Session(hidden) / Progress / Stats / Log / Settings -->
 <nav id="nav">
   <button class="nav-btn active" data-screen="home" onclick="navTo('home')" aria-label="Block">
     <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span>Block</span>
@@ -52,6 +52,9 @@
   </button>
   <button class="nav-btn" data-screen="progress" onclick="navTo('progress')" aria-label="Progress">
     <svg viewBox="0 0 24 24"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg><span>Progress</span>
+  </button>
+  <button class="nav-btn" data-screen="stats" onclick="navTo('stats')" aria-label="Stats">
+    <svg viewBox="0 0 24 24"><path d="M4 20V11M9.33 20V5M14.67 20v-8M20 20V8"/></svg><span>Stats</span>
   </button>
   <button class="nav-btn" data-screen="log" onclick="navTo('log')" aria-label="Log">
     <svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Log</span>
@@ -74,6 +77,11 @@
 <!-- ═══ PROGRESS ═══════════════════════════════════════ -->
 <main id="screen-progress" class="screen">
   <div id="progress-body"></div>
+</main>
+
+<!-- ═══ STATS ═════════════════════════════════════════ -->
+<main id="screen-stats" class="screen">
+  <div id="stats-body"></div>
 </main>
 
 <!-- ═══ GENERATE ════════════════════════════════════════════════ -->
@@ -232,6 +240,11 @@
   </div>
   <div id="log-body"></div>
 
+  <!-- Exercise sheet (level 3 of Today / the live session) -->
+  <div id="ex-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeExSheet()">
+    <div class="mv-sheet" onclick="event.stopPropagation()" id="ex-sheet"></div>
+  </div>
+
   <!-- Session detail modal -->
   <div class="modal-backdrop" id="session-modal-backdrop" style="display:none" onclick="closeSessionModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -368,6 +381,14 @@
           </label>
         </div>
 
+        <div class="data-action" style="border-top:1px solid var(--border);padding-top:.875rem">
+          <div class="data-action-label">Import vitals</div>
+          <div class="data-action-sub">Resting HR, HRV, VO2 max and sleep from an Apple Health export. Make the file with <code>tools/health_vitals.py export.zip</code>. Merges by date — never removes days.</div>
+          <label class="btn-ghost" style="cursor:pointer;color:var(--accent)">Import vitals ↑
+            <input type="file" accept=".json" style="display:none" onchange="importVitals(this)">
+          </label>
+        </div>
+
         <div id="data-status" style="font-size:12px;color:var(--text3);margin-top:.75rem;padding:0 .25rem;display:none"></div>
 
         <div style="border-top:1px solid var(--border);padding-top:.875rem;margin-top:.875rem">
@@ -383,12 +404,6 @@
 
 <!-- FAB — add exercise (visible in settings) -->
 <button class="fab" id="fab" onclick="openExerciseModal()" title="Add exercise" style="display:none">+</button>
-
-<!-- Exercise sheet (global) — level 3 of Today / the live session. Must live
-     outside every .screen: a hidden screen hides its children, position:fixed or not. -->
-<div id="ex-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeExSheet()">
-  <div class="mv-sheet" onclick="event.stopPropagation()" id="ex-sheet"></div>
-</div>
 
 <!-- Exercise modal (global) -->
 <div class="modal-backdrop" id="ex-modal-backdrop" style="display:none" onclick="closeExerciseModal()">
@@ -456,6 +471,7 @@ function setTheme(t) {
 <script src="js/custom.js"></script>
 <script src="js/import.js"></script>
 <script src="js/monthplan.js"></script>
+<script src="js/stats.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/overrides.js"></script>
 <script>
@@ -473,6 +489,7 @@ function navTo(screen) {
   if (screen === 'home')     renderHome();
   if (screen === 'today')    renderToday();
   if (screen === 'progress') renderProgress();
+  if (screen === 'stats')    renderStats();
   if (screen === 'generate') { renderThemeList(); initGenerateDuration(); }
   if (screen === 'goals')    renderGoals();
   if (screen === 'log')      renderLog();
@@ -724,6 +741,14 @@ function renderProgress() {
       return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}`; }));
   const cardio = _cardioLogs();
   const z2ceil = (st.hrZones && st.hrZones.z2) || 153;
+  // Settings values win; otherwise the latest watch reading (VO2 max) or the
+  // 7-day average (resting HR) from imported vitals.
+  const _watch = m => {
+    if (typeof Vitals === 'undefined') return null;
+    if (m === 'vo2') { const l = Vitals.latest('vo2'); return l ? l.v.toFixed(1) : null; }
+    const l = Vitals.latest(m); const a = l && Vitals._trailing(m, l.date, 7);
+    return a ? Math.round(a.mean) : null;
+  };
   let h = `<div style="padding:.4rem 0 .9rem">
     <div class="logo" style="font-size:1.45rem">Progress</div>
     <div style="font-size:.76rem;color:var(--text3);margin-top:.15rem">${plan ? plan.title : 'No block loaded'}</div>
@@ -758,8 +783,8 @@ function renderProgress() {
   h += _mvCard('The engine', 'mv-eyebrow--green', `
     <div class="mv-stat3" style="margin-bottom:.7rem">
       ${stat(bm ? bm.distanceKm + '<span style="font-size:.85rem;font-weight:500;color:var(--text3)">km</span>' : null, bm && bm.avgHR ? 'avg ' + bm.avgHR + 'bpm / 30min' : '@' + z2ceil + 'bpm / 30min')}
-      ${stat(st.vo2max, 'VO2 max')}
-      ${stat(st.restingHR, 'resting HR')}
+      ${stat(st.vo2max || (_watch('vo2') || null), 'VO2 max')}
+      ${stat(st.restingHR || (_watch('rhr') || null), 'resting HR')}
     </div>
     <div class="mv-body" style="padding-top:.6rem;border-top:1px solid var(--border)">${tests.length
       ? 'Same cap and route every block — distance is the only thing that can move.'
@@ -3308,6 +3333,23 @@ function importBackup(input) {
       renderSettings();
     } catch(err) {
       setDataStatus('Import failed — invalid file', true);
+    }
+    input.value = '';
+  };
+  reader.readAsText(f);
+}
+
+// ── IMPORT VITALS — watch measurements, merged by date ────────
+function importVitals(input) {
+  const f = input.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const r = Vitals.merge(JSON.parse(e.target.result));
+      await DB._flush();
+      setDataStatus(`Vitals imported ✓ ${r.added} new day${r.added === 1 ? '' : 's'}, ${r.updated} refreshed · ${r.total} in total`);
+    } catch (err) {
+      setDataStatus('Vitals import failed — ' + (err && err.message ? err.message : 'invalid file'), true);
     }
     input.value = '';
   };

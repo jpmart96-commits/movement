@@ -293,3 +293,17 @@
 .st-dfoot { font-size: .72rem; color: var(--text3); margin-top: .45rem; line-height: 1.45; }
 .st-dfoot b { color: var(--text); }
 .st-empty { font-size: .78rem; color: var(--text3); padding: .2rem 0; }
+
+/* stats — body (vitals) small multiples */
+.st-vhead { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; margin-bottom: .55rem; }
+.st-vbig { font-family: var(--font-display); font-weight: 700; font-size: 1.45rem; letter-spacing: -.02em; line-height: 1.1; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.st-vbig span { font-size: .75rem; font-weight: 500; color: var(--text3); margin-left: .2rem; letter-spacing: 0; }
+.st-vsvg { display: block; overflow: visible; touch-action: pan-y; cursor: crosshair; }
+.st-vgrid { stroke: var(--border); stroke-width: 1; }
+.st-vtick { fill: var(--text3); font-size: 10px; font-family: var(--font-body); font-variant-numeric: tabular-nums; }
+.st-vband { fill: var(--accent); opacity: .1; }
+.st-vraw { fill: none; stroke: var(--text3); stroke-width: 1; opacity: .45; stroke-linejoin: round; }
+.st-vline { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.st-vdot { fill: var(--accent); stroke: var(--bg2); stroke-width: 2; }
+.st-vpartial { fill: var(--bg2); stroke: var(--text3); stroke-width: 1.5; }
+.st-vcross { stroke: var(--text2); stroke-width: 1; }
