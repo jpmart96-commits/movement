@@ -1,0 +1,209 @@
+/* ═══════════════════════════════════════════════════════════════
+   MOVEMENT — wide-screen layout
+   The phone layout is the base and is not touched here. Three tiers:
+
+     < 600px     phone. Nothing in this file applies.
+     600–899px   tablet / phone landscape / narrow window: same phone
+                 layout, content held to a readable column.
+     ≥ 900px     laptop: sidebar nav, centred content, dialogs instead of
+                 bottom sheets. Single column up to 1179px.
+     ≥ 1180px    two columns on Block, Today, Progress and Log.
+
+   The dk-* wrappers are emitted by the render functions in index.html.
+   On a phone they are plain blocks, so the stacking order is unchanged.
+   ═══════════════════════════════════════════════════════════════ */
+
+.dk-only,
+.nav-brand { display: none; }
+
+/* ── 600–899: centred column, bottom nav kept ─────────────────── */
+@media (min-width: 600px) and (max-width: 899px) {
+  .screen { max-width: 640px; margin: 0 auto; }
+}
+
+/* Log calendar: square cells get very tall once the card is wider than a
+   phone. A fixed height keeps the month at a glance. */
+@media (min-width: 600px) {
+  .mv-cal-cell { aspect-ratio: auto; height: 50px; }
+}
+
+/* ── ≥ 900: laptop shell ──────────────────────────────────────── */
+@media (min-width: 900px) {
+  :root { --side-w: 216px; }
+
+  .dk-hide { display: none !important; }
+  .dk-only { display: inline; }
+
+  /* Sidebar: the bottom nav, turned on its side. Same buttons, same JS. */
+  #nav {
+    top: 0; bottom: 0; left: 0; right: auto;
+    width: var(--side-w); height: auto;
+    flex-direction: column; align-items: stretch; justify-content: flex-start;
+    gap: 2px;
+    padding: 1.5rem .75rem 1.25rem;
+    border-top: none;
+    border-right: 1px solid var(--border);
+  }
+  .nav-brand {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 700; font-size: 1rem; letter-spacing: .14em;
+    color: var(--text);
+    padding: .1rem .75rem 1.6rem;
+  }
+  .nav-btn {
+    flex: 0 0 auto;
+    flex-direction: row; justify-content: flex-start;
+    gap: .75rem;
+    padding: .62rem .75rem;
+    border-radius: 10px;
+    color: var(--text2);
+  }
+  .nav-btn span { font-size: .875rem; letter-spacing: 0; }
+  .nav-btn svg { width: 19px; height: 19px; }
+  .nav-btn.active {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, var(--bg2));
+  }
+  /* Settings sits at the foot of the sidebar, away from the daily screens */
+  .nav-btn[data-screen="settings"] { margin-top: auto; }
+
+  #app-root { padding-left: var(--side-w); }
+
+  .screen {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem 3rem;
+    min-height: 100vh;
+  }
+
+  /* Home's top bar becomes a page title, matching Progress and Log */
+  #screen-home .mv-topbar .logo {
+    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+    text-transform: none;
+  }
+  .mv-topbar-date { font-size: .8rem !important; }
+  /* Settings' small-caps label reads as a page title here, like the others */
+  #screen-settings > .section-label:first-child {
+    font-family: var(--font-display);
+    font-size: 1.45rem; font-weight: 700;
+    letter-spacing: -0.02em; text-transform: none;
+    color: var(--text);
+    padding: .4rem 0 .9rem; margin: 0;
+  }
+
+  /* Bottom sheets become centred dialogs */
+  .modal-backdrop { align-items: center; padding: 2rem; }
+  .modal {
+    max-width: 560px;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    max-height: 85vh;
+    box-shadow: 0 24px 60px rgba(0,0,0,.25);
+  }
+  .modal-tall { max-height: 88vh; }
+  .goal-ring-modal {
+    max-width: 560px;
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+  .mv-sheet-back { align-items: center; padding: 2rem; }
+  .mv-sheet {
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    max-height: 85vh;
+    box-shadow: 0 24px 60px rgba(0,0,0,.3);
+  }
+  .mv-sheet-foot { padding-bottom: .9rem; }
+
+  .fab { bottom: 2rem; right: 2rem; }
+}
+
+/* Pointer affordances — only where there is a pointer to hover with */
+@media (min-width: 900px) and (hover: hover) {
+  .nav-btn:not(.active):hover { background: var(--bg3); color: var(--text); }
+  .mv-ghost:hover,
+  .mv-pill:hover { border-color: var(--text3); color: var(--text); }
+  .mv-cta:hover { filter: brightness(1.07); }
+  .mv-day:hover,
+  .mv-cal-cell:not(.blank):hover { border-color: var(--text3); }
+  .mv-blk-head:hover .mv-blk-label,
+  .mv-ex:hover .mv-ex-name,
+  .mv-move-head:hover div:first-child > div:first-child { color: var(--accent); }
+  .session-row { transition: border-color .12s; }
+  .session-row:hover { border-color: var(--text3); }
+  .collapsible-header:hover { color: var(--text); }
+}
+
+/* ── ≥ 1180: two columns ──────────────────────────────────────── */
+@media (min-width: 1180px) {
+  #screen-home,
+  #screen-today,
+  #screen-progress,
+  #screen-stats,
+  #screen-log { max-width: 1240px; }
+
+  /* Stats: the two charts side by side. Pure CSS on the rendered markup —
+     the header, summary row and Weekly/Monthly toggle span both columns. */
+  #stats-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 1.25rem;
+    align-items: start;
+  }
+  #stats-body > :not(.mv-card) { grid-column: 1 / -1; }
+  #stats-body > .st-seg { max-width: 360px; }
+  #stats-body > .st-sum-row { column-gap: 1.25rem; }
+
+  /* The single-column screens keep their width but share the wide screens'
+     left edge, so switching tabs doesn't make the page jump sideways.
+     (100% − 1240px) / 2 is where a centred 1240px screen starts. */
+  #screen-generate,
+  #screen-session,
+  #screen-goals,
+  #screen-settings {
+    margin-left: max(0px, calc((100% - 1240px) / 2));
+    margin-right: auto;
+    max-width: 840px;
+  }
+
+  .dk-grid {
+    display: grid;
+    column-gap: 1.25rem;
+    align-items: start;
+  }
+  .dk-grid--home { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); }
+  .dk-grid--even { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+
+  /* Column tops line up — the first thing in a column never pushes down */
+  .dk-main > :first-child,
+  .dk-side > :first-child { margin-top: 0 !important; }
+
+  /* Session list: two columns of rows */
+  .dk-rows {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 1.25rem;
+  }
+
+  /* Today: timeline on the left; the day's note, tiles and Start on the right */
+  .dk-today {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-rows: auto 1fr;
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+  .dk-today-line { grid-column: 1; grid-row: 1 / 3; }
+  .dk-today-note { grid-column: 2; grid-row: 1; }
+  /* Its grid area runs the full height of the timeline, so Start stays in
+     view while you scroll through the blocks. */
+  .dk-today-foot {
+    grid-column: 2; grid-row: 2;
+    margin-top: 0 !important;
+    position: sticky; top: 1.5rem;
+  }
+  .dk-today-foot .mv-tiles { flex-direction: column; }
+
+}

@@ -714,7 +714,13 @@ function renderProgress() {
   const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
   const st = (App.profile && App.profile.settings) || {};
   const idx = History.getIndex(200);
-  const doneDates = new Set(idx.map(r => (r.date || '').slice(0, 10)));
+  // Local calendar date, not the UTC slice — a session late in a Lisbon
+  // evening would otherwise tick the next day's square. Only completed
+  // sessions count; an abandoned in-progress snapshot is not a day done.
+  const doneDates = new Set(idx
+    .filter(r => r.date && r.status !== 'in-progress')
+    .map(r => { const t = new Date(r.date), p = n => String(n).padStart(2, '0');
+      return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}`; }));
   const cardio = _cardioLogs();
   const z2ceil = (st.hrZones && st.hrZones.z2) || 153;
   let h = `<div style="padding:.4rem 0 .9rem">
@@ -744,10 +750,13 @@ function renderProgress() {
 
   // 2 — the engine
   const tests = cardio.filter(c => c.isBenchmark);
+  // A test is a 30-min window inside a longer run, so its distance lives on
+  // `benchmark`, not on the whole-run distanceKm (5.7km run, 4.4km window).
+  const bm = tests.length ? (tests[0].benchmark || { distanceKm: tests[0].distanceKm }) : null;
   const stat = (v, k) => `<div><div class="mv-stat-v" style="color:${v ? 'var(--text)' : 'var(--text3)'}">${v || '—'}</div><div class="mv-stat-k">${k}</div></div>`;
   h += _mvCard('The engine', 'mv-eyebrow--green', `
     <div class="mv-stat3" style="margin-bottom:.7rem">
-      ${stat(tests.length ? tests[0].distanceKm + '<span style="font-size:.85rem;font-weight:500;color:var(--text3)">km</span>' : null, '@' + z2ceil + 'bpm / 30min')}
+      ${stat(bm ? bm.distanceKm + '<span style="font-size:.85rem;font-weight:500;color:var(--text3)">km</span>' : null, bm && bm.avgHR ? 'avg ' + bm.avgHR + 'bpm / 30min' : '@' + z2ceil + 'bpm / 30min')}
       ${stat(st.vo2max, 'VO2 max')}
       ${stat(st.restingHR, 'resting HR')}
     </div>

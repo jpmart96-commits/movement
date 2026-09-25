@@ -181,7 +181,8 @@
 /* exercise sheet — level 3 of Today */
 .mv-sheet-back {
   position: fixed; inset: 0; background: rgba(0,0,0,.45);
-  display: flex; align-items: flex-end; z-index: 60;
+  display: flex; align-items: flex-end;
+  z-index: 300; /* above the nav (100), level with the other modals */
 }
 .mv-sheet {
   background: var(--bg2); border-top: 1px solid var(--border);
@@ -206,3 +207,89 @@
   margin-bottom: .9rem; overflow: hidden;
 }
 .mv-demo img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ═══ STATS ═══════════════════════════════════════════════════════
+   Series colours. Modality families: the six-slot categorical set,
+   validated adjacent-pair (CVD ΔE ≥ 8.4, normal-vision ≥ 19.3) in both
+   themes against --bg2. Zones: two ordinal arms around a grey midpoint —
+   cool = easy (Z1–Z2), grey = Z3, warm = hard (Z4–Z5); each arm checked
+   monotone, midpoint checked against both neighbours. In dark mode the
+   arms step brighter with effort. Light-mode sub-3:1 slots are relieved
+   by the detail table under each chart. */
+:root {
+  --st-f-strength: #2a78d6; --st-f-power: #eb6834; --st-f-aerobic: #1baf7a;
+  --st-f-mobility: #eda100; --st-f-coordination: #e87ba4; --st-f-somatic: #008300; --st-f-other: #9a9994;
+  --st-z1: #86b6ef; --st-z2: #2a78d6; --st-z3: #8e8c86; --st-z4: #f2a08c; --st-z5: #c7302e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --st-f-strength: #3987e5; --st-f-power: #d95926; --st-f-aerobic: #199e70;
+    --st-f-mobility: #c98500; --st-f-coordination: #d55181; --st-f-somatic: #008300; --st-f-other: #6f7078;
+    --st-z1: #256abf; --st-z2: #6da7ec; --st-z3: #77787d; --st-z4: #a63a2c; --st-z5: #ef7563;
+  }
+}
+:root[data-theme="dark"] {
+  --st-f-strength: #3987e5; --st-f-power: #d95926; --st-f-aerobic: #199e70;
+  --st-f-mobility: #c98500; --st-f-coordination: #d55181; --st-f-somatic: #008300; --st-f-other: #6f7078;
+  --st-z1: #256abf; --st-z2: #6da7ec; --st-z3: #77787d; --st-z4: #a63a2c; --st-z5: #ef7563;
+}
+
+.st-sum-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: .6rem; }
+.st-sum { margin-bottom: .75rem; }
+.st-sum-k { font-size: .72rem; color: var(--text3); margin-top: .45rem; }
+
+.st-sum-v { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.st-sum-note { font-size: .64rem; color: var(--text3); margin-top: .15rem; }
+
+.st-seg { display: flex; background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 3px; margin-bottom: .75rem; }
+.st-seg button {
+  flex: 1; border: none; background: none; border-radius: 9px; padding: .55rem;
+  font-family: var(--font-body); font-size: .85rem; font-weight: 500; color: var(--text2); cursor: pointer;
+}
+.st-seg button.on { background: var(--bg2); color: var(--text); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+.st-title { font-size: 1rem; font-weight: 600; }
+.st-sub { font-size: .72rem; color: var(--text3); margin: .15rem 0 .9rem; }
+
+/* plot: gridlines absolute, columns on top, y labels in a right gutter */
+.st-plot { position: relative; height: 168px; margin-right: 2.1rem; }
+.st-grid { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid var(--border); }
+.st-grid span {
+  position: absolute; left: 100%; top: -.45rem; padding-left: .4rem;
+  font-size: .64rem; color: var(--text3); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.st-ref { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid var(--text2); z-index: 2; pointer-events: none; }
+.st-ref span {
+  position: absolute; left: .2rem; bottom: .15rem; font-size: .62rem; font-weight: 600; color: var(--text);
+  background: var(--bg2); padding: 0 .25rem; border-radius: 4px;
+}
+.st-cols { position: absolute; inset: 0; display: flex; align-items: stretch; }
+.st-col {
+  flex: 1; min-width: 0; position: relative; display: flex; align-items: flex-end; justify-content: center;
+  background: none; border: none; padding: 0; cursor: pointer; border-radius: 6px;
+}
+.st-col.sel { background: color-mix(in srgb, var(--text3) 14%, transparent); }
+.st-stack {
+  width: 62%; max-width: 24px; display: flex; flex-direction: column-reverse; gap: 2px;
+}
+.st-stack i { display: block; flex-basis: 0; min-height: 0; }
+.st-stack i:last-child { border-radius: 4px 4px 0 0; }
+.st-nodata { width: 62%; max-width: 24px; height: 3px; border-radius: 2px; background: var(--border); }
+.st-x { display: flex; margin: .35rem 2.1rem 0 0; }
+.st-x span { flex: 1; min-width: 0; text-align: center; font-size: .64rem; color: var(--text3); white-space: nowrap; overflow: visible; }
+.st-legend { margin-top: .75rem; gap: .4rem .8rem; }
+.st-legend i { width: 8px; height: 8px; border-radius: 4px; }
+
+/* detail — the selected period as a table; carries every value */
+.st-detail { margin-top: .85rem; padding-top: .7rem; border-top: 1px solid var(--border); }
+.st-dhead { display: flex; justify-content: space-between; gap: .5rem; font-size: .74rem; font-weight: 600; margin-bottom: .35rem; }
+.st-dhead span:last-child { font-weight: 400; color: var(--text3); }
+.st-drow { display: flex; align-items: center; gap: .5rem; padding: .28rem 0; font-size: .8rem; }
+.st-drow > i { width: 8px; height: 8px; border-radius: 4px; flex-shrink: 0; }
+.st-dname { flex: 1; color: var(--text2); min-width: 0; }
+.st-dname em { font-style: normal; color: var(--text3); font-size: .7rem; margin-left: .25rem; }
+.st-dval { font-variant-numeric: tabular-nums; }
+.st-dpct { width: 2.6rem; text-align: right; color: var(--text3); font-variant-numeric: tabular-nums; font-size: .74rem; }
+.st-dfoot { font-size: .72rem; color: var(--text3); margin-top: .45rem; line-height: 1.45; }
+.st-dfoot b { color: var(--text); }
+.st-empty { font-size: .78rem; color: var(--text3); padding: .2rem 0; }
