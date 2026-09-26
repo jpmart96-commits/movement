@@ -17,6 +17,8 @@
 // Batch 1 (26 Sep 2026): Tier 1 — exercises in the month plan or logged.
 // Batch 2 (26 Sep 2026): Tier 2 — the complementary rotation (129).
 // Batch 3 (26 Sep 2026): Tier 3 — the rest of the active library (166).
+// Batch 4 (26 Sep 2026): Tier 4 — the not-yet progressions (29). Every
+//   library exercise now has an entry.
 // ─────────────────────────────────────────────────────────────
 
 const EXERCISE_MEDIA = {
@@ -1816,6 +1818,123 @@ const EXERCISE_MEDIA = {
     videoBy: "Travis Tarrant",
     imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Foot-SMR/1.jpg",
     instructions: "1. Place a ball or bottle under the arch of the foot while seated or standing.\n2. Roll slowly along the arch, pausing on tender spots.\n3. Adjust pressure with how much weight you put through the foot.\n4. Work each foot for 30–60 seconds.",
+  },
+
+  // ── Batch 4: Tier 4 (not-yet progressions) ──────────────────
+  'archer-pull-up': {
+    link: "https://www.youtube.com/watch?v=_LGLKUiQH5k",
+    videoBy: "Pullup & Dip",
+    instructions: "1. Turn the rings out and take a shoulder-width or slightly wider grip.\n2. Pull one arm in tight to the body while the other stays straight and rides out to the side.\n3. Drive the working elbow down and back until your chin clears that ring.\n4. Lower under control back to a dead hang before switching sides.\n5. Build to 3–5 controlled reps per side before moving on to a typewriter pull-up.",
+  },
+  'typewriter-pull-up': {
+    link: "https://www.youtube.com/watch?v=9aV7i_LOZ-A",
+    videoBy: "CaliMarco PT",
+    instructions: "1. Pull to the top of a pull-up with both arms bent and the rings turned out.\n2. Shift your weight onto one straight arm while the other stays bent, chin over that ring.\n3. Slide sideways across the top, keeping your chin above the rings the whole way.\n4. Finish with the opposite arm bent and the first arm straight.\n5. Lower under control on the bent-arm side; drop back to archer pull-ups if the transition breaks down.",
+  },
+  'muscle-up-kipping': {
+    link: "https://www.youtube.com/watch?v=ThrmnRRC4Xs",
+    videoBy: "WODprep",
+    instructions: "1. Start in a dead hang and initiate a kip, driving the hips forward then snapping back.\n2. Use the swing to pull the rings toward your lower ribs, turning the wrists over as you go.\n3. Punch down hard through the rings as your chest clears them to drive into support.\n4. Press out to full lockout at the top.\n5. Drill the false-grip turnover on low rings or with a band first if the transition feels unstable.",
+  },
+  'muscle-up-strict': {
+    link: "https://www.youtube.com/watch?v=s2ycF1UZmr8",
+    videoBy: "WODprep",
+    instructions: "1. Start from a dead hang with a false grip on both rings.\n2. Pull straight up with no leg drive or kip until the rings reach chest height.\n3. Rotate the wrists over the rings as your chest passes them, staying close to the rings.\n4. Press to full lockout with no swing at the top.\n5. Regress to slow negatives or a lightly banded rep if the transition stalls at the bottom.",
+  },
+  'inverted-muscle-up-elevator': {
+    instructions: "1. Start from an inverted, hollow-back hang beneath the rings with a false grip.\n2. Pull the rings down past your hips while keeping the body inverted and hollow, not arching.\n3. Rotate through the transition as the rings pass your torso, staying close and controlled throughout.\n4. Finish by pressing out to support, or on to a handstand depending on the variation being trained.\n5. Only attempt this with a rock-solid strict muscle-up and strong inversion control already in place; drop back to strict muscle-ups if control breaks down mid-turn.",
+  },
+  'back-lever': {
+    link: "https://www.youtube.com/watch?v=ePf69N6jlko",
+    videoBy: "GMB Fitness",
+    instructions: "1. Hang from the rings then invert through a skin-the-cat to get upside down.\n2. Open to a tight tuck with the hips level with the shoulders and the body horizontal.\n3. Squeeze the shoulder blades down and back so the chest doesn't sag.\n4. Hold the position, then progress to straddle and eventually full extension as strength allows.\n5. Shorten the hold or return to a tighter tuck if the hips drop or the shoulders round forward.",
+  },
+  'front-lever': {
+    link: "https://www.youtube.com/watch?v=BwhZYpIdhro",
+    videoBy: "Ashton Fitness",
+    instructions: "1. Hang from the rings or a bar with an active, hollow-body grip.\n2. Pull the hips and knees up into a tight tuck so the lower back stays flat.\n3. Push the shoulders down and away from the ears to stop the body dropping.\n4. Extend to advanced tuck, then straddle, then full lever as each level becomes solid.\n5. Hold each level 5–10 seconds before adding reps, and shorten the hold if the hips sag.",
+  },
+  '90-90-one-arm-iso-chin': {
+    instructions: "1. Pull up on one arm until the elbow sits at roughly 90 degrees, using the other hand only lightly to help get set.\n2. Release the assisting hand once positioned and hold the working elbow at that 90-degree angle.\n3. Keep the shoulder packed down and stop the body from swinging or rotating.\n4. Hold for time, then lower under control rather than dropping out of the hold.\n5. Only train this after a solid two-arm 90–90 hold and a confident one-arm active hang; regress to the two-arm version or a band-assisted hold if the shoulder rounds forward.",
+  },
+  'thick-grip-oac': {
+    link: "https://www.youtube.com/watch?v=vn3vHC_M6Ns",
+    videoBy: "Tim Berzins",
+    instructions: "1. Wrap a towel around a bar or use a thick handle and set a strong one-arm grip with the shoulder packed down.\n2. Start from a partial bend for early negatives, then lower as slowly as control allows.\n3. Keep the working shoulder pulled down and back and avoid letting the body twist or swing.\n4. Build toward a full rep only once slow negatives and one-arm hangs on the thick grip feel controlled.\n5. Drop to a thinner bar or an assisted one-arm chin-up if grip fails before the pulling muscles do.",
+  },
+  'round-off': {
+    link: "https://www.youtube.com/watch?v=1ojiqZQPkPA",
+    videoBy: "Fit And Fun With Coach Meggin",
+    instructions: "1. Take a short run-up and hurdle into a lunge step with the arms reaching overhead.\n2. Place the hands down one after the other, turning them to face back the way you came.\n3. Kick the lead leg up hard and snap the legs together overhead as you turn over.\n4. Push off the hands forcefully so you land facing back toward the start.\n5. Land with bent knees and arms up, ready to transfer the power into a back handspring or tumbling pass.",
+  },
+  'corta-capim-bridge-qdr-combo': {
+    instructions: "1. Begin in Corta Capim and flow through several rotations, keeping the weight shifting smoothly between hands and feet.\n2. Lower into a bridge as the rotation continues, letting the hips stay open and the head relaxed.\n3. Rotate through the bridge without stalling so the movement stays continuous rather than resetting.\n4. Exit through a QDR circle back to a squat, finishing with the feet under the hips.\n5. Drill Corta Capim, low bridge rotations, and QDR circles separately first, and pause between elements if the flow breaks down.",
+  },
+  'au-cortado-presses': {
+    instructions: "1. Set up in the Au Cortado entry position with one hand and the opposite foot grounded.\n2. Press down through the grounded hand to lift and control the body's weight over that point.\n3. Keep the hips and shoulders stacked rather than letting the body twist during the press.\n4. Lower back under control and repeat for reps on each side.\n5. Master a standard Au Cortado first, and shorten the range of motion if control breaks down during the press.",
+  },
+  'qdr-rotational-pushups': {
+    instructions: "1. Start in a low QDR-style stance with the hands positioned to allow a full circular path.\n2. Lower into a push-up as you begin the rotational sweep, tracking the elbows over the hands.\n3. Press back up while continuing the rotation, mirroring the movement onto the other half of the circle.\n4. Keep the core braced so the hips don't sag or pike as you rotate through the push.\n5. Build reps gradually, and drop back to standard QDR circles without the push-up if pushing endurance runs out before the rotation stays clean.",
+  },
+  'half-au-role-qdr-combo': {
+    instructions: "1. Start in a squat and flow into a Half Au, reaching one hand and the opposite leg out.\n2. Lower back and to the side under control rather than dropping into position.\n3. Pull into a Role, using the momentum to roll smoothly rather than stopping and resetting.\n4. Continue directly from the Role into a QDR with no pause, then return to the squat.\n5. Train 10 reps for 5 sets with 60 seconds rest, running each element separately if the transitions feel rushed; add a full Au Cortado and a second Role only once the basic combo is smooth.",
+  },
+  'eccentric-pistol-side-pushup-intermediate': {
+    instructions: "1. Stand on one leg and lower into a pistol squat as slowly as control allows.\n2. As the hips near the floor, reach the same-side hand down and transition into a one-arm side push-up.\n3. Let the body pass the elbow line into the Vasamento position before pressing back up.\n4. Perform one side push-up per rep for this intermediate version rather than two.\n5. Practice the eccentric pistol and the side push-up separately first if the transition between them isn't smooth yet.",
+  },
+  'eccentric-pistol-side-pushup-advanced': {
+    instructions: "1. Start in a one-leg squat (pistol) position with the working leg planted and the other leg extended forward off the floor.\n2. Rotate down onto the support-side hand and hip into a one-arm side push-up, keeping the free leg hovering throughout and never letting it touch down.\n3. Press back up through the same arm to standing without setting the free leg down at any point.\n4. Master the intermediate version, where brief touches of the free leg are allowed, before removing the touches entirely.\n5. Work 3–5 clean reps per side before adding tempo or range.",
+  },
+  'hs-straddle': {
+    link: "https://www.youtube.com/watch?v=IzZ774DcKeY",
+    videoBy: "Paul Twyman",
+    instructions: "1. Kick or press up into handstand with the legs open wide into a straddle.\n2. Stack the shoulders over the wrists and press the floor away to round the upper back slightly.\n3. Squeeze the straddle open and point the toes to help hold the balance.\n4. Make small finger and wrist adjustments to correct balance rather than piking at the hips.\n5. Hold against a wall first, then take it freestanding once the shape feels stable.",
+  },
+  'hs-straight': {
+    link: "https://www.youtube.com/watch?v=BcNbi6OSi7E",
+    videoBy: "Sid Paulson",
+    instructions: "1. Kick up to handstand with the hips fully open and the legs pressed together.\n2. Stack shoulders, hips, and heels into one straight vertical line.\n3. Press through the fingertips and shoulders to fine-tune balance instead of bending at the hips.\n4. Point the toes and keep a light hollow-body brace through the midline.\n5. Build toward a solid 10-second freestanding hold before chasing longer holds.",
+  },
+  'hs-walking': {
+    link: "https://www.youtube.com/watch?v=vD-BUucL9F4",
+    videoBy: "WODprep",
+    instructions: "1. Kick up into a solid, straight handstand before attempting any steps.\n2. Shift weight slightly onto one hand and lift the other just enough to move it forward.\n3. Take small, quick steps leading with the fingertips rather than lunging the shoulders.\n4. Keep the hips stacked over the hands and look at the floor between them, not forward.\n5. Start with 3–5 controlled steps and only add distance once each step stays balanced; wait until a 10-second static hold is solid before attempting this.",
+  },
+  'extended-hollow-back-hspu': {
+    instructions: "1. Kick up to a wall handstand facing the wall with the hands a few inches out and the body slightly hollowed.\n2. Walk the hands further out from the wall than in a standard handstand push-up to extend the range.\n3. Lower under control into a hollow-back position, letting the head and chest travel back and down between the hands.\n4. Press back up by driving through the shoulders and reversing the hollow-back arch.\n5. Build a solid standard wall handstand push-up and shoulder mobility first, and shorten the range if the lower back rounds or aches.",
+  },
+  'air-baby': {
+    instructions: "1. Squat low and place the hands slightly wider than shoulder width on the floor.\n2. Rest the knees or upper shins on the back of the upper arms, near the elbow-triceps area.\n3. Shift the weight forward over the hands, keeping the head up and the gaze slightly ahead of the fingers.\n4. Find the balance point by pressing the floor away and gently rounding the upper back.\n5. Build a stable Frog Stand hold first, then explore the forward lean in short attempts.",
+  },
+  'air-baby-extensions': {
+    instructions: "1. Start balanced in a solid Air Baby with the knees resting on the upper arms.\n2. Press through the arms to open the elbow angle and lift the body into a higher hold.\n3. Pull the heels in toward the glutes to shorten the lever and keep the balance point stable.\n4. Keep the head up and breathe shallowly so the ribcage doesn't disturb the balance.\n5. Master full Air Baby control first, then extend only a small amount at a time before chasing full extension.",
+  },
+  'press-hs-pike': {
+    link: "https://www.youtube.com/watch?v=AHRJwIpLc0E",
+    videoBy: "Chris de Stefano",
+    instructions: "1. Set up on parallettes in a pike position with straight legs and hands under the shoulders.\n2. Lift the hips high and shift the shoulders forward over the hands to load the press.\n3. Press the hips up and over into handstand, keeping the legs straight and close to the body.\n4. Practice the eccentric by lowering slowly from handstand back down to pike to build control.\n5. Use a wall or light spotting assistance for early reps until the press is consistent unassisted.",
+  },
+  'stalder-prep': {
+    link: "https://www.youtube.com/watch?v=Q0AmGm7PdRU",
+    videoBy: "Paul Twyman",
+    instructions: "1. Start on parallettes or the floor in a straddle position with the legs wide and straight.\n2. Lift the hips and open the straddle wide while leaning the shoulders forward over the hands.\n3. Press the hips up and through the straddle into handstand, closing the legs together near the top.\n4. Keep the shoulders protracted and the arms straight throughout the press.\n5. Only attempt full reps once supported pike and straddle presses are solid, and drill hamstring and hip-flexor flexibility separately.",
+  },
+  'v-sit': {
+    link: "https://www.youtube.com/watch?v=P83rvEDFTjg",
+    videoBy: "Sid Paulson",
+    instructions: "1. Start in a solid L-sit on the floor or parallettes with the legs straight and hips flexed to 90°.\n2. Engage the hip flexors and core to lift the legs above horizontal, moving toward a V shape.\n3. Keep the arms straight and shoulders depressed, pressing the floor away.\n4. Point the toes and squeeze the legs together as they rise.\n5. Build a strong 10–20 second L-sit hold before adding V-sit range.",
+  },
+  'mechanical-advantage-planche-pushup': {
+    instructions: "1. Set up in an easier planche lever, such as tuck planche, with straight arms and protracted shoulders.\n2. Lower slowly into a harder lever, such as straddle or full planche, keeping the hips and shoulders level.\n3. Reverse direction and push back up through the easier lever for the concentric.\n4. Keep the elbows locked and the shoulder blades protracted throughout both phases.\n5. Build solid control in the easier lever alone before adding the harder eccentric range.",
+  },
+  'bridge-pushup-one-leg': {
+    instructions: "1. Set up in a bridge with hands and feet on the floor and the hips lifted.\n2. Shift weight onto one leg and lift the other straight up off the floor.\n3. Bend the elbows to lower the head toward the floor, keeping the lifted leg steady.\n4. Press back up through the arms and the standing leg to return to full bridge.\n5. Master the two-leg bridge push-up solidly before removing the second leg.",
+  },
+  'bridge-pushup-one-arm': {
+    instructions: "1. Set up in a full bridge, then shift most of the weight onto one arm.\n2. Bend the loaded elbow to lower under control, keeping the hips square and the legs steady.\n3. Press back up through the single arm to return to bridge, keeping the wrist stacked under the shoulder.\n4. Keep the free arm light on the floor for balance only, not for pushing.\n5. Confirm a strong, pain-free two-arm bridge push-up and healthy wrists before attempting single-arm reps.",
+  },
+  'high-bridge-rotations': {
+    instructions: "1. Press up into a full, extended bridge with the arms and legs straight and the hips lifted high.\n2. Shift weight onto one arm and leg, and rotate the body open toward that side.\n3. Let the free arm and leg lift and reach toward the ceiling as the body opens into a side-star position.\n4. Rotate back through center to the opposite side, keeping the hips lifted throughout.\n5. Build a solid standard bridge hold and low-bridge rotations first, and stop if the neck or wrists load excessively.",
   },
 };
 
