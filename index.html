@@ -4498,6 +4498,11 @@ function renderBodySettings() {
       rhrWatch = a ? Math.round(a.mean) : null;
     }
   } catch (e) { rhrWatch = null; }
+  let bw = null;
+  try { bw = (typeof Vitals !== 'undefined' && Vitals.bodyweight) ? Vitals.bodyweight() : null; } catch (e) { bw = null; }
+  const bwNote = bw && bw.date
+    ? `Latest weigh-in ${bw.v} kg · ${Stats._short(bw.date)}${bw.src === 'health' ? ' (Health)' : ''}. Used for dips and pull-ups.`
+    : 'For bodyweight lifts (dips, pull-ups)';
   const top = s.maxHR || Math.max(z.z4 + 12, 195);
   const lo = Math.min(90, z.z1 - 25);
   const seg = (a, b, n) => `<i style="flex-grow:${Math.max(1, b - a)};background:var(--st-z${n})"></i>`;
@@ -4506,8 +4511,8 @@ function renderBodySettings() {
 
   el.innerHTML = `
     <div class="set-card-title"><div class="mv-eyebrow">Body &amp; heart rate</div><div class="set-card-meta">empty = from the watch</div></div>
-    <div class="cfg-row"><div><div class="cfg-row-t">Bodyweight</div><div class="cfg-row-d">For bodyweight lifts (dips, pull-ups)</div></div>
-      ${_stepper('set-bw', s.bodyweightKg, { min: 30, max: 200, step: 0.5, unit: 'kg', base: 75, onchange: `saveNumSetting('bodyweightKg',this.value)` })}</div>
+    <div class="cfg-row"><div><div class="cfg-row-t">Bodyweight</div><div class="cfg-row-d">${bwNote}</div></div>
+      ${_stepper('set-bw', bw ? bw.v : s.bodyweightKg, { min: 30, max: 200, step: 0.5, unit: 'kg', base: 75, onchange: `saveNumSetting('bodyweightKg',this.value)` })}</div>
     <div class="cfg-row"><div><div class="cfg-row-t">Resting HR</div><div class="cfg-row-d">${rhrWatch ? `Watch 7-day average: ${rhrWatch} bpm` : 'No watch vitals imported yet'}</div></div>
       ${_stepper('set-rhr', s.restingHR, { min: 30, max: 110, step: 1, unit: 'bpm', base: rhrWatch || 55, placeholder: rhrWatch || '—', onchange: `saveNumSetting('restingHR',this.value)` })}</div>
     <div class="cfg-row"><div><div class="cfg-row-t">Max HR</div><div class="cfg-row-d">Highest you have seen, not a formula</div></div>
@@ -4994,7 +4999,9 @@ function importVitals(input) {
       .then(async doc => {
         const r = Vitals.merge(doc);
         await DB._flush();
-        setDataStatus(`Vitals imported ✓ ${r.added} new day${r.added === 1 ? '' : 's'}, ${r.updated} refreshed · ${r.total} in total (${doc.range[0]} → ${doc.range[1]})`);
+        const nW = Object.values(doc.days).filter(d => d.weight != null).length;
+        setDataStatus(`Vitals imported ✓ ${r.added} new day${r.added === 1 ? '' : 's'}, ${r.updated} refreshed · ${r.total} in total (${doc.range[0]} → ${doc.range[1]}) · ${nW} weigh-in${nW === 1 ? '' : 's'}`);
+        try { renderBodySettings(); } catch (e) {}
       })
       .catch(err => setDataStatus('Vitals import failed — ' + (err && err.message ? err.message : 'unreadable export'), true))
       .finally(() => { input.value = ''; });
