@@ -73,7 +73,7 @@ test('every override keeps work already logged (reshuffle, scale, lighter, theme
 });
 
 test('theme swap Monday → light takes a light day’s content, not Monday’s', () => {
-  const r = G.applyOverride(generateDay(app, '2026-09-28'), { action: 'theme_swap', targetTheme: 'light' }, P());
+  const r = G.applyOverride(generateDay(app, '2026-10-05'), { action: 'theme_swap', targetTheme: 'light' }, P());
   assert.equal(r.theme, 'Light');
   assert.equal(r.planSource.kind, 'borrowed');
   assert.ok(!r.blocks.some(b => b.mainFocus));
@@ -88,7 +88,7 @@ test('trade Mon 5 Oct ↔ Thu 8 Oct swaps the prescriptions with the day types',
   assert.deepEqual(ids(mf(t.mine)), ['easy-run']);
   assert.equal(t.theirs.date, '2026-10-08');
   assert.equal(t.theirs.dayKind, 'strength-a');
-  assert.equal(mf(t.theirs).exercises.find(e => e.id === 'squat').target.loadKg, 60);
+  assert.equal(mf(t.theirs).exercises.find(e => e.id === 'squat').target.loadKg, 57.5);
   // each date keeps its own coordination domain
   assert.equal(t.mine.coordDomain, generateDay(app, '2026-10-05').coordDomain);
   assert.equal(t.mine.planSource.kind, 'traded');
@@ -122,14 +122,15 @@ test('lighter scales Main Focus: loads ~90%, one set fewer; intervals become eas
 });
 
 test('after the written plan: every day type carries forward its latest non-test day', () => {
-  const s = generateDay(app, '2026-10-29');
+  const s = generateDay(app, '2026-12-31');
   assert.equal(s.planSource.kind, 'carry-forward');
-  assert.equal(s.planSource.from, '2026-10-22');
-  // 22 Oct is the weekly aerobic check, so that is what carries forward.
-  assert.match(mf(s).exercises[0].target.text, /30 min at avg ~148.*20 min easy under 153/);
-  const b = generateDay(app, '2026-10-30');
-  assert.equal(mf(b).exercises.find(e => e.id === 'deadlift').target.loadKg, 85);
-  assert.doesNotMatch(mf(b).note, /16 Oct numbers/);   // that morning's framing doesn't carry
+  // 17 Dec (the 10 km) is a test, so the week-11 long run with its
+  // fixed-HR check is what carries forward.
+  assert.equal(s.planSource.from, '2026-12-10');
+  assert.match(mf(s).exercises[0].target.text, /30 min at avg ~148.*15 min easy under 153/);
+  const b = generateDay(app, '2027-01-01');
+  assert.equal(mf(b).exercises.find(e => e.id === 'deadlift').target.loadKg, 92.5);   // 18 Dec, not the 26 Dec test
+  assert.doesNotMatch(mf(b).note, /RETEST/);   // that morning's framing doesn't carry
 });
 
 test('one-tap: as prescribed writes the target as sets; RPE stamps them; complete clears the live session', () => {
@@ -156,22 +157,22 @@ test('one-tap: as prescribed writes the target as sets; RPE stamps them; complet
   assert.equal(saved.planRef.dayType, 'strength-a');
 });
 
-test('block draft: 3 weeks from 26 Oct, one step per lift, retests in the last week', () => {
+test('block draft: 3 weeks from 28 Dec (after the written plan), one step per lift, retests in the last week', () => {
   const d = app.BlockBuilder.draft({ weeks: 3 });
-  assert.equal(d.from, '2026-10-26');
-  assert.equal(d.to, '2026-11-15');
+  assert.equal(d.from, '2026-12-28');
+  assert.equal(d.to, '2027-01-17');
   assert.equal(d.days.length, 21);
   const sq = day => d.days.find(x => x.date === day).mainFocusPlan.exercises.find(e => e.id === 'squat').loadKg;
-  assert.deepEqual([sq('2026-10-26'), sq('2026-11-02'), sq('2026-11-09')], [60, 62.5, 62.5]);
-  assert.equal(d.days.find(x => x.date === '2026-11-11').dayType, 'aerobic-test');
+  assert.deepEqual([sq('2026-12-28'), sq('2027-01-04'), sq('2027-01-11')], [65, 67.5, 67.5]);
+  assert.equal(d.days.find(x => x.date === '2027-01-13').dayType, 'aerobic-test');
   assert.ok(d.days.every(x => x.source === 'draft'));
   // adopting appends and survives a newer shipped seed
   const next = app.MonthPlan.adoptDraft(d);
-  assert.equal(next.blockEnd, '2026-11-15');
-  assert.equal(app.MonthPlan.dayFor('2026-11-02').source, 'draft');
+  assert.equal(next.blockEnd, '2027-01-17');
+  assert.equal(app.MonthPlan.dayFor('2027-01-04').source, 'draft');
   const stored = app.DB.get('month_plan'); stored.seedVersion = 1; app.DB.set('month_plan', stored);
   app.MonthPlan.ensureSeeded();
-  assert.equal(app.MonthPlan.dayFor('2026-11-02').source, 'draft');
+  assert.equal(app.MonthPlan.dayFor('2027-01-04').source, 'draft');
   app.DB.remove('month_plan');
 });
 

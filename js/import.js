@@ -20,7 +20,10 @@ const HevyImport = {
 
   ALIAS_KEY: 'hevy_aliases',   // DB key → synced to the generic `overrides` table
 
-  _MONTHS: { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 },
+  // English and Portuguese month abbreviations: the share text follows the
+  // phone's language ("Sep 17, 2026" or "17 set 2026").
+  _MONTHS: { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11,
+             fev:1, abr:3, mai:4, ago:7, set:8, out:9, dez:11 },
 
   // Hevy appends the equipment in parentheses ("Squat (Barbell)"); the
   // library names don't carry it. Stripped before matching, kept on the
@@ -31,7 +34,9 @@ const HevyImport = {
   _SET_LINE: /^(?:(warm\s*-?up|drop|failure)\s+)?set\s+(\d+)\s*:\s*(.*)$/i,
 
   // Lines Hevy adds that aren't exercises or sets.
-  _NOISE: /^(?:duration|volume|records?|prs?|notes?|@|https?:\/\/)/i,
+  // Whole words only: "prs?" without a boundary swallowed every exercise
+  // starting "Pr…" (Preacher curl, Press around) as noise.
+  _NOISE: /^(?:(?:duration|volume|records?|prs?|notes?|dura[cç][aã]o|recordes?)\b|@|https?:\/\/)/i,
 
   // ── PARSE ──────────────────────────────────────────────────
   // text → { title, date: 'YYYY-MM-DD', at: ISO, exercises: [{ name, rawName, sets: [...] }] }
@@ -55,6 +60,9 @@ const HevyImport = {
     for (; i < lines.length; i++) {
       const l = lines[i];
       if (!l) continue;
+      // Hevy puts the link first or last depending on how it was shared.
+      const lk = l.match(/https?:\/\/(?:www\.)?hevy\.com\/workout\/\S+/i);
+      if (lk) { out.link = out.link || lk[0]; continue; }
       if (this._NOISE.test(l)) continue;
 
       const m = l.match(this._SET_LINE);
@@ -78,11 +86,19 @@ const HevyImport = {
   },
 
   // "Thursday, Sep 17, 2026 at 5:54pm" — weekday optional, time optional.
+  // Also day-first: "17 set 2026, 17:54" / "quinta, 17 de set. de 2026 às 17:54".
   _parseDateLine(line) {
-    const m = line.match(/(?:^|,\s*)([A-Za-z]{3,9})\.?\s+(\d{1,2}),\s*(\d{4})(?:\s+at\s+(\d{1,2}):(\d{2})\s*([ap]m)?)?/i);
-    if (!m) return null;
-    const mon = this._MONTHS[m[1].slice(0, 3).toLowerCase()];
+    let m = line.match(/(?:^|,\s*)([A-Za-z]{3,9})\.?\s+(\d{1,2}),\s*(\d{4})(?:\s+(?:at|às|as)\s+(\d{1,2}):(\d{2})\s*([ap]m)?)?/i);
+    let monName, day, year, hStr, mStr, apStr;
+    if (m) { [, monName, day, year, hStr, mStr, apStr] = m; }
+    else {
+      m = line.match(/(?:^|[\s,])(\d{1,2})\s+(?:de\s+)?([A-Za-zç]{3,9})\.?\s+(?:de\s+)?(\d{4})(?:[^\d]{1,8}(\d{1,2}):(\d{2})\s*([ap]m)?)?/i);
+      if (!m) return null;
+      [, day, monName, year, hStr, mStr, apStr] = m;
+    }
+    const mon = this._MONTHS[monName.slice(0, 3).toLowerCase()];
     if (mon === undefined) return null;
+    m = [null, monName, day, year, hStr, mStr, apStr];
     let hh = m[4] ? parseInt(m[4], 10) : 12;
     const mm = m[5] ? parseInt(m[5], 10) : 0;
     const ap = (m[6] || '').toLowerCase();
@@ -105,12 +121,14 @@ const HevyImport = {
     const s = { weight: null, reps: null, duration: null, distanceKm: null, rpe: null, note: '' };
     const txt = String(body || '').trim();
 
-    const rpe = txt.match(/@\s*([\d.]+)\s*rpe/i);
-    if (rpe) s.rpe = parseFloat(rpe[1]);
+    // Decimal commas ("52,5 kg") are read as decimals, not as "5".
+    const num = v => parseFloat(String(v).replace(',', '.'));
+    const rpe = txt.match(/@\s*([\d.,]+)\s*rpe/i);
+    if (rpe) s.rpe = num(rpe[1]);
 
-    const wr = txt.match(/(-?[\d.]+)\s*(kg|lbs?)\s*(?:x|×)\s*(\d+)/i);
+    const wr = txt.match(/(-?\d+(?:[.,]\d+)?)\s*(kg|lbs?)\s*(?:x|×)\s*(\d+)/i);
     if (wr) {
-      const w = parseFloat(wr[1]);
+      const w = num(wr[1]);
       s.weight = /lb/i.test(wr[2]) ? Math.round(w * 0.45359237 * 100) / 100 : w;
       s.reps = parseInt(wr[3], 10);
       return s;
@@ -253,6 +271,8 @@ const HevyImport = {
       reps: s.reps,
       duration: s.duration,
       note: [s.rpe ? `RPE ${s.rpe}` : '', s.kind && s.kind !== 'normal' ? s.kind : '', s.note].filter(Boolean).join(' · '),
+      ...(s.rpe ? { rpe: s.rpe } : {}),
+      ...(s.kind && s.kind !== 'normal' ? { kind: s.kind } : {}),
       completed: true,
       loggedAt,
       source: 'hevy',
@@ -622,8 +642,19 @@ const Importer = {
   // resolutions: [{ hevyName, exerciseId, sets }] — already confirmed by the
   // user on the review screen. An entry with exerciseId null is skipped
   // outright; nothing here guesses.
-  applyHevy(session, resolutions, at, profile) {
-    const report = { logged: [], added: [], skipped: [], ignored: [] };
+  // importKey: the hevy.com link, or date + a hash of the text. The same
+  // workout imported twice used to double every set; now the second time is
+  // a no-op (report.duplicate).
+  hevyKey(parsed, text) {
+    if (parsed && parsed.link) return parsed.link;
+    let h = 0; const t = String(text || '');
+    for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) | 0;
+    return 'hevy:' + ((parsed && parsed.date) || '') + ':' + (h >>> 0).toString(36);
+  },
+
+  applyHevy(session, resolutions, at, profile, importKey) {
+    const report = { logged: [], added: [], skipped: [], ignored: [], duplicate: false };
+    if (importKey && (session.hevyImports || []).includes(importKey)) { report.duplicate = true; return { session, report }; }
     const touchedBlocks = new Set();
 
     resolutions.forEach(r => {
@@ -632,7 +663,11 @@ const Importer = {
       const found = this._findExercise(session, r.exerciseId);
 
       if (found) {
-        found.ex.sets = (found.ex.sets || []).concat(sets);
+        // Sets that were only ticked "as prescribed" give way to what Hevy
+        // actually recorded; real logged sets are kept and added to.
+        const keep = found.ex.doneAsPrescribed ? [] : (found.ex.sets || []);
+        found.ex.sets = keep.concat(sets);
+        found.ex.doneAsPrescribed = false;
         found.ex.completed = true;
         found.ex.skipped = false;
         found.ex.importedFrom = 'hevy';
@@ -658,8 +693,11 @@ const Importer = {
     // Scoped skip — only blocks the import actually reached.
     touchedBlocks.forEach(b => {
       (session.blocks[b].exercises || []).forEach(ex => {
-        const logged = (ex.sets && ex.sets.length) || ex.completed || ex.skipped;
-        if (!logged && ex.logType !== 'none') {
+        // Auto-ticked ("as prescribed") counts as not logged here: Hevy is
+        // the record for this block.
+        const logged = !ex.doneAsPrescribed && ((ex.sets && ex.sets.length) || ex.completed || ex.skipped);
+        if (!logged && ex.logType !== 'none' && ex.importedFrom !== 'hevy') {
+          ex.sets = []; ex.completed = false; ex.doneAsPrescribed = false;
           ex.skipped = true;
           ex.skipReason = 'not in imported log';
           report.skipped.push({ block: session.blocks[b].label, name: ex.name });
@@ -668,6 +706,7 @@ const Importer = {
     });
 
     session.importSources = [...new Set([...(session.importSources || []), 'hevy'])];
+    if (importKey) session.hevyImports = [...(session.hevyImports || []), importKey];
     return { session, report };
   },
 

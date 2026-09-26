@@ -8,12 +8,14 @@
 <meta name="apple-mobile-web-app-title" content="Movement">
 <title>Movement</title>
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/rework.css">
 <link rel="stylesheet" href="css/desktop.css">
+<link rel="stylesheet" href="css/settings.css">
 </head>
 <body>
 
@@ -40,7 +42,7 @@
 <!-- App root — hidden until auth passes -->
 <div id="app-root" style="display:none">
 
-<!-- NAV: Block / Today / Session(hidden) / Progress / Stats / Log / Settings -->
+<!-- NAV: Block / Today / Session(hidden) / Progress / Stats / Log / Notes / Settings -->
 <nav id="nav">
   <div class="nav-brand" aria-hidden="true">MOVEMENT</div>
   <button class="nav-btn active" data-screen="home" onclick="navTo('home')" aria-label="Block">
@@ -60,6 +62,9 @@
   </button>
   <button class="nav-btn" data-screen="log" onclick="navTo('log')" aria-label="Log">
     <svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Log</span>
+  </button>
+  <button class="nav-btn" data-screen="notes" onclick="navTo('notes')" aria-label="Notes">
+    <svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="14 3 14 9 20 9"/><path d="M8 13h8M8 17h5"/></svg><span>Notes</span>
   </button>
   <button class="nav-btn" data-screen="settings" onclick="navTo('settings')" aria-label="Settings">
     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Settings</span>
@@ -187,7 +192,8 @@
       <div class="sh-progress" id="sh-progress">0/0</div>
       <div class="sh-elapsed" id="sh-elapsed">0m</div>
     </div>
-    <button class="btn-ghost" id="sh-adjust" style="width:auto;padding:.3rem .6rem;font-size:.78rem;margin-left:.5rem" onclick="openAdjust()">Adjust</button>
+    <button class="btn-ghost" id="sh-note" style="width:auto;padding:.3rem .6rem;font-size:.78rem;margin-left:.5rem" onclick="openNoteSheet({source:'session'})" aria-label="Add a note">+ Note</button>
+    <button class="btn-ghost" id="sh-adjust" style="width:auto;padding:.3rem .6rem;font-size:.78rem;margin-left:.35rem" onclick="openAdjust()">Adjust</button>
   </div>
   <div class="rest-overlay" id="rest-overlay" style="display:none">
     <div class="rest-label">Rest</div>
@@ -259,153 +265,151 @@
   </div>
 </main>
 
-<!-- ═══ SETTINGS ═════════════════════════════════════════════════ -->
-<main id="screen-settings" class="screen">
-  <div class="section-label">Settings</div>
-
-  <div class="collapsible-section">
-    <button class="collapsible-header" onclick="toggleSection('s-rest')">
-      <span>Rest timers</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
-    </button>
-    <div class="collapsible-body collapsed" id="s-rest">
-      <div class="card" style="margin:0">
-        <div class="section-label">Appearance</div>
-        <div class="setting-row" style="gap:.5rem">
-          <span>Theme</span>
-          <div style="display:flex;gap:.25rem">
-            <button type="button" data-theme-opt="system" aria-pressed="true"  onclick="setTheme('system')" style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:.375rem .625rem;font:inherit;font-size:.8125rem;cursor:pointer;background:var(--accent);color:var(--on-accent,#fff)">System</button>
-            <button type="button" data-theme-opt="light"  aria-pressed="false" onclick="setTheme('light')"  style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:.375rem .625rem;font:inherit;font-size:.8125rem;cursor:pointer;background:var(--bg3);color:var(--text2)">Light</button>
-            <button type="button" data-theme-opt="dark"   aria-pressed="false" onclick="setTheme('dark')"   style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:.375rem .625rem;font:inherit;font-size:.8125rem;cursor:pointer;background:var(--bg3);color:var(--text2)">Dark</button>
-          </div>
-        </div>
-        <div class="section-label">Rest timers</div>
-        <div class="setting-row"><span>Heavy strength (s)</span><input type="number" class="num-input" id="rest-heavy" min="0" max="600" step="15" onchange="saveSetting('defaultRestHeavy',+this.value)"></div>
-        <div class="setting-row"><span>Accessories (s)</span><input type="number" class="num-input" id="rest-acc" min="0" max="600" step="15" onchange="saveSetting('defaultRestAcc',+this.value)"></div>
-        <div class="setting-row"><span>Skill work (s)</span><input type="number" class="num-input" id="rest-skill" min="0" max="600" step="15" onchange="saveSetting('defaultRestSkill',+this.value)"></div>
-        <div class="setting-row"><span>Prehab (s)</span><input type="number" class="num-input" id="rest-prehab" min="0" max="600" step="15" onchange="saveSetting('defaultRestPrehab',+this.value)"></div>
-        <div class="setting-row"><span>Power / plyo (s)</span><input type="number" class="num-input" id="rest-power" min="0" max="600" step="15" onchange="saveSetting('defaultRestPower',+this.value)"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="collapsible-section">
-    <button class="collapsible-header" onclick="toggleSection('s-equip')">
-      <span>Equipment I have</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
-    </button>
-    <div class="collapsible-body collapsed" id="s-equip">
-      <div class="card" style="margin:0" id="equipment-list"></div>
-    </div>
-  </div>
-
-  <div class="collapsible-section">
-    <button class="collapsible-header" onclick="toggleSection('s-library')">
-      <span>Exercise library <span class="ex-cat-count" id="library-total-count"></span></span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
-    </button>
-    <div class="collapsible-body collapsed" id="s-library">
-      <div id="exercise-state-list"></div>
-    </div>
-  </div>
-
-  <div class="collapsible-section">
-    <button class="collapsible-header" onclick="toggleSection('s-ideas')">
-      <span>To try <span class="ex-cat-count" id="ideas-count"></span></span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
-    </button>
-    <div class="collapsible-body collapsed" id="s-ideas">
-      <div class="card" style="margin:0 0 .75rem">
-        <div class="field-label">Saw a variation in a reel? Drop it here — a video can hold several exercises, you'll pull them out one at a time later.</div>
-        <input type="url" class="text-input" id="idea-link" placeholder="Paste the video link" style="margin-top:.5rem">
-        <div class="two-col" style="margin-top:.5rem">
-          <input type="text" class="text-input" id="idea-name" placeholder="Label (optional), e.g. 'Leg day reel'">
-          <select class="text-input" id="idea-cat"></select>
-        </div>
-        <button class="btn-primary" style="margin-top:.5rem;width:100%" onclick="addIdea()">Save to try later</button>
-      </div>
-      <div id="ideas-list"></div>
-    </div>
-  </div>
-
-  <div class="collapsible-section">
-    <button class="collapsible-header" onclick="toggleSection('s-ai')">
-      <span>AI generation</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
-    </button>
-    <div class="collapsible-body collapsed" id="s-ai">
-      <div class="card" style="margin:0">
-        <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:.375rem">
-          <span>Anthropic API key</span>
-          <input type="password" class="text-input" id="ai-api-key" placeholder="sk-ant-..." onchange="saveSetting('anthropicApiKey', this.value.trim())">
-        </div>
-        <div class="pip-label" style="margin:.25rem 0 .75rem">
-          Stored only on this device (localStorage), sent directly to Anthropic when you use "Tell me what you want" on the Generate screen. Never shared anywhere else. Get a key at
-          <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.
-        </div>
-        <div class="setting-row" style="flex-direction:column;align-items:stretch;gap:.375rem;border-top:1px solid var(--border);padding-top:.75rem">
-          <span>Model</span>
-          <input type="text" class="text-input" id="ai-model" placeholder="claude-sonnet-5" onchange="saveSetting('aiModel', this.value.trim())">
-        </div>
-        <div class="pip-label" style="margin:.25rem 0 0">
-          Default is a good balance of quality and cost (roughly a few cents per session). Use "claude-haiku-4-5-20251001" for the cheapest option.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="collapsible-section">
-    <button class="collapsible-header" onclick="toggleSection('s-data')">
-      <span>Data</span><svg class="chev" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg>
-    </button>
-    <div class="collapsible-body collapsed" id="s-data">
-      <div class="card" style="margin:0">
-
-        <div class="data-action">
-          <div class="data-action-label">Export backup</div>
-          <div class="data-action-sub">Full snapshot of all your data</div>
-          <button class="btn-ghost" onclick="exportBackup()">Export ↓</button>
-        </div>
-
-        <div class="data-action" style="border-top:1px solid var(--border);padding-top:.875rem">
-          <div class="data-action-label">Import backup</div>
-          <div class="data-action-sub">Full restore — overwrites everything. Use for disaster recovery only.</div>
-          <label class="btn-ghost" style="cursor:pointer;color:var(--danger)">Import backup ↑
-            <input type="file" accept=".json" style="display:none" onchange="importBackup(this)">
-          </label>
-        </div>
-
-        <div class="data-action" style="border-top:1px solid var(--border);padding-top:.875rem">
-          <div class="data-action-label">Import DLC</div>
-          <div class="data-action-sub">Adds new exercises, links and images. Never overwrites your existing data.</div>
-          <label class="btn-ghost" style="cursor:pointer;color:var(--accent2)">Import DLC ↑
-            <input type="file" accept=".json" style="display:none" onchange="importDLC(this)">
-          </label>
-        </div>
-
-        <div class="data-action" style="border-top:1px solid var(--border);padding-top:.875rem">
-          <div class="data-action-label">Import vitals</div>
-          <div class="data-action-sub">Resting HR, HRV, VO2 max and sleep from an Apple Health export. Make the file with <code>tools/health_vitals.py export.zip</code>. Merges by date — never removes days.</div>
-          <label class="btn-ghost" style="cursor:pointer;color:var(--accent)">Import vitals ↑
-            <input type="file" accept=".json" style="display:none" onchange="importVitals(this)">
-          </label>
-        </div>
-
-        <div id="data-status" style="font-size:12px;color:var(--text3);margin-top:.75rem;padding:0 .25rem;display:none"></div>
-
-        <div style="border-top:1px solid var(--border);padding-top:.875rem;margin-top:.875rem">
-          <button class="btn-ghost" onclick="manualSync()">Sync now ↻</button>
-          <div id="sync-status" style="font-size:12px;color:var(--text3);margin:.25rem 0;padding:0 .25rem"></div>
-          <button class="btn-ghost" style="color:var(--danger);margin-top:.25rem" onclick="signOut()">Sign out</button>
-        </div>
-
-      </div>
-    </div>
-  </div>
+<!-- ═══ NOTES ════════════════════════════════════════════════════ -->
+<main id="screen-notes" class="screen">
+  <div id="notes-body"></div>
 </main>
 
-<!-- FAB — add exercise (visible in settings) -->
+<!-- ═══ SETTINGS ═════════════════════════════════════════════════
+     Four tabs. The panels are static so their ids (sync-status,
+     data-status, the rest inputs…) always exist; renderSettings() fills
+     the dynamic parts. Library → renderLibrary(), the sheet → openLibSheet(). -->
+<main id="screen-settings" class="screen">
+  <div class="set-head">
+    <div class="logo" style="font-size:1.45rem">Settings</div>
+    <div class="set-sub">Your exercise library, training defaults and data</div>
+  </div>
+
+  <div class="st-seg set-tabs" role="tablist" aria-label="Settings sections">
+    <button type="button" role="tab" data-set-tab="library" onclick="setSettingsTab('library')">Library <span id="library-total-count"></span></button>
+    <button type="button" role="tab" data-set-tab="ideas" onclick="setSettingsTab('ideas')">To try <span id="ideas-count"></span></button>
+    <button type="button" role="tab" data-set-tab="training" onclick="setSettingsTab('training')">Training</button>
+    <button type="button" role="tab" data-set-tab="app" onclick="setSettingsTab('app')">App</button>
+  </div>
+
+  <!-- LIBRARY -->
+  <section class="set-panel" data-set-panel="library" role="tabpanel">
+    <div id="exercise-state-list"></div>
+  </section>
+
+  <!-- TO TRY -->
+  <section class="set-panel" data-set-panel="ideas" role="tabpanel">
+    <div class="set-grid">
+      <div>
+        <div class="mv-card">
+          <div class="mv-eyebrow" style="margin-bottom:.35rem">Save a video</div>
+          <div class="mv-body" style="margin-bottom:.7rem">Saw a variation in a reel? Drop the link here. One video can hold several exercises — pull them out one at a time later.</div>
+          <input type="url" class="text-input" id="idea-link" placeholder="Paste the video link">
+          <div class="two-col" style="margin-top:.5rem">
+            <input type="text" class="text-input" id="idea-name" placeholder="Label (optional)">
+            <select class="text-input" id="idea-cat"></select>
+          </div>
+          <button class="mv-cta" style="margin-top:.6rem" onclick="addIdea()">Save to try later</button>
+        </div>
+      </div>
+      <div>
+        <div id="ideas-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRAINING -->
+  <section class="set-panel" data-set-panel="training" role="tabpanel">
+    <div class="set-grid">
+      <div>
+        <div class="mv-card">
+          <div class="set-card-title"><div class="mv-eyebrow">Rest timers</div><div class="set-card-meta">seconds between sets</div></div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Heavy strength</div><div class="cfg-row-d">Main lifts — squat, deadlift, press</div></div>
+            <div class="mv-stepper"><button type="button" onclick="stepNum('rest-heavy',-1)" aria-label="Less"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><label class="mv-stepper-v"><input type="number" id="rest-heavy" min="0" max="600" step="15" onchange="saveSetting('defaultRestHeavy',+this.value)"><span class="mv-stepper-u">s</span></label><button type="button" onclick="stepNum('rest-heavy',1)" aria-label="More"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Accessories</div><div class="cfg-row-d">Supporting strength work</div></div>
+            <div class="mv-stepper"><button type="button" onclick="stepNum('rest-acc',-1)" aria-label="Less"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><label class="mv-stepper-v"><input type="number" id="rest-acc" min="0" max="600" step="15" onchange="saveSetting('defaultRestAcc',+this.value)"><span class="mv-stepper-u">s</span></label><button type="button" onclick="stepNum('rest-acc',1)" aria-label="More"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Skill work</div><div class="cfg-row-d">Handstand, rings, levers</div></div>
+            <div class="mv-stepper"><button type="button" onclick="stepNum('rest-skill',-1)" aria-label="Less"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><label class="mv-stepper-v"><input type="number" id="rest-skill" min="0" max="600" step="15" onchange="saveSetting('defaultRestSkill',+this.value)"><span class="mv-stepper-u">s</span></label><button type="button" onclick="stepNum('rest-skill',1)" aria-label="More"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Prehab</div><div class="cfg-row-d">Joint and tendon work</div></div>
+            <div class="mv-stepper"><button type="button" onclick="stepNum('rest-prehab',-1)" aria-label="Less"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><label class="mv-stepper-v"><input type="number" id="rest-prehab" min="0" max="600" step="15" onchange="saveSetting('defaultRestPrehab',+this.value)"><span class="mv-stepper-u">s</span></label><button type="button" onclick="stepNum('rest-prehab',1)" aria-label="More"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Power / plyo</div><div class="cfg-row-d">Jumps, throws, sprints</div></div>
+            <div class="mv-stepper"><button type="button" onclick="stepNum('rest-power',-1)" aria-label="Less"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button><label class="mv-stepper-v"><input type="number" id="rest-power" min="0" max="600" step="15" onchange="saveSetting('defaultRestPower',+this.value)"><span class="mv-stepper-u">s</span></label><button type="button" onclick="stepNum('rest-power',1)" aria-label="More"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div></div>
+        </div>
+
+        <div class="mv-card" id="body-settings"></div>
+      </div>
+      <div>
+        <div class="mv-card" id="equipment-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <section class="set-panel" data-set-panel="app" role="tabpanel">
+    <div class="set-grid">
+      <div>
+        <div class="mv-card">
+          <div class="mv-eyebrow" style="margin-bottom:.35rem">Appearance</div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Theme</div><div class="cfg-row-d">System follows your device</div></div>
+            <div class="set-seg" role="group" aria-label="Theme">
+              <button type="button" data-theme-opt="system" aria-pressed="true"  onclick="setTheme('system')">System</button>
+              <button type="button" data-theme-opt="light"  aria-pressed="false" onclick="setTheme('light')">Light</button>
+              <button type="button" data-theme-opt="dark"   aria-pressed="false" onclick="setTheme('dark')">Dark</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mv-card">
+          <div class="mv-eyebrow" style="margin-bottom:.6rem">AI generation</div>
+          <div class="field-label">Anthropic API key</div>
+          <input type="password" class="text-input" id="ai-api-key" placeholder="sk-ant-..." autocomplete="off" onchange="saveSetting('anthropicApiKey', this.value.trim())">
+          <div class="field-label" style="margin-top:.75rem">Model</div>
+          <input type="text" class="text-input" id="ai-model" placeholder="claude-sonnet-5" onchange="saveSetting('aiModel', this.value.trim())">
+          <div class="set-foot">The key stays on this device and goes only to Anthropic, when you ask for a session in your own words. Get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>. The default model costs a few cents a session; claude-haiku-4-5-20251001 is the cheapest.</div>
+        </div>
+      </div>
+      <div>
+        <div class="mv-card">
+          <div class="mv-eyebrow" style="margin-bottom:.35rem">Data</div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Export backup</div><div class="cfg-row-d">A full snapshot of everything, as JSON</div></div>
+            <button type="button" class="set-act" onclick="exportBackup()">Export</button></div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Import vitals</div><div class="cfg-row-d">Resting HR, HRV, VO2 max and sleep from Apple Health (<code>tools/health_vitals.py export.zip</code>). Merges by date.</div></div>
+            <label class="set-act">Import<input type="file" accept=".json" onchange="importVitals(this)"></label></div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Import DLC</div><div class="cfg-row-d">Adds exercises, links and images. Never overwrites.</div></div>
+            <label class="set-act">Import<input type="file" accept=".json" onchange="importDLC(this)"></label></div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Restore backup</div><div class="cfg-row-d">Overwrites everything. Disaster recovery only.</div></div>
+            <label class="set-act set-act--danger">Restore<input type="file" accept=".json" onchange="importBackup(this)"></label></div>
+          <div id="data-status" class="set-status" style="display:none"></div>
+        </div>
+
+        <div class="mv-card">
+          <div class="mv-eyebrow" style="margin-bottom:.35rem">Sync</div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Sync now</div><div class="cfg-row-d" id="sync-status">Changes sync on their own; this pushes and pulls right away.</div></div>
+            <button type="button" class="set-act" onclick="manualSync()">Sync</button></div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Sign out</div><div class="cfg-row-d">This device only</div></div>
+            <button type="button" class="set-act set-act--danger" onclick="signOut()">Sign out</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- FAB — add exercise. Kept for openExerciseModal(); Settings now has its own "New" button in the library toolbar. -->
 <button class="fab" id="fab" onclick="openExerciseModal()" title="Add exercise" style="display:none">+</button>
 
 <!-- Exercise sheet (global) — level 3 of Today / the live session. Must live
      outside every .screen: a hidden screen hides its children, position:fixed or not. -->
 <div id="ex-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeExSheet()">
   <div class="mv-sheet" onclick="event.stopPropagation()" id="ex-sheet"></div>
+</div>
+
+<!-- Library sheet (global) — an exercise from Settings → Library, or a chip on
+     the Block screen. Read it, set its state, open Edit. Before the edit and
+     watch modals in the document so those stack above it. -->
+<div id="lib-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeLibSheet()">
+  <div class="mv-sheet" onclick="event.stopPropagation()" id="lib-sheet" role="dialog" aria-modal="true"></div>
+</div>
+
+
+<!-- Note sheet (global) — quick add from Today / the live session / an
+     exercise, and editing a note from the Notes tab. Outside every .screen. -->
+<div id="note-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeNoteSheet()">
+  <div class="mv-sheet" onclick="event.stopPropagation()" id="note-sheet"></div>
 </div>
 
 <!-- Exercise modal (global) -->
@@ -459,11 +463,9 @@ function applyTheme(t) {
 function setTheme(t) {
   applyTheme(t);
   saveSetting('theme', t);
+  // The look of the pressed option lives in css/settings.css (.set-seg).
   document.querySelectorAll('[data-theme-opt]').forEach(function (b) {
-    var on = b.getAttribute('data-theme-opt') === t;
-    b.style.background = on ? 'var(--accent)' : 'var(--bg3)';
-    b.style.color = on ? 'var(--on-accent, #fff)' : 'var(--text2)';
-    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    b.setAttribute('aria-pressed', b.getAttribute('data-theme-opt') === t ? 'true' : 'false');
   });
 }
 </script>
@@ -472,6 +474,7 @@ function setTheme(t) {
 <script src="data/scaffold.js"></script>
 <script src="data/monthplan.js"></script>
 <script src="data/media.js"></script>
+<script src="data/goals.js"></script>
 <script src="data/rungs.js"></script>
 <script src="js/app.js"></script>
 <script src="js/custom.js"></script>
@@ -480,6 +483,7 @@ function setTheme(t) {
 <script src="js/day.js"></script>
 <script src="js/insights.js"></script>
 <script src="js/blockbuilder.js"></script>
+<script src="js/notes.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/overrides.js"></script>
@@ -494,7 +498,7 @@ function navTo(screen) {
   document.getElementById('screen-' + screen)?.classList.add('active');
   document.querySelector(`.nav-btn[data-screen="${screen}"]`)?.classList.add('active');
   App.screen = screen;
-  document.getElementById('fab').style.display = screen === 'settings' ? 'flex' : 'none';
+  document.getElementById('fab').style.display = 'none';
   if (screen === 'home')     renderHome();
   if (screen === 'today')    renderToday();
   if (screen === 'progress') renderProgress();
@@ -502,6 +506,7 @@ function navTo(screen) {
   if (screen === 'generate') { renderThemeList(); initGenerateDuration(); }
   if (screen === 'goals')    renderGoals();
   if (screen === 'log')      renderLog();
+  if (screen === 'notes')    renderNotes();
   if (screen === 'settings') renderSettings();
   if (screen === 'session')  renderSessionScreen();
 }
@@ -585,7 +590,7 @@ function renderHome() {
   // block card
   if (plan) {
     const weeks = plan.weeks || [];
-    const cur = (prog && prog.week) || (preBlock ? ((weeks[0] || {}).n) : null);
+    const cur = (prog && prog.week != null ? prog.week : null) ?? (preBlock ? ((weeks[0] || {}).n) : null);
     h += `<div class="mv-card">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.2rem">
         <span class="mv-eyebrow mv-eyebrow--warm">Block</span>
@@ -639,7 +644,7 @@ function renderHome() {
         ${nDom ? `<span class="mv-chip mv-chip--accent">${DOMAIN_LABEL[nDom] || nDom}</span>` : ''}
         <span class="mv-chip">${nextDay.variant === 'light' ? '09:00 – 10:25' : '09:00 – 11:20'}</span>
         ${nextDay.load ? `<span class="mv-chip">${nextDay.load}</span>` : ''}
-        ${w1 ? `<span class="mv-chip">week ${w1.n} &middot; ${w1.label}</span>` : ''}
+        ${w1 ? `<span class="mv-chip">${w1.n > 0 ? `week ${w1.n} &middot; ` : ''}${w1.label}</span>` : ''}
       </div>
       ${nextDay.focusNote ? `<div class="mv-note">${nextDay.focusNote}</div>` : ''}
     </div>`;
@@ -660,12 +665,12 @@ function renderHome() {
 
   // week strip
   if (plan) {
-    const wkNum = (prog && prog.week) || ((plan.weeks || [])[0] || {}).n;
+    const wkNum = (prog && prog.week != null ? prog.week : null) ?? ((plan.weeks || [])[0] || {}).n;
     const wk = (plan.weeks || []).find(w => w.n === wkNum);
     const wdays = wk ? (plan.days || []).filter(d => d.date >= wk.start && d.date <= wk.end) : [];
     const tk = MonthPlan._key(now);
     if (wdays.length) {
-      h += `<div class="mv-eyebrow" style="margin:1.2rem 0 .5rem">Week ${wk.n} &middot; ${wk.label}${preBlock ? ' &middot; starts ' + Utils.formatDate(plan.blockStart) : ''}</div>
+      h += `<div class="mv-eyebrow" style="margin:1.2rem 0 .5rem">${wk.n > 0 ? `Week ${wk.n} &middot; ` : ''}${wk.label}${preBlock ? ' &middot; starts ' + Utils.formatDate(plan.blockStart) : ''}</div>
       <div class="mv-week">${wdays.map(d => {
         const dd = new Date(d.date + 'T12:00:00');
         return `<div class="mv-day ${d.date===tk?'today':''}" title="${escAttr(d.theme)}" role="button" tabindex="0" style="cursor:pointer" onclick="openDaySheet('${d.date}')">
@@ -735,6 +740,7 @@ function openRung(goalId, k) {
   if (!back || !el) return;
   _exSheet = null;
   const goal = Custom.getAllGoals().find(g => g.id === goalId) || { id: goalId, name: '' };
+  const backTo = (typeof _goalSheet !== 'undefined' && _goalSheet && _goalSheet.id === goalId) ? goalId : null;
   const ms = Custom.getMilestones(goalId) || [];
   const text = ms[k];
   if (text == null) return;
@@ -773,7 +779,7 @@ function openRung(goalId, k) {
     </div>
     <div class="mv-sheet-body">${body}</div>
     <div class="mv-sheet-foot">
-      <button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="closeExSheet()">Close</button>
+      <button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="${backTo ? `openGoal('${backTo}')` : 'closeExSheet()'}">${backTo ? '&larr; Back' : 'Close'}</button>
       <button style="background:var(--accent);color:var(--on-accent,#fff);border:none;${k === at ? 'opacity:.4' : ''}" ${k === at ? 'disabled' : ''} onclick="closeExSheet();setMilestone('${goalId}',${k})">${k === at ? 'You are here' : 'I\u2019m on this rung'}</button>
     </div>`;
   back.style.display = 'flex';
@@ -988,6 +994,278 @@ function adoptDraft() {
   renderProgress();
 }
 
+// ─────────────────────────────────────────────────────────────
+// GOALS on Progress (data/goals.js). Three kinds, three cards:
+//   Capacities — measured numbers, baseline → targets, Record.
+//   Skills     — ladders; the rung decides the day's Accessory block.
+//   Practice   — unmeasured; how often it happened in the last 4 weeks.
+// Plus "This block": what the current block focuses on and the next tests.
+// Tapping any goal opens its sheet (openGoal), which is also where a test
+// result is recorded — from Progress or straight from the test itself.
+// ─────────────────────────────────────────────────────────────
+const _AREA_LABEL = { power: 'Power & speed', mobility: 'Mobility', coordination: 'Coordination & balance', grip: 'Grip & hang', engine: 'Engine' };
+
+function _goalChip(id) {
+  const g = Goals.get(id); if (!g) return '';
+  return `<button type="button" class="mv-chip mv-chip-btn" onclick="openGoal('${escAttr(id)}')">${escAttr(g.name)}</button>`;
+}
+
+function _blockCard(plan) {
+  if (typeof Goals === 'undefined' || !plan || !plan.quarter) return '';
+  const now = new Date();
+  const b = Goals.blockFor(now) || ((plan.quarter.blocks || [])[0]);
+  if (!b) return '';
+  const focus = (b.focus || []).filter(id => Goals.get(id));
+  const skills = focus.filter(id => !/^cap-/.test(id)), caps = focus.filter(id => /^cap-/.test(id) && id !== 'cap-fixed-hr');
+  const next = Goals.upcomingTests(now, 4);
+  const slotName = { main: 'Main Focus', complementary: 'Complementary', mobility: 'Mobility', accessory: 'Accessory' };
+  return _mvCard(`Block ${b.n} · ${escAttr(b.name)}`, 'mv-eyebrow--warm', `
+    <div style="font-size:.72rem;color:var(--text3);margin:-.3rem 0 .6rem">${Utils.formatDate(b.from)} – ${Utils.formatDate(b.to)}</div>
+    ${b.hardPart ? `<div class="mv-note" style="margin-bottom:.8rem">${escAttr(b.hardPart)}</div>` : ''}
+    <div class="mv-eyebrow" style="margin-bottom:.35rem">Skills in focus</div>
+    <div class="mv-chips" style="margin-bottom:.7rem">${skills.map(_goalChip).join('')}</div>
+    <div class="mv-eyebrow" style="margin-bottom:.35rem">Capacities in focus</div>
+    <div class="mv-chips" style="margin-bottom:.8rem">${caps.map(_goalChip).join('')}</div>
+    <div class="mv-body" style="margin-bottom:.4rem">Exercises that feed these get picked first in Mobility, Complementary and Accessory.</div>
+    ${next.length ? `<div class="mv-eyebrow" style="margin:.7rem 0 .35rem">Next tests</div>
+      ${next.map(d => `<div class="mv-row" style="cursor:pointer" onclick="openDaySheet('${d.date}')">
+        <div style="width:4.6rem;font-size:.74rem;color:var(--text3)">${Utils.formatDate(d.date)}</div>
+        <div style="flex:1;font-size:.78rem">${escAttr(d.theme)}</div>
+        <div style="font-size:.68rem;color:var(--text3)">${Object.keys(d.tests).map(s => slotName[s] || s).join(' · ')}</div>
+      </div>`).join('')}` : ''}`, ' id="pg-block"');
+}
+
+function _capRow(c) {
+  const last = Goals.latest(c.id), base = Goals.baseline(c.id);
+  const ts = Goals.targets(c.id);
+  const best = Goals.best(c.id);
+  const met = t => t.value != null && best && !Goals.isBetter(c, t.value, best.value);
+  const todayK = MonthPlan._key(new Date());
+  const upcoming = ts.filter(t => t.by >= todayK);
+  const next = upcoming.find(t => !met(t)) || null;
+  const justMet = upcoming.filter(met);
+  const prog = Goals.progressOf(c.id);
+  const today = MonthPlan._key(new Date());
+  const delta = last && base && last.date !== base.date ? last.value - base.value : null;
+  const good = delta != null && (c.better === 'lower' ? delta < 0 : delta > 0);
+  const d = c.decimals != null ? c.decimals : 0;
+  const dTxt = delta != null && delta !== 0 ? `<span style="color:${good ? 'var(--accent2)' : 'var(--warm)'}">${delta > 0 ? '+' : ''}${delta.toFixed(d)}</span>` : '';
+  const tTxt = (justMet.length ? `✓ ${justMet[0].label} target · ` : '') + (next
+    ? (next.value != null ? `next ${Goals.fmt(c, next.value)} by ${next.label}` : `target set once the baseline is in`)
+    : (ts.length ? (justMet.length ? 'every target met' : 'every target date passed') : ''));
+  return `<div class="mv-cap" role="button" tabindex="0" onclick="openGoal('${c.id}')">
+    <div class="mv-cap-head">
+      <div class="mv-cap-name">${escAttr(c.name)}</div>
+      <div class="mv-cap-v">${last ? Goals.fmt(c, last.value) : '<span style="color:var(--text3)">not measured</span>'} ${dTxt}</div>
+    </div>
+    <div class="mv-bar" style="margin:.35rem 0 .3rem"><i style="width:${prog != null ? Math.round(prog * 100) : 0}%"></i></div>
+    <div class="mv-cap-foot">
+      <span>${base ? 'baseline ' + Goals.fmt(c, base.value) + ' · ' + Utils.formatDate(base.date) : (Goals.upcomingTests(new Date(), 30).find(x => Object.values(x.tests).some(l => l.includes(c.id))) ? 'first test ' + Utils.formatDate(Goals.upcomingTests(new Date(), 30).find(x => Object.values(x.tests).some(l => l.includes(c.id))).date) : '')}</span>
+      <span>${tTxt}</span>
+    </div>
+  </div>`;
+}
+
+function _capacitiesCard() {
+  if (typeof Goals === 'undefined') return '';
+  const caps = Goals.capacities().filter(c => c.area !== 'engine' && c.status !== 'parked');
+  const byArea = {};
+  caps.forEach(c => { (byArea[c.area] = byArea[c.area] || []).push(c); });
+  return _mvCard('Capacities', 'mv-eyebrow--green', `
+    <div class="mv-body" style="margin-bottom:.4rem">Measured on 27–30 Sep, retested at the end of every block. Tap one to see the test or record a result.</div>
+    ${Object.keys(byArea).map(a => `<div class="mv-eyebrow" style="margin:.9rem 0 .2rem">${_AREA_LABEL[a] || a}</div>${byArea[a].map(_capRow).join('')}`).join('')}`, ' id="pg-cap"');
+}
+
+function _ladderRow(g) {
+  const ms = Custom.getMilestones(g.id) || [];
+  const at = Goals.rung(g.id).idx;
+  const open = _openMove === g.id;
+  const nt = Goals.nextTarget(g.id);
+  const tgt = nt && nt.rung != null ? `target: rung ${nt.rung + 1}${ms[nt.rung] ? ' — ' + ms[nt.rung] : ''} by ${nt.label}` : '';
+  const line = Object.entries(SKILL_LINES || {}).find(([, l]) => l.goalId === g.id);
+  return `<div class="mv-move ${open ? 'open' : ''}">
+    <button type="button" class="mv-move-head" onclick="toggleMove('${escAttr(g.id)}')">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem">
+        <div style="font-size:.85rem;font-weight:600">${escAttr(g.name)}${g.status === 'focus' ? ' <span class="mv-focus-dot" title="In focus this block"></span>' : ''}</div>
+        <div style="font-size:.72rem;color:var(--text3)">${at}/${ms.length}</div>
+      </div>
+      <div class="mv-rungs" style="margin-bottom:.3rem">${ms.map((_, k) => `<i class="${k < at ? 'on' : ''}${nt && nt.rung === k ? ' tgt' : ''}"></i>`).join('')}</div>
+      <div style="font-size:.76rem;color:var(--text2)">${escAttr(ms[at] || 'complete')}</div>
+      ${tgt ? `<div style="font-size:.68rem;color:var(--text3);margin-top:.15rem">${escAttr(tgt)}</div>` : ''}
+    </button>
+    ${open ? `<div style="margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--border)">
+      ${g.why ? `<div class="mv-body" style="margin-bottom:.6rem">${escAttr(g.why)}</div>` : ''}
+      <div class="mv-eyebrow" style="margin-bottom:.4rem">The ladder</div>
+      ${ms.map((m, k) => `<div class="mv-step mv-rung">
+        <button type="button" class="mv-rung-mark" onclick="setMilestone('${escAttr(g.id)}',${k})" title="Mark this as where you are" aria-label="Mark as where you are"><span class="mv-step-dot ${k < at ? 'on' : ''}"></span></button>
+        <button type="button" class="mv-rung-name" onclick="openRung('${escAttr(g.id)}',${k})" title="What is this?" style="color:${k < at ? 'var(--text)' : 'var(--text3)'}">${escAttr(m)}<span class="mv-rung-i" aria-hidden="true">i</span></button>
+        ${k === at ? '<div class="mv-here">HERE</div>' : ''}
+      </div>`).join('')}
+      <div style="font-size:.66rem;color:var(--text3);margin-top:.3rem">Tap a name to see what it is. Tap the dot to mark where you are — ${line ? 'the ' + escAttr(line[1].label) + ' block practises the rung marked HERE' : 'this ladder has no skill block yet'}.</div>
+      <div class="mv-eyebrow" style="margin:.8rem 0 .4rem">Feeds it</div>
+      <div class="mv-chips">${(g.feedExercises || []).map(fid => {
+        const ex = Custom.getAllExercises().find(e => e.id === fid);
+        return ex ? `<button type="button" class="mv-chip mv-chip-btn" onclick="openExView('${escAttr(fid)}')">${escAttr(ex.name)}</button>` : '';
+      }).join('')}</div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.8rem">
+        <button type="button" class="mv-pill" onclick="openGoalModal('${escAttr(g.id)}')">Edit rungs</button>
+        ${['focus', 'active', 'parked'].filter(s => s !== g.status).map(s => `<button type="button" class="mv-pill" onclick="setGoalStatus('${escAttr(g.id)}','${s}')">${s === 'focus' ? 'Put in focus' : s === 'active' ? 'Keep, not in focus' : 'Park'}</button>`).join('')}
+      </div>
+    </div>` : ''}
+  </div>`;
+}
+
+let _showParked = false;
+function _skillsCard() {
+  if (typeof Goals === 'undefined') return '';
+  const all = Goals.ladders();
+  const live = all.filter(g => g.status !== 'parked')
+    .sort((a, b) => (a.status === 'focus' ? 0 : 1) - (b.status === 'focus' ? 0 : 1));
+  const parked = all.filter(g => g.status === 'parked');
+  return _mvCard('Skills', 'mv-eyebrow--domain', `
+    <div class="mv-body" style="margin-bottom:.7rem">Ladders. The rung marked HERE is what the day's skill block practises, so moving it changes the next session.</div>
+    ${live.map(_ladderRow).join('')}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.4rem">
+      <button type="button" class="mv-linkbtn" onclick="_showParked=!_showParked;renderProgress()">${_showParked ? 'Hide' : 'Show'} parked (${parked.length})</button>
+      <button type="button" class="mv-linkbtn" onclick="openGoalModal()">+ New skill</button>
+    </div>
+    ${_showParked ? `<div style="margin-top:.5rem">${parked.map(g => `<div class="mv-row">
+      <div style="flex:1;font-size:.8rem;color:var(--text2)">${escAttr(g.name)}</div>
+      <button type="button" class="mv-linkbtn" onclick="setGoalStatus('${escAttr(g.id)}','active')">unpark</button>
+    </div>`).join('')}</div>` : ''}`, ' id="pg-skills"');
+}
+
+function _practiceCard() {
+  if (typeof Goals === 'undefined') return '';
+  const counts = Goals.practiceCounts(28);
+  return _mvCard('Practice', '', `
+    <div class="mv-body" style="margin-bottom:.5rem">Not measured, on purpose. Sessions in the last 4 weeks that spent real time on each.</div>
+    ${Goals.practices().map(p => {
+      const c = counts[p.id] || { n: 0, dates: [] };
+      const last = c.dates.length ? c.dates.sort().slice(-1)[0] : null;
+      return `<div class="mv-row">
+        <div style="flex:1;font-size:.8rem">${escAttr(p.name)}</div>
+        <div class="mv-dots">${[0, 1, 2, 3].map(i => {
+          const from = MonthPlan._key(new Date(Date.now() - (28 - i * 7) * 864e5)), to = MonthPlan._key(new Date(Date.now() - (21 - i * 7) * 864e5));
+          const n = c.dates.filter(d => d > from && d <= to).length;
+          return `<i class="${n >= 2 ? 'on2' : n ? 'on' : ''}" title="${n} in week ${i + 1}"></i>`;
+        }).join('')}</div>
+        <div style="width:4.4rem;text-align:right;font-size:.7rem;color:var(--text3)">${c.n ? c.n + '× · ' + Utils.formatDate(last) : 'not yet'}</div>
+      </div>`;
+    }).join('')}`, ' id="pg-practice"');
+}
+
+function _progressNav() {
+  const tabs = [['pg-plan', 'Plan'], ['pg-block', 'Block'], ['pg-engine', 'Engine'], ['pg-strength', 'Strength'], ['pg-cap', 'Capacities'], ['pg-skills', 'Skills'], ['pg-practice', 'Practice']];
+  return `<div class="mv-pgnav">${tabs.map(([id, l]) => `<button type="button" onclick="document.getElementById('${id}')?.scrollIntoView({behavior:'smooth',block:'start'})">${l}</button>`).join('')}</div>`;
+}
+
+function setGoalStatus(id, status) {
+  Goals.setStatus(id, status);
+  const cg = Custom.getGoals().find(g => g.id === id);
+  if (cg) Custom.updateGoal(id, { priority: status === 'focus' ? 1 : status === 'active' ? 2 : 3 });
+  renderProgress();
+}
+
+// ── The goal sheet: what it is, the test, results, targets, Record ──
+let _goalSheet = null;   // { id, from: [bIdx, eIdx] | null }
+function openGoal(id, from) {
+  _exSheet = null;
+  _goalSheet = { id, from: from || null };
+  renderGoalSheet();
+}
+function renderGoalSheet() {
+  if (!_goalSheet) return;
+  const back = document.getElementById('ex-sheet-back'), el = document.getElementById('ex-sheet');
+  const g = Goals.get(_goalSheet.id);
+  if (!back || !el || !g) return;
+  const sec = (label, body, cls) => body ? `<div class="mv-eyebrow ${cls || ''}" style="margin-bottom:.4rem">${label}</div><div style="font-size:.84rem;line-height:1.6;color:var(--text2);margin-bottom:.9rem">${body}</div>` : '';
+  let body = '', foot = '';
+  if (g.kind === 'benchmark') {
+    const res = Goals.results(g.id).slice().reverse();
+    const ts = Goals.targets(g.id);
+    const today = MonthPlan._key(new Date());
+    body += sec('Why', escAttr(g.why || ''));
+    body += sec('The test', escAttr(g.test), 'mv-eyebrow--warm');
+    const exLib = Custom.getAllExercises().find(e => e.id === g.ex);
+    if (exLib && _safeUrl(exLib.link)) body += `<a href="${escAttr(_safeUrl(exLib.link))}" target="_blank" rel="noopener" style="display:inline-block;font-size:.8rem;color:var(--accent);text-decoration:none;margin:-.4rem 0 .9rem">&#9654; Watch ${escAttr(exLib.name)}</a>`;
+    body += `<div class="mv-eyebrow" style="margin-bottom:.4rem">Targets</div>` + (ts.length ? ts.map(t => `<div class="mv-row" style="font-size:.8rem">
+        <div style="width:4.4rem;color:var(--text3)">${t.label}</div>
+        <div style="flex:1">${t.value != null ? Goals.fmt(g, t.value) : (t.pct != null ? (g.better === 'lower' ? '−' : '+') + t.pct + '% on baseline' : (g.better === 'lower' ? '−' : '+') + t.delta + ' ' + g.unit + ' on baseline')}</div>
+        <div style="font-size:.7rem;color:var(--text3)">${t.by < today ? 'passed' : ''}</div></div>`).join('') : '<div class="mv-body">No targets in this plan.</div>');
+    body += `<div class="mv-eyebrow" style="margin:.9rem 0 .4rem">Results</div>` + (res.length ? res.map(r => `<div class="mv-row" style="font-size:.8rem">
+        <div style="width:4.4rem;color:var(--text3)">${Utils.formatDate(r.date)}</div>
+        <div style="flex:1;font-variant-numeric:tabular-nums">${Goals.fmt(g, r.value)}${r.note ? ` <span style="color:var(--text3)">· ${escAttr(r.note)}</span>` : ''}</div>
+        ${r.seed || r.auto ? `<span style="font-size:.66rem;color:var(--text3)">${r.auto ? 'from import' : 'baseline'}</span>` : `<button type="button" class="mv-linkbtn" onclick="deleteGoalResult('${escAttr(g.id)}','${r.date}')">remove</button>`}
+      </div>`).join('') : '<div class="mv-body">Nothing recorded yet.</div>');
+    if (g.source !== 'cardio') {
+      body += `<div class="mv-eyebrow" style="margin:1rem 0 .4rem">Record a result</div>
+        <div class="mv-rec">
+          <label><span>${escAttr(g.unit === 'catches' ? 'catches' : g.unit)}</span><input type="number" inputmode="decimal" step="any" id="goal-rec-v" placeholder="${g.better === 'lower' ? 'lower is better' : 'higher is better'}"></label>
+          <label><span>date</span><input type="date" id="goal-rec-d" value="${today}"></label>
+        </div>
+        <input type="text" id="goal-rec-n" class="text-input" placeholder="note (optional) — side, conditions, how it felt" style="margin:.5rem 0 .8rem">`;
+      foot = `<button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="closeExSheet()">Close</button>
+        <button style="background:var(--accent);color:var(--on-accent,#fff);border:none" onclick="saveGoalResult()">Save result</button>`;
+    } else {
+      body += `<div class="mv-body" style="margin-top:.6rem">Read from imported runs: a test run's 30-min window lands here by itself.</div>`;
+      foot = `<button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="closeExSheet()">Close</button>`;
+    }
+  } else if (g.kind === 'ladder') {
+    const ms = Custom.getMilestones(g.id) || [];
+    const at = Goals.rung(g.id).idx;
+    const def = Goals.rungDef(g.id, at);
+    body += sec('Why', escAttr(g.why || g.notes || ''));
+    body += sec('You are on', `<b>${escAttr(ms[at] || '—')}</b>${def && def.pass ? '<br>Passed when: ' + escAttr(def.pass) : ''}`);
+    body += `<div class="mv-eyebrow" style="margin-bottom:.4rem">Mark the rung you're working on</div>` + ms.map((m, k) => `<div class="mv-step mv-rung">
+        <button type="button" class="mv-rung-mark" onclick="setMilestone('${escAttr(g.id)}',${k});renderGoalSheet()" aria-label="Mark as where you are"><span class="mv-step-dot ${k < at ? 'on' : ''}"></span></button>
+        <button type="button" class="mv-rung-name" onclick="openRung('${escAttr(g.id)}',${k})" style="color:${k < at ? 'var(--text)' : 'var(--text3)'}">${escAttr(m)}<span class="mv-rung-i" aria-hidden="true">i</span></button>
+        ${k === at ? '<div class="mv-here">HERE</div>' : ''}
+      </div>`).join('');
+    body += `<div style="font-size:.7rem;color:var(--text3);margin:.4rem 0 .9rem">Tap the dot on the first rung you can't pass yet. Everything below it counts as passed; the skill block practises the one marked HERE.</div>`;
+    foot = `<button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="closeExSheet()">Done</button>`;
+  } else {
+    body += sec('Practice', 'Not measured on purpose — it counts when it happens.');
+    foot = `<button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="closeExSheet()">Close</button>`;
+  }
+  el.innerHTML = `
+    <div class="mv-sheet-head">
+      <div style="min-width:0">
+        <div class="mv-eyebrow" style="margin-bottom:.2rem">${g.kind === 'benchmark' ? escAttr(_AREA_LABEL[g.area] || 'Capacity') : g.kind === 'ladder' ? 'Skill' : 'Practice'}${g.status === 'focus' || Goals.focusFor(new Date()).includes(g.id) ? ' · in focus' : ''}</div>
+        <div class="mv-display" style="font-size:1.2rem">${escAttr(g.name)}</div>
+      </div>
+      <button class="mv-sheet-x" onclick="closeExSheet()" aria-label="Close">&times;</button>
+    </div>
+    <div class="mv-sheet-body">${body}</div>
+    <div class="mv-sheet-foot">${foot}</div>`;
+  back.style.display = 'flex';
+}
+function saveGoalResult() {
+  if (!_goalSheet) return;
+  const v = document.getElementById('goal-rec-v')?.value;
+  const d = document.getElementById('goal-rec-d')?.value;
+  const n = document.getElementById('goal-rec-n')?.value?.trim();
+  if (v === '' || v == null || !isFinite(Number(v))) { alert('Enter the number first.'); return; }
+  Goals.record(_goalSheet.id, Number(v), n, d || undefined);
+  // Recorded from the test itself: tick that exercise off in the session.
+  const from = _goalSheet.from;
+  if (from && typeof LiveSession !== 'undefined' && LiveSession.getSession()) {
+    try {
+      const s = LiveSession.getSession(); const ex = s.blocks[from[0]].exercises[from[1]];
+      if (ex) { ex.testResult = { value: Number(v), note: n || '' }; if (!ex.completed) toggleExerciseDone(from[0], from[1]); else LiveSession._persist(); }
+    } catch (e) { /* the session moved on — the result is saved regardless */ }
+  }
+  closeExSheet();
+  if (App.screen === 'session' && typeof renderSessionScreen === 'function') renderSessionScreen();
+  if (document.getElementById('screen-progress')?.classList.contains('active')) renderProgress();
+}
+function deleteGoalResult(id, date) {
+  if (!confirm('Remove the ' + Utils.formatDate(date) + ' result?')) return;
+  Goals.removeResult(id, date);
+  renderGoalSheet();
+  if (document.getElementById('screen-progress')?.classList.contains('active')) renderProgress();
+}
+
 function renderProgress() {
   const el = document.getElementById('progress-body');
   if (!el) return;
@@ -1016,6 +1294,7 @@ function renderProgress() {
     <div class="logo" style="font-size:1.45rem">Progress</div>
     <div style="font-size:.76rem;color:var(--text3);margin-top:.15rem">${plan ? plan.title : 'No block loaded'}</div>
   </div>
+  ${typeof Goals !== 'undefined' ? _progressNav() : ''}
   <div class="dk-grid dk-grid--even"><div class="dk-main">`;
 
   // 1 — the plan
@@ -1035,12 +1314,13 @@ function renderProgress() {
         // ahead, solid once that day is done.
         const done = doneDates.has(d.date);
         const cls = d.benchmark ? (done ? 'bench done' : 'bench') : (done ? 'done' : '');
-        const tip = d.date + ' · ' + d.theme + (d.benchmark ? (done ? ' · running benchmark done' : ' · running benchmark, to come') : '');
+        const tip = d.date + ' · ' + d.theme + (d.benchmark ? (done ? ' · test day, done' : ' · test day, to come') : '');
         return `<i class="${cls}" title="${escAttr(tip)}"></i>`;
       }).join('')}</div>
       <div class="mv-weekbar-labels" style="margin-top:.5rem">${(plan.weeks||[]).map(w=>`<span>${w.label}</span>`).join('')}</div>
-      <div class="mv-legend"><span><i style="background:var(--accent)"></i>done</span><span><i style="background:var(--warm)"></i>benchmark done</span><span><i class="mv-legend-bench"></i>benchmark to come</span></div>`);
+      <div class="mv-legend"><span><i style="background:var(--accent)"></i>done</span><span><i style="background:var(--warm)"></i>test done</span><span><i class="mv-legend-bench"></i>test to come</span></div>`, ' id="pg-plan"');
   }
+  h += _blockCard(plan);
 
   // 2 — the engine
   const tests = cardio.filter(c => c.isBenchmark);
@@ -1057,7 +1337,8 @@ function renderProgress() {
     <div class="mv-body" style="padding-top:.6rem;border-top:1px solid var(--border)">${tests.length
       ? 'Same cap and route every block — distance is the only thing that can move.'
       : 'No fixed-HR test logged yet. Run 30 minutes capped at ' + z2ceil + 'bpm and record the distance.'}</div>
-    ${_engineTrend()}`);
+    ${typeof Goals !== 'undefined' && Goals.targets('cap-fixed-hr').length ? `<div class="mv-body" style="margin-top:.45rem">Targets: ${Goals.targets('cap-fixed-hr').map(t => `<b>${t.value.toFixed(2)} km</b> by ${t.label}`).join(' · ')}</div>` : ''}
+    ${_engineTrend()}`, ' id="pg-engine"');
 
   // 3 — best efforts
   const best = km => {
@@ -1075,10 +1356,22 @@ function renderProgress() {
     </div>`;
   }).join(''));
 
+  h += _capacitiesCard();
+
   h += `</div><div class="dk-side">`;
 
   // 3b — the next block, drafted from the retests
   h += _draftCard(plan);
+
+  // 5 — strength
+  const lifts = ((plan && plan.targets) || []).filter(t => /squat|deadlift|bench|press|pull/i.test(t.metric));
+  if (lifts.length) h += _mvCard('Strength', 'mv-eyebrow--accent',
+    lifts.map(t => _strengthRow(t, plan)).join('') +
+    `<div class="mv-lift-foot">Yellow is where you are now. Bars fill from the block's starting numbers toward each checkpoint; a checkpoint turns green once every set lands in one session.</div>`, ' id="pg-strength"');
+
+  // 6 — skills (ladders) and practice (data/goals.js)
+  h += _skillsCard();
+  h += _practiceCard();
 
   // 4 — easy-day discipline
   const easy = cardio.filter(c => c.zones).slice(0, 10).reverse();
@@ -1092,51 +1385,6 @@ function renderProgress() {
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:.4rem;font-size:.66rem;color:var(--text3)"><span>oldest</span><span>target 80%+</span></div>`
     : `<div style="font-size:.78rem;color:var(--text3)">No runs with heart-rate data imported yet.</div>`}`);
-
-  // 5 — strength
-  const lifts = ((plan && plan.targets) || []).filter(t => /squat|deadlift|bench|press|pull/i.test(t.metric));
-  if (lifts.length) h += _mvCard('Strength', 'mv-eyebrow--accent',
-    lifts.map(t => _strengthRow(t, plan)).join('') +
-    `<div class="mv-lift-foot">Yellow is where you are now. Bars fill from the block's starting numbers toward each checkpoint; a checkpoint turns green once every set lands in one session.</div>`);
-
-  // 6 — movements
-  const goals = Custom.getAllGoals().filter(g => g.priority <= 2).slice(0, 6);
-  h += _mvCard('Movements', 'mv-eyebrow--domain', `
-    <div class="mv-body" style="margin-bottom:.7rem">Not block targets. They progress inside the daily blocks — this is where you notice them move.</div>
-    ${goals.map(g => {
-      // goalMilestoneInfo is the helper that already handles custom goals and
-      // their overrides; Profile.getGoalMilestone returns {current,next,idx},
-      // and using it directly rendered "[object Object]/9" with every ladder
-      // reading as complete.
-      const info = goalMilestoneInfo(g.id);
-      const ms = Custom.getMilestones(g.id) || [];
-      const at = info ? info.idx : 0;
-      const open = _openMove === g.id;
-      return `<div class="mv-move ${open?'open':''}">
-        <button type="button" class="mv-move-head" onclick="toggleMove('${g.id}')">
-          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem">
-            <div style="font-size:.85rem;font-weight:600">${g.name}</div>
-            <div style="font-size:.72rem;color:var(--text3)">${at}/${ms.length}</div>
-          </div>
-          <div class="mv-rungs" style="margin-bottom:.3rem">${ms.map((_,k)=>`<i class="${k<at?'on':''}"></i>`).join('')}</div>
-          <div style="font-size:.76rem;color:var(--text2)">${ms[at] || 'complete'}</div>
-        </button>
-        ${open ? `<div style="margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--border)">
-          <div class="mv-eyebrow" style="margin-bottom:.4rem">The ladder</div>
-          ${ms.map((m,k)=>`<div class="mv-step mv-rung">
-            <button type="button" class="mv-rung-mark" onclick="setMilestone('${g.id}',${k})" title="Mark this as where you are" aria-label="Mark as where you are"><span class="mv-step-dot ${k<at?'on':''}"></span></button>
-            <button type="button" class="mv-rung-name" onclick="openRung('${g.id}',${k})" title="What is this?" style="color:${k<at?'var(--text)':'var(--text3)'}">${m}<span class="mv-rung-i" aria-hidden="true">i</span></button>
-            ${k===at?'<div class="mv-here">HERE</div>':''}
-          </div>`).join('')}
-          <div style="font-size:.66rem;color:var(--text3);margin-top:.3rem">Tap a name to see what it is. Tap the dot to mark where you are.</div>
-          <div class="mv-eyebrow" style="margin:.8rem 0 .4rem">Feeds it</div>
-          <div class="mv-chips">${(g.feedExercises||[]).map(fid=>{
-            const ex = LIBRARY.find(e=>e.id===fid) || Custom.getAllExercises().find(e=>e.id===fid);
-            return ex ? `<button type="button" class="mv-chip mv-chip-btn" onclick="openExView('${escAttr(fid)}')">${ex.name}</button>` : '';
-          }).join('')}</div>
-        </div>` : ''}
-      </div>`;
-    }).join('')}`);
 
   h += `</div></div>`;
   el.innerHTML = h;
@@ -1235,6 +1483,7 @@ function openExSheet(id, blockKey) {
 
 function closeExSheet() {
   _exSheet = null;
+  if (typeof _goalSheet !== 'undefined') _goalSheet = null;
   document.getElementById('ex-sheet-back').style.display = 'none';
 }
 
@@ -1273,7 +1522,8 @@ function renderExSheet() {
   const tile = (k, v, tone) => `<div class="mv-tile"><div class="mv-tile-k">${k}</div><div class="mv-tile-v" style="font-size:.85rem;font-weight:600;color:${tone || 'var(--text)'}">${v}</div></div>`;
 
   const how = (ex && ex.instructions) || '';
-  const watch = (ex && ex.notes) || '';
+  const watch = (inst && inst.test) ? '' : ((ex && ex.notes) || '');
+  const testTxt = (inst && inst.test) ? (inst.notes || '') : '';
 
   const sec = (label, cls, text) => text
     ? `<div class="mv-eyebrow ${cls}" style="margin-bottom:.4rem">${label}</div>
@@ -1301,14 +1551,18 @@ function renderExSheet() {
         ${tile('Last time', lastTxt, lastLog ? 'var(--text2)' : 'var(--text3)')}
         ${tile('Rest', rest ? rest + 's' : '—')}
       </div>
+      ${testTxt ? sec(inst.test.kind === 'ladder' ? 'The check' : 'The test', 'mv-eyebrow--warm', testTxt) : ''}
       ${sec('How', '', how)}
       ${sec('Watch for', 'mv-eyebrow--warm', watch)}
       ${!how && !watch ? `<div style="font-size:.82rem;line-height:1.6;color:var(--text3);margin-bottom:.9rem">Nothing written down for this one yet.${ex && ex.link ? ' The video is the reference.' : ''} You can add cues in Settings → Exercise library.</div>` : ''}
       ${ex && ex.link ? `<a href="${escAttr(ex.link)}" target="_blank" rel="noopener" style="display:inline-block;font-size:.8rem;color:var(--accent);text-decoration:none;margin-bottom:.9rem">&#9654; Watch</a>` : ''}
       ${meta ? `<div style="font-size:.7rem;color:var(--text3);margin-bottom:.9rem">${meta}</div>` : ''}
+      <button type="button" class="mv-linkbtn" style="padding:0;margin-bottom:.9rem;font-size:.8rem" onclick="noteOnExercise()">+ Note on this exercise</button>
     </div>
     <div class="mv-sheet-foot">
-      <button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border);${canSwap ? '' : 'opacity:.4'}" onclick="exSheetSwap()" ${canSwap ? '' : 'disabled'}>Swap exercise</button>
+      ${inst && inst.test
+        ? `<button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="openGoal('${escAttr(inst.test.goalId)}')">${inst.test.kind === 'ladder' ? 'Mark your rung' : 'Record result'}</button>`
+        : `<button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border);${canSwap ? '' : 'opacity:.4'}" onclick="exSheetSwap()" ${canSwap ? '' : 'disabled'}>Swap exercise</button>`}
       <button style="background:var(--accent);color:var(--on-accent,#fff);border:none" onclick="exSheetGo()">${live ? 'Log a set' : 'Start session'}</button>
     </div>`;
   back.style.display = 'flex';
@@ -1344,6 +1598,264 @@ function exSheetGo() {
   closeExSheet();
   if (live) { navTo('session'); return; }
   startTodayFromPlan();
+}
+
+// ─────────────────────────────────────────────────────────────
+// NOTES — memos for the next rewrite of the plan (js/notes.js).
+// The tab: write a note, see what's open, mark notes applied or dropped,
+// and copy the open ones for a planning conversation. Quick add from
+// Today, the live session and the exercise sheet opens the note sheet
+// with the day (and exercise) already filled in.
+// ─────────────────────────────────────────────────────────────
+let _notesFilter = { status: 'open', kind: 'all' };
+let _noteDraftKind = 'body';
+let _noteSheet = null;   // { id?, kind, date, context, source, text }
+
+function _noteKindChips(active, onPick) {
+  return `<div class="mv-chips nt-kinds" role="radiogroup" aria-label="Kind">${Notes.KINDS.map(k =>
+    `<button type="button" role="radio" aria-checked="${k.id === active}" class="mv-chip mv-chip-btn ${k.id === active ? 'mv-chip--accent' : ''}"
+      title="${escAttr(k.hint)}" onclick="${onPick}('${k.id}')">${k.label}</button>`).join('')}</div>`;
+}
+
+function _noteText(t) {
+  return escAttr(t).replace(/\n/g, '<br>');
+}
+
+function _noteCard(n) {
+  const st = n.status || 'open';
+  const actions = st === 'open'
+    ? `<button type="button" class="mv-linkbtn" onclick="noteSetStatus('${n.id}','applied')">Applied</button>
+       <button type="button" class="mv-linkbtn" onclick="noteSetStatus('${n.id}','dropped')">Drop</button>`
+    : `<button type="button" class="mv-linkbtn" onclick="noteSetStatus('${n.id}','open')">Reopen</button>`;
+  return `<div class="mv-card nt-card nt-${st}" id="note-${escAttr(n.id)}">
+    <div class="nt-meta">
+      <span class="mv-chip ${st === 'open' ? 'mv-chip--accent' : ''}">${Notes.kindLabel(n.kind)}</span>
+      <span class="nt-ctx">${escAttr(Notes.contextLine(n))}</span>
+      ${st !== 'open' ? `<span class="nt-status">${st}</span>` : ''}
+    </div>
+    <div class="nt-text">${_noteText(n.text)}</div>
+    ${n.resolution ? `<div class="nt-res">→ ${_noteText(n.resolution)}</div>` : ''}
+    <div class="nt-actions">
+      ${actions}
+      <button type="button" class="mv-linkbtn" onclick="openNoteSheet({id:'${n.id}'})">Edit</button>
+    </div>
+  </div>`;
+}
+
+function renderNotes() {
+  const el = document.getElementById('notes-body');
+  if (!el) return;
+  const c = Notes.counts();
+  const f = _notesFilter;
+  const list = Notes.list(f);
+  const today = Day.key(new Date());
+  const ctx = Notes.contextFor(today);
+  const tab = (id, label) => `<button type="button" class="filter-tab ${f.status === id ? 'active' : ''}" onclick="notesFilter('status','${id}')">${label}${c[id] ? ' ' + c[id] : ''}</button>`;
+
+  let h = `<div style="padding:.4rem 0 .9rem">
+    <div class="logo" style="font-size:1.45rem">Notes</div>
+    <div style="font-size:.76rem;color:var(--text3);margin-top:.15rem">For the next rewrite of the plan</div>
+  </div>
+  <div class="dk-grid dk-grid--even"><div class="dk-main">
+  <div class="mv-card">
+    <div class="mv-eyebrow" style="margin-bottom:.5rem">New note</div>
+    <textarea id="note-new-text" class="text-input" rows="3" placeholder="What should the next plan know?"></textarea>
+    <div style="margin:.6rem 0 .5rem">${_noteKindChips(_noteDraftKind, 'noteDraftKind')}</div>
+    <div class="nt-row">
+      <label class="nt-date-l">About <input type="date" id="note-new-date" class="text-input nt-date" value="${today}" max="${Day.addDays(today, 60)}"></label>
+      <button type="button" class="mv-cta nt-save" onclick="saveNewNote()">Save</button>
+    </div>
+    <div class="nt-hint" id="note-new-ctx">${escAttr([ctx.theme, ctx.week ? 'wk ' + ctx.week : null].filter(Boolean).join(' · ') || 'No plan day')}</div>
+  </div>
+  </div><div class="dk-side">
+  <div class="mv-card">
+    <div class="mv-eyebrow" style="margin-bottom:.35rem">For the plan review</div>
+    <div class="mv-body" style="margin-bottom:.7rem">${c.open ? `${c.open} open note${c.open === 1 ? '' : 's'}.` : 'Nothing open.'} They sync to Supabase, where a plan review reads them and marks what it used.</div>
+    <button type="button" class="mv-ghost" style="margin:0" onclick="copyNotesForClaude()" ${c.open ? '' : 'disabled'}>Copy open notes for Claude</button>
+  </div>
+  </div></div>
+  <div class="filter-tabs" style="margin:.2rem 0 .5rem">${tab('open', 'Open')}${tab('applied', 'Applied')}${tab('dropped', 'Dropped')}${tab('all', 'All')}</div>
+  <div class="mv-chips" style="margin-bottom:.8rem">
+    <button type="button" class="mv-chip mv-chip-btn ${f.kind === 'all' ? 'mv-chip--accent' : ''}" onclick="notesFilter('kind','all')">All kinds</button>
+    ${Notes.KINDS.map(k => `<button type="button" class="mv-chip mv-chip-btn ${f.kind === k.id ? 'mv-chip--accent' : ''}" onclick="notesFilter('kind','${k.id}')">${k.label}</button>`).join('')}
+  </div>`;
+
+  h += list.length
+    ? list.map(_noteCard).join('')
+    : `<div class="mv-card"><div class="mv-body">${c.all ? 'No notes here.' : 'No notes yet. Write down what you notice — how a day felt, an exercise that’s off, a schedule that doesn’t fit — and it’s there when the plan is next rewritten.'}</div></div>`;
+
+  el.innerHTML = h;
+  const dateIn = document.getElementById('note-new-date');
+  if (dateIn) dateIn.onchange = () => {
+    const x = Notes.contextFor(dateIn.value);
+    const hint = document.getElementById('note-new-ctx');
+    if (hint) hint.textContent = [x.theme, x.week ? 'wk ' + x.week : null].filter(Boolean).join(' · ') || 'No plan day';
+  };
+}
+
+function notesFilter(k, v) { _notesFilter[k] = v; renderNotes(); }
+
+function noteDraftKind(k) {
+  _noteDraftKind = k;
+  // Keep what's typed: re-render only the chips.
+  const box = document.querySelector('#notes-body .nt-kinds');
+  if (box) box.outerHTML = _noteKindChips(k, 'noteDraftKind');
+}
+
+function saveNewNote() {
+  const t = document.getElementById('note-new-text');
+  const d = document.getElementById('note-new-date');
+  if (!t || !t.value.trim()) { t && t.focus(); return; }
+  Notes.add({ text: t.value, kind: _noteDraftKind, date: d && d.value, source: 'notes' });
+  if (_notesFilter.status !== 'open' && _notesFilter.status !== 'all') _notesFilter.status = 'open';
+  renderNotes();
+}
+
+function noteSetStatus(id, status) {
+  Notes.setStatus(id, status);
+  renderNotes();
+}
+
+// ── the sheet: quick add and edit ──
+// opts: { id } to edit, or { kind, date, context, source } to add.
+function openNoteSheet(opts = {}) {
+  if (opts.id) {
+    const n = Notes.get(opts.id);
+    if (!n) return;
+    _noteSheet = { id: n.id, kind: n.kind, date: n.date, text: n.text, status: n.status || 'open', resolution: n.resolution || '', context: n.context || {} };
+  } else {
+    const date = opts.date || Day.key(new Date());
+    _noteSheet = { kind: opts.kind || (opts.context && opts.context.exerciseId ? 'exercise' : 'body'), date, text: '',
+      context: Notes.contextFor(date, opts.context), source: opts.source || 'notes' };
+  }
+  renderNoteSheet();
+  setTimeout(() => { const t = document.getElementById('note-sheet-text'); if (t) t.focus(); }, 30);
+}
+
+function renderNoteSheet() {
+  const back = document.getElementById('note-sheet-back');
+  const el = document.getElementById('note-sheet');
+  if (!back || !el || !_noteSheet) return;
+  const s = _noteSheet;
+  const ctx = Notes.contextLine({ date: s.date, context: s.context });
+  const editing = !!s.id;
+  el.innerHTML = `
+    <div class="mv-sheet-head">
+      <div style="min-width:0">
+        <div class="mv-eyebrow" style="margin-bottom:.2rem">${editing ? 'Edit note' : 'Note for the plan'}</div>
+        <div class="mv-display" style="font-size:1.05rem">${escAttr(ctx)}</div>
+      </div>
+      <button class="mv-sheet-x" onclick="closeNoteSheet()" aria-label="Close">&times;</button>
+    </div>
+    <div class="mv-sheet-body">
+      <textarea id="note-sheet-text" class="text-input" rows="4" placeholder="${s.context && s.context.exerciseName ? 'Too easy? Pinches? Better swap?' : 'How did it feel? What should change?'}">${escAttr(s.text || '')}</textarea>
+      <div style="margin:.65rem 0 .8rem">${_noteKindChips(s.kind, 'noteSheetKind')}</div>
+      ${editing ? `
+        <label class="nt-date-l" style="margin-bottom:.7rem">About <input type="date" id="note-sheet-date" class="text-input nt-date" value="${s.date}"></label>
+        <div class="field-label" style="margin-top:.2rem">Status</div>
+        <div class="filter-tabs" style="margin-bottom:.6rem">${Notes.STATUSES.map(x =>
+          `<button type="button" class="filter-tab ${s.status === x ? 'active' : ''}" onclick="noteSheetStatus('${x}')">${x[0].toUpperCase() + x.slice(1)}</button>`).join('')}</div>
+        ${s.status === 'applied' ? `<input type="text" id="note-sheet-res" class="text-input" style="margin-bottom:.8rem" placeholder="What changed in the plan (optional)" value="${escAttr(s.resolution || '')}">` : ''}
+        <button type="button" class="mv-linkbtn" style="padding:0;color:var(--danger);margin-bottom:.8rem" onclick="deleteNoteFromSheet()">Delete note</button>` : ''}
+    </div>
+    <div class="mv-sheet-foot">
+      <button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="closeNoteSheet()">Cancel</button>
+      <button style="background:var(--accent);color:var(--on-accent,#fff);border:none" onclick="saveNoteSheet()">Save</button>
+    </div>`;
+  back.style.display = 'flex';
+}
+
+// Re-rendering the sheet would drop what's typed; read it back first.
+function _noteSheetCapture() {
+  if (!_noteSheet) return;
+  const t = document.getElementById('note-sheet-text'); if (t) _noteSheet.text = t.value;
+  const d = document.getElementById('note-sheet-date'); if (d && d.value) _noteSheet.date = d.value;
+  const r = document.getElementById('note-sheet-res'); if (r) _noteSheet.resolution = r.value;
+}
+function noteSheetKind(k) { _noteSheetCapture(); _noteSheet.kind = k; renderNoteSheet(); }
+function noteSheetStatus(st) { _noteSheetCapture(); _noteSheet.status = st; renderNoteSheet(); }
+
+function closeNoteSheet() {
+  _noteSheet = null;
+  const back = document.getElementById('note-sheet-back');
+  if (back) back.style.display = 'none';
+}
+
+function saveNoteSheet() {
+  _noteSheetCapture();
+  const s = _noteSheet;
+  if (!s) return;
+  if (!String(s.text || '').trim()) { const t = document.getElementById('note-sheet-text'); if (t) t.focus(); return; }
+  if (s.id) {
+    const patch = { text: s.text, kind: s.kind, date: s.date };
+    const cur = Notes.get(s.id);
+    if (cur && (cur.status || 'open') !== s.status) patch.status = s.status;
+    if (s.status === 'applied') patch.resolution = s.resolution || '';
+    Notes.update(s.id, patch);
+  } else {
+    Notes.add({ text: s.text, kind: s.kind, date: s.date, context: s.context, source: s.source });
+  }
+  closeNoteSheet();
+  if (App.screen === 'notes') renderNotes();
+  else _noteToast('Note saved');
+}
+
+function deleteNoteFromSheet() {
+  if (!_noteSheet || !_noteSheet.id) return;
+  if (!confirm('Delete this note?')) return;
+  Notes.remove(_noteSheet.id);
+  closeNoteSheet();
+  renderNotes();
+}
+
+// From the exercise sheet: the note is about this exercise, on this day.
+function noteOnExercise() {
+  if (!_exSheet) return;
+  const { session } = _todayRecord();
+  const block = session && (session.blocks || []).find(b => b.key === _exSheet.blockKey);
+  const inst = block && (block.exercises || []).find(e => e.id === _exSheet.id);
+  const base = Custom.getAllExercises().find(e => e.id === _exSheet.id);
+  const context = {
+    exerciseId: _exSheet.id,
+    exerciseName: (inst && inst.name) || (base && base.name) || _exSheet.id,
+    blockKey: block ? block.key : undefined,
+    blockLabel: block ? String(block.label || '').replace(/ — .*$/, '') : undefined,
+    dose: inst && typeof _dose === 'function' ? (_dose(inst) || undefined) : undefined,
+  };
+  closeExSheet();
+  openNoteSheet({ kind: 'exercise', context, source: 'exercise' });
+}
+
+function _noteToast(msg) {
+  let t = document.getElementById('note-toast');
+  if (!t) {
+    t = document.createElement('div'); t.id = 'note-toast'; t.className = 'nt-toast';
+    t.setAttribute('role', 'status');
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(_noteToast._t);
+  _noteToast._t = setTimeout(() => t.classList.remove('on'), 1800);
+}
+
+async function copyNotesForClaude() {
+  const md = Notes.exportMarkdown({ status: 'open' });
+  try {
+    await navigator.clipboard.writeText(md);
+    _noteToast('Copied ' + Notes.counts().open + ' open notes');
+  } catch (e) {
+    // No clipboard permission (some PWA contexts): show it to copy by hand.
+    _noteSheet = null;
+    const back = document.getElementById('note-sheet-back');
+    const el = document.getElementById('note-sheet');
+    el.innerHTML = `<div class="mv-sheet-head"><div class="mv-display" style="font-size:1.05rem">Open notes</div>
+      <button class="mv-sheet-x" onclick="closeNoteSheet()" aria-label="Close">&times;</button></div>
+      <div class="mv-sheet-body"><textarea class="text-input" rows="14" readonly id="note-export">${escAttr(md)}</textarea></div>
+      <div class="mv-sheet-foot"><button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="closeNoteSheet()">Close</button></div>`;
+    back.style.display = 'flex';
+    const ta = document.getElementById('note-export'); if (ta) { ta.focus(); ta.select(); }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1456,7 +1968,7 @@ function renderToday() {
 
   const d = new Date();
   const head = `${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]} ${d.getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][d.getMonth()]}`
-    + (prog && prog.week ? ` · WEEK ${prog.week}` : '')
+    + (prog && prog.week != null ? ' · ' + (prog.week > 0 ? `WEEK ${prog.week}` : String(prog.weekLabel || '').toUpperCase()) : '')
     + (() => {
       // Instances made before plannedDuration existed: planned = what's there + what was removed.
       const planned = session.plannedDuration || (session.duration + (session.removedBlocks || []).reduce((a, r) => a + (r.block.duration || 0), 0));
@@ -1468,7 +1980,10 @@ function renderToday() {
       <div class="mv-eyebrow" style="margin-bottom:.25rem">${head}</div>
       <div class="mv-display" style="font-size:1.5rem">${session.theme || 'Today'}</div>
     </div>
-    ${session.weekday ? `<button class="mv-pill" style="flex-shrink:0;margin-top:.2rem;border-color:color-mix(in srgb,var(--accent) 35%,var(--bg2));background:color-mix(in srgb,var(--accent) 12%,var(--bg2));color:var(--accent);font-weight:600" onclick="openAdjust()">Adjust</button>` : ''}
+    <div style="display:flex;gap:.35rem;flex-shrink:0;margin-top:.2rem">
+      <button class="mv-pill" onclick="openNoteSheet({source:'today'})" aria-label="Add a note about today">+ Note</button>
+      ${session.weekday ? `<button class="mv-pill" style="border-color:color-mix(in srgb,var(--accent) 35%,var(--bg2));background:color-mix(in srgb,var(--accent) 12%,var(--bg2));color:var(--accent);font-weight:600" onclick="openAdjust()">Adjust</button>` : ''}
+    </div>
   </div>`;
 
   // Three parts: note, timeline, footer. Stacked on a phone; on a wide
@@ -2423,8 +2938,8 @@ function renderSessionScreen() {
     card.style.marginBottom = '.75rem';
     const ww = session.watchWindow;
     card.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem">
-      <div style="font-size:.8rem;line-height:1.4;color:var(--text2)">${ww ? `⌚ Watch ${_hhmm(ww.start)}–${_hhmm(ww.end)}` : 'Recorded on the watch? Pick the Ruttio files (several at once).'}</div>
-      <button type="button" class="mv-pill" onclick="openWatchImport('live')">⌚ Import</button></div>
+      <div style="font-size:.8rem;line-height:1.4;color:var(--text2)">${ww ? `⌚ Watch ${_hhmm(ww.start)}–${_hhmm(ww.end)}` : 'Recorded elsewhere? Ruttio files from the watch, or Hevy text.'}</div>
+      <button type="button" class="mv-pill" onclick="openWatchImport('live')">Import</button></div>
       ${session.lastImport&&session.lastImport.lines.length?`<div style="font-size:.74rem;line-height:1.5;color:var(--text3);margin-top:.4rem">${session.lastImport.lines.map(escAttr).join('<br>')}</div>`:''}`;
     container.appendChild(card);
   }
@@ -2565,7 +3080,7 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
       </div>
     </div>
     ${extraHtml?`<div class="ex-extra">${extraHtml}</div>`:''}
-    ${_quickRow(ex,bIdx,eIdx)}
+    ${ex.test?_testRow(ex,bIdx,eIdx):_quickRow(ex,bIdx,eIdx)}
     ${logHtml?`<div class="ex-log">${logHtml}</div>`:''}
     <div class="ex-note-row"><input type="text" class="note-in" placeholder="note…" id="note-${bIdx}-${eIdx}" onblur="saveExNote(${bIdx},${eIdx},this.value)" value="${escAttr(ex.sessionNote||'')}"></div>`;
   return wrap;
@@ -2591,6 +3106,18 @@ function _safeUrl(u){const v=String(u||'').trim();return /^https?:\/\//i.test(v)
 // "✓ as prescribed" writes the target as logged sets; once something is
 // logged, RPE chips (6–10) stamp the effort on those sets. RPE is optional
 // and is what the progression suggestion reads.
+// A test exercise records into its goal (data/goals.js), not as sets.
+function _testRow(ex,b,e){
+  const t=ex.test; if(!t||typeof Goals==='undefined')return '';
+  const g=Goals.get(t.goalId); if(!g)return '';
+  if(t.kind==='ladder'){
+    const r=Goals.rung(t.goalId);
+    return `<div class="ex-test-row"><span>On: ${escAttr(r.name)}</span><button type="button" onclick="openGoal('${escAttr(t.goalId)}')">Mark your rung</button></div>`;
+  }
+  const today=MonthPlan._key(new Date());
+  const got=ex.testResult||(Goals.results(t.goalId).find(r=>r.date===today)||null);
+  return `<div class="ex-test-row">${got?`<span class="ok">Recorded ${escAttr(Goals.fmt(g,got.value))} ✓</span>`:`<span>Result goes to ${escAttr(g.name)}</span>`}<button type="button" onclick="openGoal('${escAttr(t.goalId)}',[${b},${e}])">${got?'Change':'Record result'}</button></div>`;
+}
 function _quickRow(ex,b,e){
   const logged=(ex.sets||[]).length||ex.cardioLog;
   const hasTarget=ex.target&&(ex.target.text||ex.target.sets);
@@ -2686,9 +3213,80 @@ function _wiSession(){
   if(_wi.target==='live')return LiveSession.getSession();
   return History.getSession(_wi.target);
 }
+// The sheet opens on a chooser: watch files (Ruttio), or Hevy's "Copy as
+// text". Both end in a review of what goes where before anything is written.
 function openWatchImport(target){
-  _wi={target,workouts:[],ignored:[],links:[]};
-  const inp=document.getElementById('watch-files');inp.value='';inp.click();
+  _wi={target,workouts:[],ignored:[],links:[],hevy:null};
+  document.getElementById('watch-body').innerHTML=`
+    <button class="mv-cta" style="margin-bottom:.9rem" onclick="document.getElementById('watch-files').value='';document.getElementById('watch-files').click()">⌚ Choose Ruttio files</button>
+    <div class="mv-eyebrow" style="margin-bottom:.4rem">Or paste from Hevy</div>
+    <div style="font-size:.74rem;color:var(--text3);margin-bottom:.4rem">In Hevy: the workout → Share → Copy as text.</div>
+    <textarea id="hevy-text" class="text-input" rows="7" style="width:100%;font-family:var(--font-body)" placeholder="Morning lift&#10;Friday, Sep 25, 2026 at 9:05am&#10;&#10;Deadlift (Barbell)&#10;Set 1: 85 kg x 5 @ 8 rpe"></textarea>
+    <button class="mv-pill" style="margin-top:.5rem" onclick="readHevy()">Read Hevy text</button>`;
+  document.getElementById('watch-backdrop').style.display='flex';
+}
+
+// ── Hevy text → review: every exercise with its proposed match. Exact and
+// remembered names are pre-set; fuzzy ones are shown as a guess; unmatched
+// ones are a question (pick from the library or keep as an extra).
+function readHevy(){
+  const text=(document.getElementById('hevy-text')||{}).value||'';
+  const r=HevyImport.review(text);
+  if(!r.items.length){alert("No exercises with sets found in that text.");return;}
+  _wi.hevy={text,r,key:Importer.hevyKey({link:r.link,date:r.date},text),
+    choice:r.items.map(it=>it.match?it.match.id:(it.candidates[0]&&it.candidates[0].score>=0.5?it.candidates[0].id:''))};
+  const dl=document.getElementById('lib-datalist');
+  if(dl&&!dl.children.length)dl.innerHTML=LIBRARY.map(e=>`<option value="${escAttr(e.name)}"></option>`).join('');
+  renderHevyReview();
+}
+function renderHevyReview(){
+  const s=_wiSession();const h=_wi&&_wi.hevy;if(!s||!h)return;
+  const dup=(s.hevyImports||[]).includes(h.key);
+  const warn=[];
+  if(dup)warn.push('This workout is already imported into this session.');
+  if(h.r.date&&s.date&&h.r.date!==s.date)warn.push(`Hevy says ${Utils.formatDate(h.r.date)}; this session is ${Utils.formatDate(s.date)}.`);
+  const nameOf=id=>{const e=LIBRARY.find(x=>x.id===id)||(Custom.getAllExercises().find(x=>x.id===id));return e?e.name:'';};
+  const inPlan=id=>id&&s.blocks.some(b=>(b.exercises||[]).some(e=>e.id===id));
+  document.getElementById('watch-body').innerHTML=
+    `<div style="font-size:.8rem;color:var(--text2);margin-bottom:.6rem">${escAttr(h.r.title||'Hevy workout')}${h.r.date?' · '+Utils.formatDate(h.r.date):''}</div>`+
+    (warn.length?`<div class="mv-note" style="margin-bottom:.7rem">${warn.map(escAttr).join('<br>')}</div>`:'')+
+    h.r.items.map((it,i)=>{
+      const id=h.choice[i];const m=it.match;
+      const tag=!id?'<span style="color:var(--warm)">not matched</span>':m&&m.id===id&&m.via!=='fuzzy'?'':'<span style="color:var(--warm)">check</span>';
+      return `<div class="mv-card" style="margin-bottom:.5rem">
+        <div style="display:flex;justify-content:space-between;gap:.5rem"><div style="font-weight:600;font-size:.86rem">${escAttr(it.hevyName)}</div><div style="font-size:.72rem">${tag}</div></div>
+        <div style="font-size:.74rem;color:var(--text3);margin:.15rem 0 .4rem">${it.sets.map(x=>x.weight!=null?`${x.weight}×${x.reps||'?'}`:x.reps?`${x.reps} reps`:x.duration?Utils.formatMMSS(x.duration):'set').join(' · ')}</div>
+        <input type="text" list="lib-datalist" class="text-input" style="width:100%" placeholder="Match to an exercise…" value="${escAttr(nameOf(id))}" onchange="hevyPick(${i},this.value)">
+        <div style="font-size:.7rem;color:var(--text3);margin-top:.3rem">${!id?'Leave empty to skip it.':inPlan(id)?'Goes into today’s plan.':'Not in today’s plan — added as an extra.'}</div>
+      </div>`;}).join('')+
+    `<button class="mv-cta" ${dup?'disabled style="opacity:.5"':''} onclick="applyHevy()">Log ${h.choice.filter(Boolean).length} exercise${h.choice.filter(Boolean).length===1?'':'s'}</button>`;
+}
+function hevyPick(i,name){
+  const n=String(name||'').trim().toLowerCase();
+  const e=LIBRARY.find(x=>x.name.toLowerCase()===n)||Custom.getAllExercises().find(x=>(x.name||'').toLowerCase()===n);
+  _wi.hevy.choice[i]=e?e.id:'';
+  renderHevyReview();
+}
+function applyHevy(){
+  const s=_wiSession();const h=_wi&&_wi.hevy;if(!s||!h)return;
+  const res=h.r.items.map((it,i)=>({hevyName:it.hevyName,exerciseId:h.choice[i]||null,sets:it.sets}));
+  // Remember every answer that wasn't already an exact/remembered match, so
+  // the same Hevy name maps itself next time.
+  h.r.items.forEach((it,i)=>{const id=h.choice[i];if(id&&!(it.match&&it.match.id===id&&it.match.via!=='fuzzy'))HevyImport.setAlias(it.name,id);});
+  const {report}=Importer.applyHevy(s,res,h.r.at,App.profile,h.key);
+  const lines=[...report.logged.map(x=>`Hevy → ${x.name}: ${x.sets} sets`),...report.added.map(x=>`Hevy → extra: ${x.name}: ${x.sets} sets`),
+    ...(report.skipped.length?[`Not in Hevy, marked skipped: ${report.skipped.map(x=>x.name).join(', ')}`]:[])];
+  _saveImported(s,lines);
+}
+function _saveImported(session,lines){
+  session.lastImport={at:Date.now(),lines:[...((session.lastImport&&session.lastImport.lines)||[]),...lines]};
+  if(_wi.target==='live'){LiveSession._persist();renderSessionScreen();}
+  else{
+    History.updateSession(_wi.target,session);
+    if(session.weekday&&session.date&&session.status==='completed')DB.set('daily_instance_'+session.date,session);
+    openSessionModal(_wi.target);
+  }
+  closeWatchImport();
 }
 function closeWatchImport(){document.getElementById('watch-backdrop').style.display='none';_wi=null;}
 
@@ -2750,14 +3348,7 @@ function wiDoneInstead(i,name){
 function applyWatchImport(){
   const session=_wiSession();if(!session||!_wi)return;
   const {report}=WatchImport.apply(session,_wi.links,App.profile);
-  session.lastImport={at:Date.now(),lines:report};
-  if(_wi.target==='live'){LiveSession._persist();renderSessionScreen();}
-  else{
-    History.updateSession(_wi.target,session);
-    if(session.weekday&&session.date&&session.status==='completed')DB.set('daily_instance_'+session.date,session);
-    openSessionModal(_wi.target);
-  }
-  closeWatchImport();
+  _saveImported(session,report);
 }
 
 function toggleExerciseDone(b,e){const ex=LiveSession.getSession()?.blocks[b]?.exercises[e];if(!ex)return;if(ex.completed)LiveSession.unmarkExerciseDone(b,e);else LiveSession.markExerciseDone(b,e);refreshBlock(b);}
@@ -3500,7 +4091,7 @@ function openSessionModal(id) {
       html+=`</div>`;
     });
   });
-  html+=`</div><button class="btn-ghost" style="margin-top:1rem" onclick="openWatchImport('${escAttr(id)}')">⌚ Import watch workouts</button><button class="btn-ghost" style="margin-top:.5rem;color:var(--danger)" onclick="deleteSession('${id}')">Delete session</button>`;
+  html+=`</div><button class="btn-ghost" style="margin-top:1rem" onclick="openWatchImport('${escAttr(id)}')">Import workouts (watch / Hevy)</button><button class="btn-ghost" style="margin-top:.5rem;color:var(--danger)" onclick="deleteSession('${id}')">Delete session</button>`;
   document.getElementById('session-modal-content').innerHTML=html;
   document.getElementById('session-modal-backdrop').style.display='flex';
 }
@@ -3809,8 +4400,28 @@ function toggleSection(id) {
   if (hdr) hdr.classList.toggle('open', !body.classList.contains('collapsed'));
 }
 
+// ─────────────────────────────────────────────────────────────
+// SETTINGS — four tabs (Library · To try · Training · App).
+// The panels are static markup; this fills the dynamic parts. The tab
+// survives re-renders (an edit, an import) but not a reload: Library is
+// where you land.
+// ─────────────────────────────────────────────────────────────
+let _settingsTab = 'library';
+
+function setSettingsTab(tab) {
+  _settingsTab = tab;
+  document.querySelectorAll('[data-set-tab]').forEach(b => {
+    const on = b.getAttribute('data-set-tab') === tab;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  document.querySelectorAll('[data-set-panel]').forEach(p =>
+    p.classList.toggle('on', p.getAttribute('data-set-panel') === tab));
+}
+
 function renderSettings() {
   const s = App.profile.settings;
+  setSettingsTab(_settingsTab);
   // Reflect the stored choice on the segmented control. setTheme also saves,
   // which is harmless here (same value back), and keeps one code path.
   setTheme(s.theme || 'system');
@@ -3822,65 +4433,482 @@ function renderSettings() {
   document.getElementById('ai-api-key').value  = s.anthropicApiKey || '';
   document.getElementById('ai-model').value    = s.aiModel || 'claude-sonnet-5';
 
-  document.getElementById('equipment-list').innerHTML = EQUIPMENT.map(e =>
-    `<label class="setting-row toggle-row">
-      <span>${e.name}</span>
-      <input type="checkbox" ${App.profile.equipment[e.id]?'checked':''} onchange="saveEquipment('${e.id}',this.checked)">
-    </label>`).join('');
-
+  renderBodySettings();
+  renderEquipment();
   renderIdeasList();
+  renderLibrary();
+}
 
-  // Two-level collapsible library using slug() for safe IDs
-  const allEx = Custom.getAllExercises();
-  const cats  = [...new Set(allEx.map(e=>e.category))];
-  document.getElementById('library-total-count').textContent = allEx.length;
-  document.getElementById('exercise-state-list').innerHTML = cats.map(cat => {
-    const catEx   = allEx.filter(e=>e.category===cat);
-    const subcats = [...new Set(catEx.map(e=>e.subcategory||'General'))];
-    const catId   = 'cat-' + slug(cat);
-    return `<div class="ex-cat-section">
-      <button class="ex-cat-header" onclick="toggleSection('${catId}')">
-        <span>${cat} <span class="ex-cat-count">${catEx.length}</span></span>
-        <svg class="chev" viewBox="0 0 24 24" width="14"><polyline points="6,9 12,15 18,9"/></svg>
-      </button>
-      <div class="collapsible-body collapsed" id="${catId}">
-        ${subcats.map(sub => {
-          const subEx = catEx.filter(e=>(e.subcategory||'General')===sub);
-          const subId = 'sub-' + slug(cat+'-'+sub);
-          return `<div class="ex-subcat-section">
-            <button class="ex-subcat-header" onclick="toggleSection('${subId}')">
-              <span>${sub} <span class="ex-cat-count">${subEx.length}</span></span>
-              <svg class="chev" viewBox="0 0 24 24" width="12"><polyline points="6,9 12,15 18,9"/></svg>
-            </button>
-            <div class="collapsible-body collapsed" id="${subId}">
-              ${subEx.map(ex => {
-                const ov = Overrides.get(ex.id);
-                const hasMedia = !!(ov?.link || ov?.imageUrl || ex.link);
-                const isTracked = Profile.isTracked(App.profile, ex.id);
-                return `<div class="ex-state-row">
-                  <span class="ex-state-name">
-                    ${ex.name}
-                    ${ex.isCustom ? '<span class="custom-tag">custom</span>' : ''}
-                    ${hasMedia ? '<span class="media-tag">▶</span>' : ''}
-                    ${isTracked ? '<span class="tracked-tag">📈 tracked</span>' : ''}
-                  </span>
-                  <div style="display:flex;gap:6px;align-items:center">
-                    <button class="btn-xs" onclick="openExView('${ex.id}')">View</button>
-                    <button class="btn-xs" onclick="openExEdit('${ex.id}')">Edit</button>
-                    <select class="state-select" onchange="saveExerciseState('${ex.id}',this.value)">
-                      <option value="active"   ${Profile.getExerciseState(App.profile,ex.id)==='active'  ?'selected':''}>Active</option>
-                      <option value="notyet"   ${Profile.getExerciseState(App.profile,ex.id)==='notyet'  ?'selected':''}>Not yet</option>
-                      <option value="excluded" ${Profile.getExerciseState(App.profile,ex.id)==='excluded'?'selected':''}>Excluded</option>
-                    </select>
-                  </div>
-                </div>`;
-              }).join('')}
-            </div>
-          </div>`;
-        }).join('')}
-      </div>
+// − / + on a stepper. Starts from data-base when the field is empty (a
+// body value never entered), keeps to min/max, and fires the field's own
+// onchange so saving stays in one place.
+function stepNum(id, dir) {
+  const el = document.getElementById(id); if (!el) return;
+  const step = +el.step || 1;
+  const min = el.min !== '' ? +el.min : -Infinity, max = el.max !== '' ? +el.max : Infinity;
+  let v = el.value === '' ? +(el.dataset.base || 0) : +el.value + dir * step;
+  v = Math.min(max, Math.max(min, v));
+  const dec = (String(el.step).split('.')[1] || '').length;
+  el.value = dec ? v.toFixed(dec) : String(Math.round(v));
+  el.dispatchEvent(new Event('change'));
+}
+
+function _stepper(id, value, { min = 0, max = 999, step = 1, unit = '', base = '', placeholder = '—', onchange }) {
+  const minus = '<svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>';
+  const plus  = '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+  return `<div class="mv-stepper">
+    <button type="button" onclick="stepNum('${id}',-1)" aria-label="Less">${minus}</button>
+    <label class="mv-stepper-v"><input type="number" id="${id}" min="${min}" max="${max}" step="${step}" data-base="${base}"
+      value="${value == null ? '' : value}" placeholder="${placeholder}" onchange="${onchange}"><span class="mv-stepper-u">${unit}</span></label>
+    <button type="button" onclick="stepNum('${id}',1)" aria-label="More">${plus}</button>
+  </div>`;
+}
+
+// Body & heart — the values Progress, the engine test and the watch import
+// read (bodyweight for bodyweight lifts, zone ceilings for Z2 caps and the
+// zone split). Empty means "use the watch": resting HR then falls back to
+// the 7-day average from imported vitals.
+function renderBodySettings() {
+  const el = document.getElementById('body-settings'); if (!el) return;
+  const s = App.profile.settings;
+  const z = Object.assign({ z1: 133, z2: 153, z3: 168, z4: 182 }, s.hrZones || {});
+  let rhrWatch = null;
+  try {
+    if (typeof Vitals !== 'undefined') {
+      const l = Vitals.latest('rhr'); const a = l && Vitals._trailing('rhr', l.date, 7);
+      rhrWatch = a ? Math.round(a.mean) : null;
+    }
+  } catch (e) { rhrWatch = null; }
+  const top = s.maxHR || Math.max(z.z4 + 12, 195);
+  const lo = Math.min(90, z.z1 - 25);
+  const seg = (a, b, n) => `<i style="flex-grow:${Math.max(1, b - a)};background:var(--st-z${n})"></i>`;
+  const zoneRow = (k, n, label, d) => `<div class="cfg-row"><div><div class="cfg-row-t"><span class="set-zdot" style="background:var(--st-z${n})"></span>${label}</div><div class="cfg-row-d">${d}</div></div>
+    ${_stepper('hrz-' + k, z[k], { min: 80, max: 230, step: 1, unit: 'bpm', onchange: `saveZone('${k}',this.value)` })}</div>`;
+
+  el.innerHTML = `
+    <div class="set-card-title"><div class="mv-eyebrow">Body &amp; heart rate</div><div class="set-card-meta">empty = from the watch</div></div>
+    <div class="cfg-row"><div><div class="cfg-row-t">Bodyweight</div><div class="cfg-row-d">For bodyweight lifts (dips, pull-ups)</div></div>
+      ${_stepper('set-bw', s.bodyweightKg, { min: 30, max: 200, step: 0.5, unit: 'kg', base: 75, onchange: `saveNumSetting('bodyweightKg',this.value)` })}</div>
+    <div class="cfg-row"><div><div class="cfg-row-t">Resting HR</div><div class="cfg-row-d">${rhrWatch ? `Watch 7-day average: ${rhrWatch} bpm` : 'No watch vitals imported yet'}</div></div>
+      ${_stepper('set-rhr', s.restingHR, { min: 30, max: 110, step: 1, unit: 'bpm', base: rhrWatch || 55, placeholder: rhrWatch || '—', onchange: `saveNumSetting('restingHR',this.value)` })}</div>
+    <div class="cfg-row"><div><div class="cfg-row-t">Max HR</div><div class="cfg-row-d">Highest you have seen, not a formula</div></div>
+      ${_stepper('set-maxhr', s.maxHR, { min: 140, max: 230, step: 1, unit: 'bpm', base: 190, onchange: `saveNumSetting('maxHR',this.value)` })}</div>
+    <div style="margin-top:.9rem">
+      <div class="mv-eyebrow" style="margin-bottom:.45rem">Zone ceilings</div>
+      <div class="set-zones">${seg(lo, z.z1, 1)}${seg(z.z1, z.z2, 2)}${seg(z.z2, z.z3, 3)}${seg(z.z3, z.z4, 4)}${seg(z.z4, top, 5)}</div>
+      <div class="set-zones-k">${[lo, z.z1, z.z2, z.z3, z.z4, top].map((v, i, a) => `<span style="left:${(100 * (v - lo) / (top - lo)).toFixed(1)}%;transform:translateX(${i === 0 ? '0' : i === a.length - 1 ? '-100%' : '-50%'})">${v}</span>`).join('')}</div>
+      ${zoneRow('z1', 1, 'Z1 recovery', 'Warm-ups and the easiest spins')}
+      ${zoneRow('z2', 2, 'Z2 easy', 'The cap on easy runs and rides')}
+      ${zoneRow('z3', 3, 'Z3 grey zone', 'Too hard to be easy, too easy to be hard')}
+      ${zoneRow('z4', 4, 'Z4 threshold', 'Above this is Z5')}
     </div>`;
-  }).join('');
+}
+
+function saveNumSetting(key, raw) {
+  saveSetting(key, raw === '' || raw == null ? null : +raw);
+}
+
+function saveZone(k, raw) {
+  const s = App.profile.settings;
+  const z = Object.assign({ z1: 133, z2: 153, z3: 168, z4: 182 }, s.hrZones || {});
+  if (raw === '' || isNaN(+raw)) { renderBodySettings(); return; }
+  z[k] = Math.round(+raw);
+  // Keep the ladder in order: a ceiling can't pass the one above it.
+  const keys = ['z1', 'z2', 'z3', 'z4'];
+  const i = keys.indexOf(k);
+  for (let j = i + 1; j < keys.length; j++) if (z[keys[j]] <= z[keys[j - 1]]) z[keys[j]] = z[keys[j - 1]] + 1;
+  for (let j = i - 1; j >= 0; j--) if (z[keys[j]] >= z[keys[j + 1]]) z[keys[j]] = z[keys[j + 1]] - 1;
+  saveSetting('hrZones', z);
+  renderBodySettings();
+}
+
+// Equipment — toggle chips, grouped the way EQUIPMENT groups them.
+function renderEquipment() {
+  const el = document.getElementById('equipment-list'); if (!el) return;
+  const have = App.profile.equipment || {};
+  const groups = [];
+  EQUIPMENT.forEach(e => {
+    const g = e.category || 'General';
+    let grp = groups.find(x => x.k === g);
+    if (!grp) groups.push(grp = { k: g, items: [] });
+    grp.items.push(e);
+  });
+  const n = EQUIPMENT.filter(e => have[e.id]).length;
+  const tick = '<svg viewBox="0 0 12 12"><polyline points="2.5 6.5 5 9 9.5 3.5"/></svg>';
+  el.innerHTML = `
+    <div class="set-card-title"><div class="mv-eyebrow">Equipment I have</div><div class="set-card-meta">${n} of ${EQUIPMENT.length}</div></div>
+    <div class="mv-body" style="margin-bottom:.4rem">Exercises that need something you don't have are left out of sessions.</div>
+    ${groups.map(g => `<div class="set-eq-group"><div class="set-eq-k">${escAttr(g.k)}</div><div class="set-eq-chips">
+      ${g.items.map(e => `<button type="button" class="set-eq ${have[e.id] ? 'on' : ''}" aria-pressed="${have[e.id] ? 'true' : 'false'}" onclick="toggleEquipment('${e.id}')"><i>${tick}</i>${escAttr(e.name)}</button>`).join('')}
+    </div></div>`).join('')}`;
+}
+
+function toggleEquipment(id) {
+  saveEquipment(id, !(App.profile.equipment || {})[id]);
+  renderEquipment();
+}
+
+// ─────────────────────────────────────────────────────────────
+// LIBRARY — browse by category, or search / filter across all of it.
+// Each exercise's colour is its Stats family (Strength, Power, Aerobic,
+// Mobility, Coordination, Somatic), so it reads the same as the Stats tab.
+// ─────────────────────────────────────────────────────────────
+const _lib = { cat: null, sub: null, q: '', filter: 'all' };
+
+const LIB_FILTERS = [
+  { id: 'all',      label: 'All' },
+  { id: 'active',   label: 'Active' },
+  { id: 'notyet',   label: 'Not yet' },
+  { id: 'excluded', label: 'Excluded' },
+  { id: 'nodemo',   label: 'No demo' },
+  { id: 'nohow',    label: 'No how-to' },
+  { id: 'custom',   label: 'Custom' },
+  { id: 'tracked',  label: 'Tracked' },
+];
+const LIB_STATES = [
+  { id: 'active',   label: 'Active',   d: 'Picked for sessions as normal.' },
+  { id: 'notyet',   label: 'Not yet',  d: 'Swapped for an easier progression until you are ready.' },
+  { id: 'excluded', label: 'Excluded', d: 'Never picked for a session.' },
+];
+const LIB_ROLE_LABELS = { raise: 'Raise', mobilise: 'Mobilise', activate: 'Activate', potentiate: 'Potentiate',
+  practice: 'Practice', develop: 'Develop', downregulate: 'Down-regulate' };
+
+function _libFamily(ex) {
+  if (typeof Stats === 'undefined') return 'other';
+  const fams = (ex.modalityTags || []).map(t => Stats._familyOfTag(t)).filter(Boolean);
+  if (fams.length) return fams[0];
+  if (Stats.SOMATIC_CATEGORIES.has(ex.category) || Stats.SOMATIC_CATEGORIES.has(ex.subcategory)) return 'somatic';
+  if (ex.logType === 'cardio') return 'aerobic';
+  return Stats._familyOfText(ex.category) || 'other';
+}
+
+// Every exercise, overrides applied, with what the library view needs.
+function _libItems() {
+  return Custom.getAllExercises().map(base => {
+    const ex = base.isCustom ? base : Overrides.apply(base);
+    const photo = ex.imageUrl || ex.image || '';
+    const yt = Overrides.thumbFromYouTube(ex.link) || '';
+    return {
+      ex,
+      state: Profile.getExerciseState(App.profile, ex.id),
+      tracked: Profile.isTracked(App.profile, ex.id),
+      photo,
+      thumb: photo || (yt ? yt.replace('/hqdefault.', '/mqdefault.') : ''),
+      video: !!yt,
+      how: !!(ex.instructions && String(ex.instructions).trim()),
+      fam: _libFamily(ex),
+    };
+  });
+}
+
+function _libMatches(it, f) {
+  switch (f) {
+    case 'active':   return it.state === 'active';
+    case 'notyet':   return it.state === 'notyet';
+    case 'excluded': return it.state === 'excluded';
+    case 'nodemo':   return !it.thumb;
+    case 'nohow':    return !it.how;
+    case 'custom':   return !!it.ex.isCustom;
+    case 'tracked':  return it.tracked;
+    default:         return true;
+  }
+}
+
+function _libSearchHit(it, q) {
+  if (!q) return true;
+  const ex = it.ex;
+  const fam = (typeof FAMILIES !== 'undefined' && ex.family) ? FAMILIES[ex.family] : '';
+  const hay = [ex.name, ex.category, ex.subcategory, fam, (ex.equipment || []).join(' ')].join(' ').toLowerCase();
+  return q.toLowerCase().split(/\s+/).filter(Boolean).every(w => hay.includes(w));
+}
+
+function renderLibrary() {
+  const el = document.getElementById('exercise-state-list'); if (!el) return;
+  const items = _libItems();
+  document.getElementById('library-total-count').textContent = items.length;
+
+  const n = items.length;
+  const demo = items.filter(i => i.thumb).length;
+  const how  = items.filter(i => i.how).length;
+  const cnt = f => items.filter(i => _libMatches(i, f)).length;
+  const pct = x => n ? Math.round(100 * x / n) : 0;
+
+  const summary = `<div class="mv-card">
+    <div class="lib-sum">
+      <div><div class="lib-sum-v">${n}</div><div class="lib-sum-k">exercises</div></div>
+      <div><div class="lib-sum-v">${demo}<small>${pct(demo)}%</small></div><div class="lib-sum-k">with a demo</div><div class="lib-sum-bar"><i style="width:${pct(demo)}%"></i></div></div>
+      <div><div class="lib-sum-v">${how}<small>${pct(how)}%</small></div><div class="lib-sum-k">with a how-to</div><div class="lib-sum-bar"><i class="g" style="width:${pct(how)}%"></i></div></div>
+    </div>
+    <div class="lib-states">
+      <span><i style="background:var(--accent2)"></i><b>${cnt('active')}</b>active</span>
+      <span><i style="background:var(--domain)"></i><b>${cnt('notyet')}</b>not yet</span>
+      <span><i style="background:var(--text3)"></i><b>${cnt('excluded')}</b>excluded</span>
+      <span><i style="background:var(--accent)"></i><b>${cnt('custom')}</b>custom</span>
+    </div>
+  </div>`;
+
+  const tools = `<div class="lib-tools">
+    <label class="lib-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5" stroke-linecap="round"/></svg>
+      <input type="search" id="lib-q" placeholder="Search ${n} exercises" value="${escAttr(_lib.q)}" oninput="libSearch(this.value)" autocomplete="off" aria-label="Search the library"></label>
+    <button type="button" class="lib-new" onclick="openExerciseModal()"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New</button>
+  </div>
+  <div class="lib-filters" role="group" aria-label="Filter">
+    ${LIB_FILTERS.map(f => {
+      const c = f.id === 'all' ? n : cnt(f.id);
+      if (f.id !== 'all' && !c && _lib.filter !== f.id) return '';
+      return `<button type="button" class="mv-chip mv-chip-btn ${_lib.filter === f.id ? 'mv-chip--accent' : ''}" aria-pressed="${_lib.filter === f.id}" onclick="libFilter('${f.id}')">${f.label}<em>${c}</em></button>`;
+    }).join('')}
+  </div>`;
+
+  el.innerHTML = summary + tools + `<div id="lib-results"></div>`;
+  _libItemsCache = items;
+  renderLibResults();
+}
+
+let _libItemsCache = null;
+
+function libSearch(q) { _lib.q = q; renderLibResults(); }
+function libFilter(f) { _lib.filter = f; renderLibrary(); }
+function libOpenCat(cat) { _lib.cat = cat; _lib.sub = null; renderLibResults(); _libScrollTop(); }
+function libSub(sub) { _lib.sub = sub; renderLibResults(); }
+function libBack() { _lib.cat = null; _lib.sub = null; renderLibResults(); _libScrollTop(); }
+function _libScrollTop() {
+  const t = document.getElementById('lib-q');
+  if (t && t.getBoundingClientRect().top < 0) t.scrollIntoView({ block: 'start', behavior: 'smooth' });
+}
+
+function _libRow(it) {
+  const ex = it.ex;
+  const d = Math.max(0, Math.min(5, ex.difficulty || 0));
+  const dots = d ? `<span class="lib-dots" title="Difficulty ${d} of 5">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= d ? 'on' : ''}"></i>`).join('')}</span>` : '';
+  const tags = [
+    it.state === 'notyet'   ? '<span class="lib-tag lib-tag--notyet">Not yet</span>' : '',
+    it.state === 'excluded' ? '<span class="lib-tag lib-tag--excluded">Excluded</span>' : '',
+    ex.isCustom             ? '<span class="lib-tag lib-tag--custom">Custom</span>' : '',
+    it.tracked              ? '<span class="lib-tag lib-tag--tracked">1RM</span>' : '',
+  ].join('');
+  const where = _lib.cat ? (ex.subcategory || '') : [ex.category, ex.subcategory].filter(Boolean).join(' · ');
+  const thumb = it.thumb
+    ? `<img src="${escAttr(it.thumb)}" alt="" loading="lazy" onerror="this.remove()">`
+    : `<b>${escAttr((ex.name || '?').trim().charAt(0).toUpperCase())}</b>`;
+  return `<button type="button" class="lib-row ${it.state === 'excluded' ? 'is-excluded' : ''}" style="--c:var(--st-f-${it.fam})" onclick="openLibSheet('${escAttr(ex.id)}')">
+    <span class="lib-thumb">${thumb}</span>
+    <span class="lib-row-main">
+      <span class="lib-row-name" style="display:block">${escAttr(ex.name)}</span>
+      <span class="lib-row-meta"><span>${escAttr(where)}</span>${dots}${!it.how ? '<span class="lib-miss" title="No how-to written yet">no how</span>' : ''}${tags}</span>
+    </span>
+    <svg class="lib-chev" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+  </button>`;
+}
+
+// Majority Stats family of a set of items — a category's colour.
+function _libMajority(list) {
+  const c = {};
+  list.forEach(i => { c[i.fam] = (c[i.fam] || 0) + 1; });
+  return Object.keys(c).sort((a, b) => c[b] - c[a])[0] || 'other';
+}
+
+function renderLibResults() {
+  const box = document.getElementById('lib-results'); if (!box) return;
+  const items = _libItemsCache || _libItems();
+  const q = _lib.q.trim();
+  const browsing = !_lib.cat && !q && _lib.filter === 'all';
+
+  // Landing: one tile per category.
+  if (browsing) {
+    const cats = [...new Set(items.map(i => i.ex.category))];
+    box.innerHTML = `<div class="lib-cats">${cats.map(cat => {
+      const list = items.filter(i => i.ex.category === cat);
+      const fam = _libMajority(list);
+      const subs = [...new Set(list.map(i => i.ex.subcategory).filter(Boolean))];
+      const pics = list.filter(i => i.photo).concat(list.filter(i => !i.photo && i.thumb)).slice(0, 4);
+      while (pics.length < 4) pics.push(null);
+      const demoPct = Math.round(100 * list.filter(i => i.thumb).length / list.length);
+      return `<button type="button" class="lib-cat" style="--c:var(--st-f-${fam})" onclick="libOpenCat('${escAttr(cat)}')">
+        <span class="lib-cat-strip">${pics.map(p => `<span${p ? ` style="background-image:url('${escAttr(p.thumb)}')"` : ''}></span>`).join('')}</span>
+        <span class="lib-cat-rail"></span>
+        <span class="lib-cat-body">
+          <span class="lib-cat-top"><span class="lib-cat-name">${escAttr(cat)}</span><span class="lib-cat-n">${list.length}</span></span>
+          <span class="lib-cat-subs">${subs.slice(0, 5).map(escAttr).join(' · ')}${subs.length > 5 ? ` · +${subs.length - 5}` : ''}</span>
+          <span class="lib-cat-foot"><span class="lib-cat-bar"><i style="width:${demoPct}%"></i></span><em>${demoPct}% demo</em></span>
+        </span>
+      </button>`;
+    }).join('')}</div>`;
+    return;
+  }
+
+  let list = items.filter(i => _libMatches(i, _lib.filter) && _libSearchHit(i, q));
+  let head = '';
+  if (_lib.cat) {
+    const inCat = list.filter(i => i.ex.category === _lib.cat);
+    const subs = [...new Set(inCat.map(i => i.ex.subcategory || 'General'))];
+    const all = items.filter(i => i.ex.category === _lib.cat).length;
+    head = `<div class="lib-crumb">
+        <button type="button" class="lib-back" onclick="libBack()" aria-label="All categories"><svg viewBox="0 0 24 24"><polyline points="15 6 9 12 15 18"/></svg></button>
+        <div><div class="lib-crumb-t">${escAttr(_lib.cat)}</div><div class="lib-crumb-d">${all} exercises · ${subs.length} group${subs.length === 1 ? '' : 's'}</div></div>
+      </div>
+      ${subs.length > 1 ? `<div class="mv-chips lib-subs">
+        <button type="button" class="mv-chip mv-chip-btn ${!_lib.sub ? 'mv-chip--accent' : ''}" onclick="libSub(null)">All</button>
+        ${subs.map(sb => `<button type="button" class="mv-chip mv-chip-btn ${_lib.sub === sb ? 'mv-chip--accent' : ''}" onclick="libSub('${escAttr(sb)}')">${escAttr(sb)} <span style="opacity:.6">${inCat.filter(i => (i.ex.subcategory || 'General') === sb).length}</span></button>`).join('')}
+      </div>` : ''}`;
+    list = inCat.filter(i => !_lib.sub || (i.ex.subcategory || 'General') === _lib.sub);
+  } else if (q || _lib.filter !== 'all') {
+    head = `<div class="lib-crumb"><div class="lib-crumb-d">${list.length} match${list.length === 1 ? '' : 'es'}${q ? ` for “${escAttr(q)}”` : ''}</div></div>`;
+  }
+
+  if (!list.length) {
+    box.innerHTML = head + `<div class="lib-empty">Nothing here${q ? ` for “${escAttr(q)}”` : ''}.${_lib.filter !== 'all' ? ' <button type="button" class="mv-linkbtn" onclick="libFilter(\'all\')">Clear the filter</button>' : ''}</div>`;
+    return;
+  }
+
+  // Group: by subcategory inside a category, by category otherwise.
+  const key = i => _lib.cat ? (i.ex.subcategory || 'General') : i.ex.category;
+  const groups = [];
+  list.forEach(i => {
+    const k = key(i);
+    let g = groups.find(x => x.k === k);
+    if (!g) groups.push(g = { k, items: [] });
+    g.items.push(i);
+  });
+  box.innerHTML = head + groups.map(g => `<div class="lib-group">
+      <div class="lib-group-h">${_lib.cat ? '' : `<i style="background:var(--st-f-${_libMajority(g.items)})"></i>`}<div class="mv-eyebrow">${escAttr(g.k)}</div><span>${g.items.length}</span></div>
+      <div class="lib-rows">${g.items.map(_libRow).join('')}</div>
+    </div>`).join('');
+}
+
+// ── exercise sheet (library) ─────────────────────────────────
+let _libSheetId = null;
+
+function openLibSheet(id) { _libSheetId = id; renderLibSheet(); }
+function closeLibSheet() {
+  _libSheetId = null;
+  const back = document.getElementById('lib-sheet-back');
+  if (back) back.style.display = 'none';
+}
+
+function renderLibSheet() {
+  if (!_libSheetId) return;
+  const back = document.getElementById('lib-sheet-back');
+  const el = document.getElementById('lib-sheet');
+  if (!back || !el) return;
+  const base = Custom.getAllExercises().find(e => e.id === _libSheetId);
+  if (!base) { closeLibSheet(); return; }
+  const ex = base.isCustom ? base : Overrides.apply(base);
+  const id = ex.id;
+  const fam = _libFamily(ex);
+  const state = Profile.getExerciseState(App.profile, id);
+  const photo = ex.imageUrl || ex.image || '';
+  const yt = Overrides.thumbFromYouTube(ex.link) || '';
+  const thumb = photo || yt;
+  const play = '<span class="lib-play"><svg viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20"/></svg></span>';
+
+  let demo;
+  if (thumb && yt) {
+    demo = `<button type="button" class="lib-demo" style="--c:var(--st-f-${fam})" onclick="openIdeaWatch('${escAttr(ex.link)}')" aria-label="Play the demo video">
+      <img src="${escAttr(thumb)}" alt="" onerror="this.remove()">${play}</button>`;
+  } else if (thumb) {
+    demo = `<div class="lib-demo" style="--c:var(--st-f-${fam})"><img src="${escAttr(thumb)}" alt="${escAttr(ex.name)}" onerror="this.remove()"></div>`;
+  } else {
+    const link = ex.link && /^https?:/.test(ex.link) ? ex.link
+      : 'https://www.youtube.com/results?search_query=' + encodeURIComponent(ex.name + ' tutorial');
+    demo = `<div class="lib-demo" style="--c:var(--st-f-${fam})">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2.5"/><polygon points="10 9 15.5 12 10 15"/></svg>
+      <div class="lib-demo-empty">No demo saved yet · <a href="${escAttr(link)}" target="_blank" rel="noopener">Find one on YouTube ↗</a></div></div>`;
+  }
+
+  const lastLog = History.getLastExerciseLog(id);
+  const lastTxt = lastLog
+    ? [lastLog.lastWeight ? lastLog.lastWeight + 'kg' : null,
+       lastLog.lastReps ? '× ' + lastLog.lastReps : null,
+       lastLog.lastDuration ? Utils.formatMMSS(lastLog.lastDuration) : null]
+      .filter(Boolean).join(' ') || Utils.formatDate(lastLog.date)
+    : 'never';
+  const pr = History.getPR(id);
+  const prTxt = [pr && pr.weight ? pr.weight + 'kg' : null, pr && pr.reps ? pr.reps + ' reps' : null,
+    pr && pr.duration ? Utils.formatDuration(pr.duration) : null].filter(Boolean).join(' · ') || '—';
+  const rest = Profile.getRestDefault(App.profile, ex.restGroup);
+  const tile = (k, v, dim) => `<div class="mv-tile"><div class="mv-tile-k">${k}</div><div class="mv-tile-v" style="font-size:.85rem;font-weight:600;color:${dim ? 'var(--text3)' : 'var(--text)'}">${v}</div></div>`;
+
+  const sec = (label, cls, text) => text
+    ? `<div class="mv-eyebrow ${cls}" style="margin-bottom:.4rem">${label}</div>
+       <div style="font-size:.84rem;line-height:1.6;color:var(--text2);margin-bottom:.9rem;white-space:pre-line">${escAttr(text)}</div>`
+    : '';
+  const how = ex.instructions || '', watch = ex.notes || '';
+
+  const chips = arr => arr.length ? `<div class="mv-chips">${arr.map(t => `<span class="mv-chip">${escAttr(t)}</span>`).join('')}</div>` : '';
+  const row = (k, v) => v ? `<div><dt>${k}</dt><dd>${v}</dd></div>` : '';
+  const d = Math.max(0, Math.min(5, ex.difficulty || 0));
+  const famLabel = (typeof FAMILIES !== 'undefined' && ex.family && FAMILIES[ex.family]) || '';
+  const roles = (ex.roles || []).map(r => LIB_ROLE_LABELS[r] || r);
+  const eqName = e => (EQUIPMENT.find(x => x.id === e) || {}).name || e;
+  const goalName = g => (typeof GOALS !== 'undefined' && (GOALS.find(x => x.id === g) || {}).name) || g;
+  const modality = (ex.modalityTags || []).map(t => Utils.getThemeConfig(t).label);
+  const tracked = Profile.isTracked(App.profile, id);
+  const stInfo = LIB_STATES.find(s => s.id === state) || LIB_STATES[0];
+
+  el.innerHTML = `
+    <div class="mv-sheet-head">
+      <div style="min-width:0">
+        <div class="mv-eyebrow" style="margin-bottom:.2rem;color:color-mix(in srgb, var(--st-f-${fam}) 70%, var(--text))">${escAttr([ex.category, ex.subcategory].filter(Boolean).join(' · ') || 'Exercise')}</div>
+        <div class="mv-display" style="font-size:1.2rem">${escAttr(ex.name)}${ex.isCustom ? ' <span class="lib-tag lib-tag--custom" style="vertical-align:3px">Custom</span>' : ''}</div>
+      </div>
+      <button class="mv-sheet-x" onclick="closeLibSheet()" aria-label="Close">&times;</button>
+    </div>
+    <div class="mv-sheet-body">
+      ${demo}
+      <div class="st-seg lib-state" role="radiogroup" aria-label="State">
+        ${LIB_STATES.map(s => `<button type="button" role="radio" aria-checked="${s.id === state}" class="${s.id === state ? 'on' : ''} s-${s.id}" onclick="libSetState('${escAttr(id)}','${s.id}')">${s.label}</button>`).join('')}
+      </div>
+      <div class="lib-state-d">${stInfo.d}</div>
+      <div class="mv-tiles">
+        ${tile('Last time', lastTxt, !lastLog)}
+        ${tile('Best', prTxt, prTxt === '—')}
+        ${tile('Rest', rest ? rest + 's' : '—', !rest)}
+      </div>
+      ${sec('How', '', how)}
+      ${sec('Watch for', 'mv-eyebrow--warm', watch)}
+      ${!how && !watch ? `<div style="font-size:.82rem;line-height:1.6;color:var(--text3);margin-bottom:.9rem">Nothing written down for this one yet. Add the steps and cues with Edit.</div>` : ''}
+      <dl class="lib-dl">
+        ${row('Family', famLabel ? escAttr(famLabel) + (roles.length ? `<div style="margin-top:.35rem">${chips(roles)}</div>` : '') : (roles.length ? chips(roles) : ''))}
+        ${row('Picked for', modality.length ? chips(modality) : '')}
+        ${row('Equipment', (ex.equipment || []).length ? chips(ex.equipment.map(eqName)) : 'None')}
+        ${row('Difficulty', d ? `<span class="lib-dots" style="gap:3px;vertical-align:1px">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= d ? 'on' : ''}" style="width:6px;height:6px;border-radius:3px"></i>`).join('')}</span> <span style="margin-left:.35rem">${d} of 5</span>` : '')}
+        ${row('Energy', escAttr(ex.energy || ''))}
+        ${row('Logged as', escAttr(ex.logType || ''))}
+        ${row('How often', escAttr(ex.frequency || ''))}
+        ${row('Goals', (ex.goals || []).length ? chips(ex.goals.map(goalName)) : '')}
+        ${tracked ? row('Est. 1RM', (() => { const b = History.getBestEstimate(id); return b ? `${b.e1rm}kg <span style="color:var(--text3)">(${b.weight}kg × ${b.reps})</span>` : 'No sets logged yet'; })()) : ''}
+      </dl>
+      ${ex.logType === 'weight+reps' ? `<div class="cfg-row" style="border-top:1px solid var(--border);padding:.75rem 0 .9rem">
+        <div><div class="cfg-row-t">Track est. 1RM</div><div class="cfg-row-d">Shows the lift on Progress</div></div>
+        <button type="button" class="lib-switch" role="switch" aria-checked="${tracked}" aria-label="Track est. 1RM" onclick="libToggleTracked('${escAttr(id)}')"></button>
+      </div>` : ''}
+    </div>
+    <div class="mv-sheet-foot">
+      <button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="closeLibSheet()">Close</button>
+      <button style="background:var(--accent);color:var(--on-accent,#fff);border:none" onclick="libEdit('${escAttr(id)}')">Edit</button>
+    </div>`;
+  back.style.display = 'flex';
+}
+
+function libSetState(id, st) {
+  Profile.setExerciseState(App.profile, id, st);
+  renderLibSheet();
+  if (App.screen === 'settings') renderLibrary();
+}
+
+function libToggleTracked(id) {
+  Profile.toggleTracked(App.profile, id);
+  renderLibSheet();
+  if (App.screen === 'settings') renderLibrary();
+}
+
+// Custom exercises edit in the full form (name, category…); built-ins in
+// the override editor. Either way the sheet stays underneath and refreshes.
+function libEdit(id) {
+  const base = Custom.getAllExercises().find(e => e.id === id);
+  if (base && base.isCustom) openExerciseModal(id);
+  else openExEdit(id);
 }
 
 function saveSetting(key,val){ App.profile.settings[key]=val; Profile.save(App.profile); }
@@ -4052,104 +5080,10 @@ async function importDLC(input) {
 // Keep for backwards compat
 function importData(input) { importBackup(input); }
 
-// ── EXERCISE VIEW MODAL (read-only) ─────────────────────────────
-let _exViewId = null;
-
-function buildExPhotoPlaceholder() {
-  const el = document.createElement('div');
-  el.className = 'ex-view-photo-empty';
-  el.innerHTML = 'No photo yet<span>Tap Edit to add an image or GIF</span>';
-  return el;
-}
-
-function openExView(id) {
-  _exViewId = id;
-  const allEx = Custom.getAllExercises();
-  const base  = allEx.find(e => e.id === id);
-  if (!base) return;
-  const ex = base.isCustom ? base : Overrides.apply(base);
-
-  document.getElementById('ex-view-name').textContent = ex.name;
-
-  const state      = Profile.getExerciseState(App.profile, id);
-  const stateLabel = { active: 'Active', notyet: 'Not yet', excluded: 'Excluded' }[state] || state;
-  // Priority: a user-pasted image/gif override > a built-in photo shipped with
-  // the exercise > a thumbnail auto-derived from the YouTube link.
-  const photo = ex.imageUrl || ex.image || '';
-  const thumb = photo || Overrides.thumbFromYouTube(ex.link) || '';
-  const lastLog = History.getLastExerciseLog(id);
-  const pr      = History.getPR(id);
-
-  const body = document.getElementById('ex-view-body');
-  body.innerHTML = '';
-
-  if (thumb) {
-    const img = document.createElement('img'); img.src = thumb; img.className = 'ex-view-photo';
-    img.alt = ex.name;
-    img.onerror = () => { img.remove(); body.prepend(buildExPhotoPlaceholder()); };
-    body.appendChild(img);
-  } else {
-    body.appendChild(buildExPhotoPlaceholder());
-  }
-
-  const detail = (label, value) => {
-    if (!value) return;
-    const row = document.createElement('div'); row.className = 'ex-view-row';
-    row.innerHTML = `<span class="ex-view-label">${label}</span><span class="ex-view-value">${value}</span>`;
-    body.appendChild(row);
-  };
-
-  detail('State', stateLabel);
-  detail('Category', [ex.category, ex.subcategory].filter(Boolean).join(' · '));
-  detail('Difficulty', ex.difficulty ? '★'.repeat(ex.difficulty) + '☆'.repeat(Math.max(0, 5 - ex.difficulty)) : '');
-  detail('Energy', ex.energy);
-  detail('Log type', ex.logType);
-  detail('Rest group', ex.restGroup);
-  detail('Modality tags', (ex.modalityTags || []).map(t => Utils.getThemeConfig(t).label).join(', '));
-  detail('Frequency', ex.frequency);
-  detail('Equipment', (ex.equipment || []).join(', '));
-  detail('Goals', (ex.goals || []).map(gId => GOALS.find(g => g.id === gId)?.name || gId).join(', '));
-
-  const prParts = [];
-  if (pr?.weight)   prParts.push(`${pr.weight}kg`);
-  if (pr?.reps)     prParts.push(`${pr.reps} reps`);
-  if (pr?.duration) prParts.push(Utils.formatDuration(pr.duration));
-  detail('Personal best', prParts.join(' · '));
-  if (Profile.isTracked(App.profile, id)) {
-    const best = History.getBestEstimate(id);
-    detail('Est. 1RM', best ? `${best.e1rm}kg <span class="ex-view-value-sub">(${best.weight}kg × ${best.reps})</span>` : '');
-  }
-  detail('Last logged', lastLog ? Utils.formatDate(lastLog.date) : '');
-
-  if (ex.notes) {
-    const wrap = document.createElement('div'); wrap.className = 'ex-view-block';
-    wrap.innerHTML = `<div class="field-label">Notes / cues</div><div class="ex-view-text">${ex.notes}</div>`;
-    body.appendChild(wrap);
-  }
-  if (ex.instructions) {
-    const wrap = document.createElement('div'); wrap.className = 'ex-view-block';
-    wrap.innerHTML = `<div class="field-label">Instructions</div><div class="ex-view-text">${ex.instructions}</div>`;
-    body.appendChild(wrap);
-  }
-  if (ex.link) {
-    const wrap = document.createElement('div'); wrap.className = 'ex-view-block';
-    wrap.innerHTML = `<a href="${ex.link}" target="_blank" rel="noopener" class="ex-view-link">▶ Watch video</a>`;
-    body.appendChild(wrap);
-  }
-
-  document.getElementById('ex-view-backdrop').style.display = 'flex';
-}
-
-function switchToExEdit() {
-  const id = _exViewId;
-  closeExView();
-  if (id) openExEdit(id);
-}
-
-function closeExView() {
-  document.getElementById('ex-view-backdrop').style.display = 'none';
-  _exViewId = null;
-}
+// ── EXERCISE VIEW ─────────────────────────────────────────────
+// The read-only modal became the library sheet (openLibSheet, above).
+// Kept under the old name: the Block screen's exercise chips call it.
+function openExView(id) { openLibSheet(id); }
 
 // ── EXERCISE EDIT MODAL ────────────────────────────────────────
 let _exEditId = null;
@@ -4321,8 +5255,9 @@ function saveExEdit() {
   }
 
   closeExEdit();
-  // Refresh the library list so ▶ tag updates
-  renderSettings();
+  // Refresh the library and, if it is open, the exercise sheet under the editor
+  if (App.screen === 'settings') renderSettings();
+  renderLibSheet();
 }
 
 function closeExEdit() {
@@ -4355,21 +5290,28 @@ function renderIdeasList() {
   const list = document.getElementById('ideas-list');
   if (!list) return;
   if (!ideas.length) {
-    list.innerHTML = '<div class="pip-label" style="padding:.5rem 0">Nothing saved yet — paste a link above next time you spot something worth trying.</div>';
+    list.innerHTML = '<div class="mv-card"><div class="mv-body">Nothing saved yet. Paste a link next time you spot something worth trying.</div></div>';
     return;
   }
-  list.innerHTML = ideas.map(idea => `
-    <div class="idea-row">
-      <div class="idea-row-main">
-        <span class="idea-name">${idea.name}</span>
-        ${idea.category ? `<span class="idea-cat-tag">${idea.category}</span>` : ''}
-        ${idea.extractedCount ? `<span class="idea-cat-tag idea-extracted-tag">${idea.extractedCount} extracted</span>` : ''}
-        <span class="idea-date">${Utils.formatDate(new Date(idea.addedAt).toISOString())}</span>
-      </div>
-      <div class="idea-row-actions">
-        ${idea.link ? `<button class="btn-xs" onclick="openIdeaWatch('${escAttr(idea.link)}')">Watch</button>` : ''}
-        <button class="btn-xs" onclick="extractFromIdea('${idea.id}')">+ Exercise</button>
-        <button class="btn-xs" style="color:var(--danger)" onclick="discardIdea('${idea.id}')">✕</button>
+  const icon = link => /instagram\.com/.test(link || '')
+    ? '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6"/></svg>'
+    : (link ? '<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="3"/><polygon points="10 9 15 12 10 15"/></svg>'
+            : '<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>');
+  list.innerHTML = `<div class="mv-eyebrow" style="margin:0 0 .5rem">${ideas.length} saved</div>` + ideas.map(idea => `
+    <div class="idea-card">
+      <div class="idea-ico">${icon(idea.link)}</div>
+      <div class="idea-main">
+        <div class="idea-t">${escAttr(idea.name || (idea.link || '').replace(/^https?:\/\/(www\.)?/, '').slice(0, 48) || 'Untitled')}</div>
+        <div class="idea-m">
+          ${idea.category ? `<span class="mv-chip">${escAttr(idea.category)}</span>` : ''}
+          ${idea.extractedCount ? `<span class="mv-chip mv-chip--accent">${idea.extractedCount} extracted</span>` : ''}
+          <span>${Utils.formatDate(new Date(idea.addedAt).toISOString())}</span>
+        </div>
+        <div class="idea-acts">
+          ${idea.link ? `<button type="button" onclick="openIdeaWatch('${escAttr(idea.link)}')">Watch</button>` : ''}
+          <button type="button" onclick="extractFromIdea('${idea.id}')">+ Exercise from it</button>
+          <button type="button" class="danger" onclick="discardIdea('${idea.id}')">Discard</button>
+        </div>
       </div>
     </div>`).join('');
 }
@@ -4570,8 +5512,9 @@ function saveExercise(existingId, ideaId) {
   if(existingId) Custom.updateExercise(existingId,data); else Custom.addExercise(data);
   if(ideaId) { const idea = Ideas.get(ideaId); if (idea) Ideas.update(ideaId, { extractedCount: (idea.extractedCount||0) + 1 }); }
   closeExerciseModal(); if(App.screen==='settings') renderSettings();
+  renderLibSheet();
 }
-function deleteExercise(id){ if(!confirm('Delete?'))return; Custom.deleteExercise(id); closeExerciseModal(); if(App.screen==='settings') renderSettings(); }
+function deleteExercise(id){ if(!confirm('Delete?'))return; Custom.deleteExercise(id); closeExerciseModal(); if(_libSheetId===id) closeLibSheet(); if(App.screen==='settings') renderSettings(); }
 function closeExerciseModal(){ document.getElementById('ex-modal-backdrop').style.display='none'; }
 
 // ─────────────────────────────────────────────────────────────
@@ -4606,7 +5549,7 @@ setInterval(() => {
 <div class="modal-backdrop" id="watch-backdrop" style="display:none" onclick="closeWatchImport()">
   <div class="modal modal-tall" onclick="event.stopPropagation()">
     <div class="ex-edit-header">
-      <div class="ex-edit-name">Watch workouts</div>
+      <div class="ex-edit-name">Import workouts</div>
       <button class="modal-close" onclick="closeWatchImport()">&#10005;</button>
     </div>
     <div id="watch-body"></div>
@@ -4619,18 +5562,6 @@ setInterval(() => {
       <button class="modal-close" onclick="closeAdjust()">&#10005;</button>
     </div>
     <div id="adjust-body"></div>
-  </div>
-</div>
-
-<!-- Exercise view modal (read-only) -->
-<div class="modal-backdrop centered" id="ex-view-backdrop" style="display:none" onclick="closeExView()">
-  <div class="modal modal-card modal-tall" onclick="event.stopPropagation()">
-    <div class="ex-edit-header">
-      <div class="ex-edit-name" id="ex-view-name"></div>
-      <button class="modal-close" onclick="closeExView()">✕</button>
-    </div>
-    <div id="ex-view-body"></div>
-    <button class="btn-primary" style="margin-top:.75rem" onclick="switchToExEdit()">Edit</button>
   </div>
 </div>
 

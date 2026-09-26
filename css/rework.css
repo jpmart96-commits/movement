@@ -391,3 +391,88 @@
 .mv-rung-name:hover .mv-rung-i { border-color: var(--accent); color: var(--accent); }
 .mv-chip-btn { cursor: pointer; font-family: var(--font-body); }
 .mv-chip-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* goals on Progress (data/goals.js) — capacities, skills, practice */
+.mv-pgnav { display: flex; gap: .35rem; overflow-x: auto; padding: 0 0 .8rem; margin-top: -.3rem; scrollbar-width: none; }
+.mv-pgnav::-webkit-scrollbar { display: none; }
+.mv-pgnav button {
+  flex-shrink: 0; font-family: var(--font-body); font-size: .72rem; padding: .3rem .7rem; border-radius: 999px;
+  background: var(--bg2); border: 1px solid var(--border); color: var(--text2); cursor: pointer;
+}
+.mv-pgnav button:hover { border-color: var(--accent); color: var(--accent); }
+.mv-cap { padding: .55rem 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.mv-cap:last-child { border-bottom: none; }
+.mv-cap-head { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; }
+.mv-cap-name { font-size: .82rem; font-weight: 600; }
+.mv-cap-v { font-size: .85rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mv-cap-v span { font-size: .72rem; font-weight: 600; margin-left: .2rem; }
+.mv-cap-foot { display: flex; justify-content: space-between; gap: .6rem; font-size: .68rem; color: var(--text3); }
+.mv-cap .mv-bar i { background: var(--accent2); }
+.mv-focus-dot { display: inline-block; width: 6px; height: 6px; border-radius: 3px; background: var(--warm); vertical-align: 2px; margin-left: .25rem; }
+.mv-rungs i.tgt { box-shadow: inset 0 0 0 1.5px var(--warm); }
+.mv-dots { display: flex; gap: 3px; }
+.mv-dots i { width: 10px; height: 10px; border-radius: 3px; background: var(--bg3); border: 1px solid var(--border); display: block; }
+.mv-dots i.on  { background: color-mix(in srgb, var(--accent2) 45%, var(--bg3)); border-color: transparent; }
+.mv-dots i.on2 { background: var(--accent2); border-color: transparent; }
+.mv-rec { display: flex; gap: .5rem; }
+.mv-rec label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .2rem; font-size: .66rem; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; }
+.mv-rec input { font-family: var(--font-body); font-size: 1rem; padding: .55rem .6rem; border-radius: 9px; border: 1px solid var(--border); background: var(--bg); color: var(--text); min-width: 0; width: 100%; box-sizing: border-box; }
+.ex-test-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .45rem .1rem .1rem; font-size: .76rem; color: var(--text2); }
+.ex-test-row .ok { color: var(--accent2); font-weight: 600; }
+.ex-test-row button { font-family: var(--font-body); font-size: .76rem; font-weight: 600; padding: .4rem .8rem; border-radius: 9px; border: none; background: var(--warm); color: #fff; cursor: pointer; }
+
+/* ── Notes tab (js/notes.js) ─────────────────────────────── */
+.nt-card { padding: .85rem 1rem; }
+.nt-card.nt-applied, .nt-card.nt-dropped { opacity: .72; }
+.nt-meta { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; margin-bottom: .45rem; }
+.nt-ctx { font-size: .72rem; color: var(--text3); }
+.nt-status { font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text3); margin-left: auto; }
+.nt-text { font-size: .86rem; line-height: 1.55; color: var(--text); overflow-wrap: anywhere; }
+.nt-res { font-size: .78rem; line-height: 1.5; color: var(--accent2); margin-top: .4rem; }
+.nt-actions { display: flex; gap: .9rem; margin-top: .55rem; font-size: .78rem; }
+.nt-actions .mv-linkbtn { padding: 0; }
+.nt-row { display: flex; align-items: flex-end; gap: .6rem; }
+.nt-date-l { display: flex; flex-direction: column; gap: .25rem; font-size: .7rem; color: var(--text3); flex: 1; min-width: 0; }
+.nt-date { padding: .55rem .6rem; font-size: .85rem; }
+.nt-save { width: auto; flex-shrink: 0; padding: .7rem 1.3rem; }
+.nt-hint { font-size: .7rem; color: var(--text3); margin-top: .45rem; }
+.nt-toast {
+  position: fixed; left: 50%; bottom: calc(var(--nav-h, 60px) + var(--safe-b, 0px) + 14px);
+  transform: translate(-50%, 8px); opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s;
+  background: var(--text); color: var(--bg); font-size: .8rem; padding: .5rem .9rem; border-radius: 999px; z-index: 400;
+}
+.nt-toast.on { opacity: 1; transform: translate(-50%, 0); }
+.mv-ghost:disabled { opacity: .45; cursor: default; }
+/* Body font, and 16px so iOS doesn't zoom the page when the field is focused. */
+#screen-notes textarea, #note-sheet textarea, #note-sheet input[type=text] { font-family: var(--font-body); font-size: 16px; line-height: 1.45; }
+
+/* ── number spinners and scrollbars (26 Sep) ────────────────────────
+   The stock grey spin box and the Windows scrollbar arrows looked
+   foreign next to everything else. The spin button keeps working (click
+   the top half to step up, the bottom half to step down); it is drawn
+   as a thin chevron pair in the text colour and only shows on hover or
+   focus. Settings' own values use the − / + stepper (css/settings.css). */
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none; appearance: none;
+  width: 10px; height: 20px; margin-left: 4px; cursor: pointer;
+  background: var(--text3); opacity: 0; transition: opacity .12s;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 20'%3E%3Cpath d='M2 7.5 5 4.5 8 7.5M2 12.5 5 15.5 8 12.5' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 10px 20px no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 20'%3E%3Cpath d='M2 7.5 5 4.5 8 7.5M2 12.5 5 15.5 8 12.5' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 10px 20px no-repeat;
+}
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number]:hover::-webkit-inner-spin-button { opacity: .7; }
+input[type=number]:focus::-webkit-inner-spin-button { opacity: .9; }
+
+/* Thin, arrowless scrollbars in the theme's colours (Chromium/Safari).
+   Firefox gets the same through scrollbar-color. */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--text3) 38%, transparent); border-radius: 10px; border: 3px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--text3) 65%, transparent); background-clip: padding-box; }
+::-webkit-scrollbar-corner { background: transparent; }
+@supports not selector(::-webkit-scrollbar) {
+  html { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--text3) 45%, transparent) transparent; }
+}
+/* fields that hide the spinner on purpose keep it hidden */
+.compose-dur-input::-webkit-inner-spin-button { display: none; }

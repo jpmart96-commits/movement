@@ -612,7 +612,7 @@ const MOBILITY_RECIPES = {
   'plyo-power': { mode: 'prep', steps: [
     ..._RUN_PREP,
     { role: 'potentiate', n: 2, ids: ['a-skip', 'b-skip', 'straight-leg-bound', 'a-march'] },
-    { role: 'potentiate', n: 1, ids: ['pogo-hops'] },
+    { role: 'potentiate', n: 1, ids: ['pogo-hops', 'snap-down-stick'] },
     { role: 'potentiate', n: 1, ids: ['strides'] },
   ] },
   'quality-run': { mode: 'prep', steps: [

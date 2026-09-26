@@ -1,0 +1,103 @@
+[
+  {
+    "date": "2026-09-20",
+    "weekday": "sunday",
+    "week": 0,
+    "theme": "Quality \u2014 4x4",
+    "variant": "standard",
+    "coordDomain": "objects",
+    "load": "baseline",
+    "dayType": "quality-4x4",
+    "intervalSpec": "Norwegian 4x4 \u2014 4 x 4min at 167-186bpm, 3min easy between.",
+    "focusNote": "DONE \u2014 today's session, logged after the fact. This is week 1's quality session, which is why Wednesday is sprints rather than another 4x4. Write down what the intervals actually averaged; it sets the pacing reference for week 2.",
+    "benchmark": false
+  },
+  {
+    "date": "2026-09-21",
+    "weekday": "monday",
+    "week": 0,
+    "theme": "Strength A",
+    "variant": "standard",
+    "coordDomain": "vision",
+    "load": "baseline",
+    "focusNote": "NOT DONE AS PLANNED \u2014 an hour of mixed balance and core work instead, unlogged. The Strength A baseline moves to Mon 28 Sep; squat, incline and pull-ups stay on the 17 Sep numbers until then.",
+    "dayType": "strength-a",
+    "benchmark": false
+  },
+  {
+    "date": "2026-09-22",
+    "weekday": "tuesday",
+    "week": 0,
+    "theme": "Aerobic baseline test",
+    "variant": "standard",
+    "coordDomain": "ball-reaction",
+    "load": "test",
+    "focusNote": "DONE AS A BIKE \u2014 60min indoor, avg 143, 87% in zone 2. HR flat at 147-148 from minute 20 to 55. The run test moved to Wednesday.",
+    "dayType": "z2-bike",
+    "benchmark": false
+  },
+  {
+    "date": "2026-09-23",
+    "weekday": "wednesday",
+    "week": 0,
+    "theme": "Power + Sprints",
+    "variant": "standard",
+    "coordDomain": "balance",
+    "load": "baseline",
+    "intervalSpec": "Short sprints: 6 x 20s uphill at about 85%, walking all the way down between.",
+    "focusNote": "BECAME THE AEROBIC BASELINE. Home loop, 08:00. Test window (minute 10-40): 4.40km at avg 148, max 156 \u2014 HR drifted 143 to 152. 5.72km in total. No sprints, jumps or slams. Every aerobic retest is measured against this run.",
+    "dayType": "aerobic-test",
+    "benchmark": true
+  },
+  {
+    "date": "2026-09-24",
+    "weekday": "thursday",
+    "week": 0,
+    "theme": "Strength B (done early)",
+    "variant": "standard",
+    "coordDomain": "stick",
+    "load": "baseline",
+    "focusNote": "DONE AS STRENGTH B, a day early. OHP 35x5 @9 twice, deadlift 84x5 @9.5, dips +10kg x6 @8, cable row 52x8 @9. These set the Strength B numbers for the rest of the block.",
+    "dayType": "strength-b",
+    "benchmark": false
+  },
+  {
+    "date": "2026-09-25",
+    "weekday": "friday",
+    "week": 0,
+    "theme": "Strength B",
+    "variant": "standard",
+    "coordDomain": "objects",
+    "load": "baseline",
+    "focusNote": "Strength B baseline already done yesterday. The deadlift and press are not repeated today.",
+    "dayType": "light",
+    "benchmark": false
+  },
+  {
+    "date": "2026-09-26",
+    "weekday": "saturday",
+    "week": 0,
+    "theme": "Long Easy + Flexibility",
+    "variant": "standard",
+    "coordDomain": "vision",
+    "load": "baseline",
+    "focusNote": "45min continuous under 153 \u2014 the longest easy run of the week. Walk the hills without negotiating. Accessory: first handstand session of the block, wrist prep first, then chest-to-wall holds.",
+    "dayType": "z2-run",
+    "mainFocusPlan": {
+      "cardio": {
+        "exercise": {
+          "id": "easy-run",
+          "name": "Easy run"
+        },
+        "protocol": {
+          "type": "steady",
+          "mainMin": 45,
+          "hrMax": 153,
+          "walkdownMin": 10
+        },
+        "note": "Continuous, strictly under 153. Walk the hills without negotiating."
+      }
+    },
+    "benchmark": false
+  }
+]

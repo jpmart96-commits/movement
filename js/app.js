@@ -1234,6 +1234,16 @@ const Generator = {
     const painAvoid = painTags.avoid, painCaution = painTags.caution;
     const resolveEx = this._resolveExFactory(profile, painAvoid);
 
+    // Goals (data/goals.js). `boost` = exercises that feed a goal this block
+    // focuses on: drawn first wherever they are already candidates. `tests`
+    // = this day's scheduled tests, by slot; they travel with the content
+    // (a traded test day takes its tests along) but never carry forward.
+    const hasGoals = typeof Goals !== 'undefined';
+    const boost = hasGoals ? Goals.boostFor(d) : null;
+    const tests = (hasGoals && planDay && (planSource.kind === 'plan' || planSource.kind === 'traded' || planSource.kind === 'draft'))
+      ? Goals.testsFor(planDay) : null;
+    const testBlock = (slot, base) => this._buildTestBlock({ slot, goalIds: tests[slot], base, resolveEx, profile, used });
+
     const blocks = [];
 
     // Nothing should appear twice in one day. Thursday's Yoga accessory was
@@ -1263,16 +1273,24 @@ const Generator = {
     const domain = (ownDay && ownDay.coordDomain) || this.coordDomainFor(d);
     const dayIdx = this._dayIndex(d);
     const weekSeed = Math.floor(dayIdx / 7);
-    blocks.push(bank(this._buildComplementaryBlock({
-      domain, durationMin: durations['complementary'], resolveEx, lastSeenMap, painCaution, dayType, used,
-      skillLine: (planDay && planDay.skillLine) || slot.skillLine || null,
-      seed: Math.floor(dayIdx / 6),
-    })));
+    if (tests && tests.complementary) {
+      blocks.push(bank(testBlock('complementary', { key: 'complementary', label: 'Tests — coordination & balance',
+        icon: 'star', color: '#D8890A', bg: '#FBEEDA', duration: durations['complementary'], coordDomain: domain })));
+    } else {
+      blocks.push(bank(this._buildComplementaryBlock({
+        domain, durationMin: durations['complementary'], resolveEx, lastSeenMap, painCaution, dayType, used,
+        skillLine: (planDay && planDay.skillLine) || slot.skillLine || null,
+        seed: Math.floor(dayIdx / 6), boost,
+      })));
+    }
 
     // ── MOBILITY & FLEXIBILITY — prep before strength and speed (nothing
     // held over 30s), range-building on easy days. On a movement-practice
     // day it stays out of the movement families so nothing repeats.
-    if (durations['mobility'] > 0) {
+    if (durations['mobility'] > 0 && tests && tests.mobility) {
+      blocks.push(bank(testBlock('mobility', { key: 'mobility', label: 'Tests — mobility',
+        icon: 'flame', color: '#1D9E75', bg: '#E1F5EE', duration: durations['mobility'] })));
+    } else if (durations['mobility'] > 0) {
       const recipeKey = slot.mobility && typeof slot.mobility === 'string' ? slot.mobility : null;
       const recipe = hasRecipes && recipeKey ? MOBILITY_RECIPES[recipeKey] : null;
       if (recipe) {
@@ -1282,7 +1300,7 @@ const Generator = {
             ? 'Prep for today’s main work. Nothing held longer than 30s.'
             : 'Range day. Long holds — nothing explosive follows.',
           steps: recipe.steps, duration: durations['mobility'], recipeKey, recipeKind: 'mobility',
-          resolveEx, lastSeenMap, used, painCaution, seed: weekSeed,
+          resolveEx, lastSeenMap, used, painCaution, seed: weekSeed, boost,
           excludeFamilies: domain === 'movement' ? this._movementFamilies() : [],
         })));
       } else {
@@ -1304,11 +1322,15 @@ const Generator = {
     // 25 Sep's Strength B came out as ten wrist and neck drills.
     let mainTags = [];
     const mfPlan = planDay && planDay.mainFocusPlan;
-    const pinnedMain = slot.mainFocus && durations['main-focus'] > 0
-      ? this._buildPinnedMainFocus({ slot, planDay, mfPlan, loadScale, mainDurMax: durations['main-focus'], resolveEx })
+    const testMain = tests && tests.main && durations['main-focus'] > 0
+      ? testBlock('main', { key: 'main-focus:tests', label: 'Tests — power & speed', icon: 'bolt', color: '#C0392B', bg: '#FBE9E7',
+          duration: Math.min(Math.round(durations['main-focus'] * loadScale), 60), mainFocus: true, pinned: true })
+      : null;
+    const pinnedMain = testMain || (slot.mainFocus && durations['main-focus'] > 0)
+      ? (testMain || this._buildPinnedMainFocus({ slot, planDay, mfPlan, loadScale, mainDurMax: durations['main-focus'], resolveEx }))
       : null;
     if (pinnedMain) {
-      mainTags = slot.mainFocus.tags || [];
+      mainTags = (slot.mainFocus && slot.mainFocus.tags) || ['power-plyo'];
       blocks.push(bank(pinnedMain));
     } else if (slot.mainFocus && durations['main-focus'] > 0) {
       mainTags = slot.mainFocus.tags || [];
@@ -1349,11 +1371,17 @@ const Generator = {
     // muscle-up prep, pancake & hips, hang project). The plan can name one.
     const skillLineKey = (planDay && planDay.skillLine) || slot.skillLine || null;
     const skillLine = hasRecipes && skillLineKey && typeof SKILL_LINES !== 'undefined' ? SKILL_LINES[skillLineKey] : null;
-    if (durations['accessory'] > 0 && skillLine) {
+    if (durations['accessory'] > 0 && tests && tests.accessory) {
+      const skillChecks = tests.accessory.every(id => !/^cap-/.test(id));
+      blocks.push(bank(testBlock('accessory', { key: 'accessory', label: skillChecks ? 'Skill check' : 'Tests — grip & hang',
+        icon: 'star', color: '#185FA5', bg: '#E4EEF9', duration: durations['accessory'] })));
+    } else if (durations['accessory'] > 0 && skillLine) {
+      // Rung-driven lines practise the rung you are on (data/goals.js).
+      const steps = (hasGoals && Goals.skillSteps(skillLineKey, profile)) || skillLine.steps;
       blocks.push(bank(this._buildRecipeBlock({
         key: 'accessory', label: 'Accessory & Skill — ' + skillLine.label, icon: 'star', color: '#185FA5', bg: '#E4EEF9',
-        note: '', steps: skillLine.steps, duration: durations['accessory'], recipeKey: skillLineKey, recipeKind: 'skill',
-        resolveEx, lastSeenMap, used, painCaution, seed: Math.floor(dayIdx / 3),
+        note: hasGoals ? Goals.lineNote(skillLineKey, profile) : '', steps, duration: durations['accessory'], recipeKey: skillLineKey, recipeKind: 'skill',
+        resolveEx, lastSeenMap, used, painCaution, seed: Math.floor(dayIdx / 3), boost,
       })));
     } else if (durations['accessory'] > 0) {
       const accTags = (slot.accessory && slot.accessory.tags) || ['calisthenics'];
@@ -1397,6 +1425,7 @@ const Generator = {
       planBlock: (planDay || ownDay) ? {
         week: (ownDay || planDay).week, load: (ownDay || planDay).load, benchmark: !!(planDay && planDay.benchmark),
         focusNote: (planDay && planDay.focusNote) || '',
+        tests: tests || null,
       } : null,
       // Where the prescription came from: its own plan day, another date's
       // (borrowed for a theme swap, or traded), or carried forward past the
@@ -1542,7 +1571,7 @@ const Generator = {
 
   // One theme, three to five items, longer sets. Rotation is family-first
   // (subcategory groups), so a day is a coherent family rather than a mix.
-  _buildComplementaryBlock({ domain, durationMin, resolveEx, lastSeenMap, painCaution, dayType, used, seed, skillLine }) {
+  _buildComplementaryBlock({ domain, durationMin, resolveEx, lastSeenMap, painCaution, dayType, used, seed, skillLine, boost }) {
     const taken = used || new Set();
     const pool  = this._rotateBy(this._poolForCoordDomain(domain, dayType, skillLine).filter(id => !taken.has(id)), seed || 0);
     const label = (typeof COORD_DOMAIN_LABELS !== 'undefined' && COORD_DOMAIN_LABELS[domain]) || domain || 'Complementary';
@@ -1559,6 +1588,13 @@ const Generator = {
       return block;
     }
     let ordered = this._orderByGroupRecency(this._applyPoolFilters(pool), lastSeenMap);
+    // One feeding exercise leads when a benchmark in focus lives in this
+    // domain (balance eyes-closed, the cascade, reaction) — one, so the
+    // domain still gets explored rather than turned into test practice.
+    if (boost && boost.size) {
+      const lead = ordered.find(id => boost.has(id));
+      if (lead) ordered = [lead, ...ordered.filter(id => id !== lead)];
+    }
     if (painCaution && painCaution.size) {
       ordered = [...ordered.filter(id => !this._isPainCaution(id, painCaution)), ...ordered.filter(id => this._isPainCaution(id, painCaution))];
     }
@@ -1578,12 +1614,66 @@ const Generator = {
     return block;
   },
 
+  // ── TEST BLOCKS (data/goals.js) ───────────────────────────────
+  // A test day's slot is replaced by its tests. A benchmark shows its
+  // exercise with the protocol as the note; a ladder shows the rung you are
+  // on as a check. Each carries `test` so the session UI can offer Record.
+  _buildTestBlock({ slot, goalIds, base, resolveEx, profile, used }) {
+    const exercises = [];
+    const lib = id => { const l = LIBRARY.find(e => e.id === id); return l ? JSON.parse(JSON.stringify(l)) : null; };
+    (goalIds || []).forEach(id => {
+      const g = (typeof Goals !== 'undefined') ? Goals.get(id) : null;
+      if (!g) return;
+      if (g.kind === 'benchmark') {
+        const ex = resolveEx(g.ex) || lib(g.ex);
+        if (!ex) return;
+        ex.role = 'test';
+        ex.test = { goalId: id, kind: 'benchmark', unit: g.unit, name: g.name };
+        ex.target = { sets: 1, text: 'Test — record ' + (g.unit === 'catches' ? 'catches' : g.unit), fixed: true };
+        ex.notes = g.test;
+        ex.allocatedMinutes = g.min || 4;
+        exercises.push(ex);
+      } else {
+        const r = Goals.rung(id, profile);
+        const def = Goals.rungDef(id, r.idx);
+        // The rung's first exercise that isn't already in the day.
+        const cands = [...((def && def.work) || []).flatMap(st => st.ids || []), ...(g.feedExercises || [])];
+        const exId = cands.find(x => !(used && used.has(x))) || cands[0];
+        const ex = (exId && (resolveEx(exId) || lib(exId))) || null;
+        if (!ex) return;
+        ex.role = 'test';
+        ex.test = { goalId: id, kind: 'ladder', name: g.name };
+        ex.name = g.name + ' — check';
+        ex.target = { sets: 1, text: 'Check: ' + (r.name || 'rung ' + (r.idx + 1)), fixed: true };
+        ex.notes = [def && def.pass ? 'Passed when: ' + def.pass : '', r.next ? 'If it holds, try the next one: ' + r.next + '.' : '',
+          'Then mark the first rung you can\'t pass yet — that is what the skill block will practise.'].filter(Boolean).join(' ');
+        ex.allocatedMinutes = 4;
+        exercises.push(ex);
+      }
+    });
+    const dur = base.duration || 10;
+    const total = exercises.reduce((a, e) => a + (e.allocatedMinutes || 0), 0) || 1;
+    // Tests take the time they take, scaled into the slot.
+    exercises.forEach(e => { e.allocatedMinutes = Math.max(2, Math.round(dur * e.allocatedMinutes / total * 2) / 2); });
+    const allLadders = exercises.length && exercises.every(e => e.test.kind === 'ladder');
+    const NOTES = {
+      main: 'Mobility was the warm-up — all of it, strides included. Every attempt at 100%, full rest between. Record the best of each.',
+      complementary: 'Barefoot for the balance test. Same protocol as every time — that is what makes the numbers comparable. Record each as you go.',
+      mobility: 'Open and Complementary warmed you up. Tests first, then spend what is left on long holds.',
+      accessory: 'One max effort. Record it.',
+    };
+    const note = allLadders
+      ? 'Try the rung marked HERE, then the next ones. Mark the first rung you can\'t pass yet — the skill blocks practise whatever is marked.'
+      : (NOTES[slot] || 'Same protocol every time. Record each result as you go.');
+    return { ...base, tests: goalIds.slice(), recipeKind: 'test', recipeKey: slot, note, exercises };
+  },
+
   // \u2500\u2500 RECIPE-BUILT BLOCKS (Open, Mobility, Accessory, Close) \u2500\u2500\u2500\u2500\u2500
   // A recipe is ordered steps; each step picks `n` of its candidate ids,
   // least-recently-done first, skipping anything already in the day, and
   // doses them for the step's role. Steps keep their order, so a warm-up
   // reads raise \u2192 mobilise \u2192 activate \u2192 potentiate.
-  _buildRecipeBlock({ key, label, icon, color, bg, note, steps, duration, recipeKey, recipeKind, resolveEx, lastSeenMap, used, painCaution, excludeFamilies, seed }) {
+  _buildRecipeBlock({ key, label, icon, color, bg, note, steps, duration, recipeKey, recipeKind, resolveEx, lastSeenMap, used, painCaution, excludeFamilies, seed, boost }) {
     const taken = used || new Set();
     const excl = new Set(excludeFamilies || []);
     const picked = [];
@@ -1593,6 +1683,8 @@ const Generator = {
       ids = ids.filter(id => { const l = LIBRARY.find(e => e.id === id); return l && !excl.has(l.family); });
       ids = this._rotateBy(this._applyPoolFilters(ids), seed || 0);
       if (lastSeenMap) ids = this._orderByRecency(ids, lastSeenMap);
+      // A goal in focus wins among the step's own options (Goals.boostFor).
+      if (boost && boost.size) ids = [...ids.filter(id => boost.has(id)), ...ids.filter(id => !boost.has(id))];
       if (painCaution && painCaution.size) {
         ids = [...ids.filter(id => !this._isPainCaution(id, painCaution)), ...ids.filter(id => this._isPainCaution(id, painCaution))];
       }
@@ -2240,13 +2332,15 @@ const Generator = {
   _recipeStepsFor(block) {
     if (!block || !block.recipeKind || !block.recipeKey) return null;
     if (block.recipeKind === 'mobility' && typeof MOBILITY_RECIPES !== 'undefined') return (MOBILITY_RECIPES[block.recipeKey] || {}).steps || null;
-    if (block.recipeKind === 'skill' && typeof SKILL_LINES !== 'undefined') return (SKILL_LINES[block.recipeKey] || {}).steps || null;
+    if (block.recipeKind === 'skill' && typeof SKILL_LINES !== 'undefined')
+      return (typeof Goals !== 'undefined' && Goals.skillSteps(block.recipeKey)) || (SKILL_LINES[block.recipeKey] || {}).steps || null;
     if (block.recipeKind === 'close' && typeof CLOSE_RECIPES !== 'undefined') return CLOSE_RECIPES[block.recipeKey] || null;
     return null;
   },
 
   _poolForBlock(block, instance) {
     const key = block.key || '';
+    if (block.tests) return [];           // a test is the test; nothing to swap to
     const steps = this._recipeStepsFor(block);
     if (steps) {
       let ids = [...new Set(steps.flatMap(st => st.ids || []))];
@@ -2285,6 +2379,11 @@ const Generator = {
     (instance.blocks || []).forEach(b => { if (b !== block && b.key !== block.key) (b.exercises || []).forEach(e => used.add(e.id)); });
     if (this._avoidIds) this._avoidIds.forEach(id => used.add(id));
 
+    // A test block keeps its tests and is only retimed.
+    if (block.tests) {
+      const ex = (block.exercises || []).map(e => ({ ...e }));
+      return { ...block, duration: newDuration, exercises: this._allocateTime(ex, newDuration) };
+    }
     // Recipe blocks rebuild from their recipe at the new length.
     const steps = this._recipeStepsFor(block);
     if (steps) {
@@ -3661,6 +3760,8 @@ const App = {
 
   init() {
     this.profile = Profile.load();
+    // One-time move onto the rewritten ladders (data/goals.js).
+    try { if (typeof Goals !== 'undefined' && Goals.migrate(this.profile)) Profile.save(this.profile); } catch (e) { console.warn('Goals.migrate failed:', e); }
     this._render();
   },
 

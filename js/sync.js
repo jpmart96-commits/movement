@@ -268,6 +268,7 @@ function _route(fullKey) {
   if (fullKey.startsWith('pb_session_') && !fullKey.includes('index') && !fullKey.includes('cache')) return 'session';
   if (fullKey === 'pb_custom_exercises') return 'custom_exercises';
   if (fullKey === 'pb_custom_goals')     return 'custom_goals';
+  if (fullKey === 'pb_plan_notes')       return 'plan_notes';
   if (fullKey === 'pb_profile')          return 'profile';
   if (fullKey === 'pb_session_index')    return 'session_index';
   if (fullKey.startsWith('pb_') && (fullKey.includes('override') || fullKey.includes('_cache'))) return 'override';
@@ -281,6 +282,9 @@ function _route(fullKey) {
 const _LISTS = {
   pb_custom_exercises: { table: 'custom_exercises', idCol: 'exercise_id' },
   pb_custom_goals:     { table: 'custom_goals',     idCol: 'goal_id' },
+  // Notes tab (js/notes.js). One row per note so a plan review can query
+  // them directly (see plan_notes in supabase_schema.sql).
+  pb_plan_notes:       { table: 'plan_notes',       idCol: 'note_id' },
 };
 
 // The profile as it may leave the device: the Anthropic API key is
@@ -426,7 +430,7 @@ Object.assign(DB, {
   },
 
   // ── tombstones ──
-  // { sessions|custom_exercises|custom_goals: { id: ±ms } }, kept
+  // { sessions|custom_exercises|custom_goals|plan_notes: { id: ±ms } }, kept
   // locally and mirrored to a reserved `overrides` row so deletions reach
   // other devices. Needed because "on the server but not on this device"
   // and "deleted on another device" otherwise look identical, and the safe
@@ -440,7 +444,7 @@ Object.assign(DB, {
   // override a delete across devices instead of being re-deleted forever.
   _tombstones() {
     const t = _readJSON(TOMBSTONES_KEY) || {};
-    ['sessions', 'custom_exercises', 'custom_goals'].forEach(k => { if (!t[k] || typeof t[k] !== 'object') t[k] = {}; });
+    ['sessions', 'custom_exercises', 'custom_goals', 'plan_notes'].forEach(k => { if (!t[k] || typeof t[k] !== 'object') t[k] = {}; });
     return t;
   },
   _saveTombstones(t) { try { localStorage.setItem(TOMBSTONES_KEY, JSON.stringify(t)); } catch {} },
@@ -714,13 +718,14 @@ Object.assign(DB, {
       _rest('week_scaffold',    'GET', { eq:{user_id:uid}, select:'data' }),
       _rest('daily_instances',  'GET', { eq:{user_id:uid}, select:'date,data', order:'date.desc', limit:30 }),
       _rest('month_plans',      'GET', { eq:{user_id:uid}, select:'data', order:'block_start.desc', limit:1 }),
+      _rest('plan_notes',       'GET', { eq:{user_id:uid}, select:'data' }),
     ]);
     const failed = results.filter(r => !r.ok).length;
     if (failed === results.length) {
       console.warn('Pull: server unreachable — running on local data');
       return { ok: false, skipped: 'offline' };
     }
-    const [profile, sidx, sessMeta, sessRecent, exes, goals, ovRows, cacheRows, scaffold, instances, monthPlan] = results.map(rows);
+    const [profile, sidx, sessMeta, sessRecent, exes, goals, ovRows, cacheRows, scaffold, instances, monthPlan, notes] = results.map(rows);
 
     // ── tombstones (reserved overrides row) ──
     const tomb = this._tombstones();
@@ -845,6 +850,7 @@ Object.assign(DB, {
       const remote = remoteRows.map(r => r.data).filter(x => x && x.id);
       const local = (_readJSON(key) || []).filter(x => x && x.id);
       const pending = keep(key);
+      const byTime = key === 'pb_plan_notes';
       const remoteById = new Map(remote.map(x => [x.id, x]));
       const localIds = new Set(local.map(x => x.id));
       const merged = [];
@@ -852,7 +858,16 @@ Object.assign(DB, {
       local.forEach(x => {
         if (t[x.id] > 0) return;                                  // deleted elsewhere
         if (!remoteById.has(x.id)) { localOnly = true; merged.push(x); return; }
-        merged.push(pending ? x : remoteById.get(x.id));      // remote wins unless pending
+        const r = remoteById.get(x.id);
+        // Notes carry updatedAt, and can be edited off-device (a plan review
+        // marking one applied), so the later edit wins per note even while
+        // an unrelated note edit is pending here.
+        if (byTime && x.updatedAt && r.updatedAt && x.updatedAt !== r.updatedAt) {
+          if (String(r.updatedAt) > String(x.updatedAt)) merged.push(r);
+          else { merged.push(x); localOnly = true; }   // local edit the server lacks
+          return;
+        }
+        merged.push(pending ? x : r);      // remote wins unless pending
       });
       remote.forEach(x => { if (!localIds.has(x.id) && !(t[x.id] > 0)) merged.push(x); });
       const deadRemote = remote.filter(x => t[x.id] > 0).map(x => x.id);
@@ -866,6 +881,7 @@ Object.assign(DB, {
     };
     mergeList('pb_custom_exercises', exes);
     mergeList('pb_custom_goals',     goals);
+    mergeList('pb_plan_notes',       notes);
 
     // ── overrides / cache / scaffold (whole-blob; skip pending) ──
     (ovRows || []).forEach(r => { if (r.store_key && r.store_key[0] !== '_') put('pb_' + r.store_key, r.data); });

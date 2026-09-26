@@ -143,3 +143,30 @@ do $$ begin
     create policy "month_plans: own data" on month_plans for all using (auth.uid() = user_id);
   end if;
 end $$;
+
+-- Plan notes (Notes tab, js/notes.js via js/sync.js, list key 'pb_plan_notes').
+-- Added 26 Sep 2026. Free-text memos about training that feed the next
+-- rewrite of the plan. One row per note; the whole note is in `data`, and
+-- the generated columns exist so a notes review can be a plain query:
+--   select note_date, kind, status, body from plan_notes
+--   where status = 'open' order by note_date;
+-- To mark a note as used, update data (status 'applied' + 'resolution');
+-- the app picks that up on its next pull. Safe to run more than once.
+create table if not exists plan_notes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  note_id text not null,
+  data jsonb not null default '{}',
+  note_date text generated always as (data->>'date') stored,
+  kind      text generated always as (data->>'kind') stored,
+  status    text generated always as (data->>'status') stored,
+  body      text generated always as (data->>'text') stored,
+  updated_at timestamptz default now(),
+  unique(user_id, note_id)
+);
+alter table plan_notes enable row level security;
+do $$ begin
+  if not exists (select 1 from pg_policies where tablename = 'plan_notes' and policyname = 'plan_notes: own data') then
+    create policy "plan_notes: own data" on plan_notes for all using (auth.uid() = user_id);
+  end if;
+end $$;
