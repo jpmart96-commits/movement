@@ -56,6 +56,12 @@ const DOMAIN_FAMILIES = {
   'movement':      ['E1', 'E2', 'E3'],
 };
 const MOVEMENT_FULL_DAY_TYPES = ['z2-bike', 'z2-run', 'light'];
+// Skill lines that already load the wrists hard. Almost all of movement
+// practice is hand-supported, so when the movement domain lands on one of
+// these days it drops high-impact wrist work and caps the rest, rather than
+// stacking two wrist sessions into one day (26 Sep).
+const WRIST_SKILL_LINES = ['handstand'];
+const WRIST_CAP_ON_SKILL_DAYS = 2;
 
 // ── 1. TAGGING RULES ──────────────────────────────────────────
 const Complementary = {
@@ -647,14 +653,21 @@ const SKILL_LINES = {
     { role: 'activate', n: 1, ids: ['first-knuckle-raises', 'fin-pushups', 'rice-bucket', 'dorsal-pushups'] },
     { role: 'mobilise', n: 1, ids: ['tendon-glides', 'prayer-stretch', 'pronator-stretch'] },
   ] },
+  // Block 1: donkey kicks stand in for kick-ups, because nothing teaches the
+  // bail yet. When block 2's days are written, 'hs-kick-up' comes back in
+  // with a cartwheel-bail step ahead of it (see monthplan.js block 2).
   'handstand': { label: 'Handstand', steps: [
     { role: 'mobilise', n: 1, ids: ['wrist-prep'] },
-    { role: 'activate', n: 1, ids: ['first-knuckle-raises', 'fin-pushups'] },
+    { role: 'activate', n: 1, ids: ['first-knuckle-raises', 'fin-pushups', 'slingshot-rebound-plank'] },
     { role: 'practice', n: 1, ids: ['front-line-drill', 'wall-walk', 'pike-pushup'] },
-    { role: 'practice', n: 1, ids: ['hs-wall-plank', 'wall-shoulder-taps', 'hs-kick-up'] },
+    { role: 'practice', n: 1, ids: ['hs-wall-plank', 'wall-shoulder-taps', 'donkey-kicks'] },
     { role: 'practice', n: 1, ids: ['hs-wall-hold'] },
   ] },
+  // The low bar drill goes first while fresh: feet down, cheap, and it builds
+  // the hip drive a kipping muscle-up runs on before pulling strength can hide
+  // an arms-first habit. 'banded-mu-transition' joins in block 2.
   'muscle-up-prep': { label: 'Muscle-up prep', steps: [
+    { role: 'practice', n: 1, ids: ['low-bar-drill'] },
     { role: 'develop',  n: 1, ids: ['false-grip-hang'] },
     { role: 'activate', n: 1, ids: ['scap-pullups'] },
     { role: 'develop',  n: 1, ids: ['false-grip-ring-row', 'ring-row', 'explosive-pullup'] },

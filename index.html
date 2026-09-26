@@ -378,6 +378,14 @@
           </label>
         </div>
 
+        <div class="data-action" style="border-top:1px solid var(--border);padding-top:.875rem">
+          <div class="data-action-label">Import vitals</div>
+          <div class="data-action-sub">Resting HR, HRV, VO2 max and sleep from an Apple Health export. Make the file with <code>tools/health_vitals.py export.zip</code>. Merges by date — never removes days.</div>
+          <label class="btn-ghost" style="cursor:pointer;color:var(--accent)">Import vitals ↑
+            <input type="file" accept=".json" style="display:none" onchange="importVitals(this)">
+          </label>
+        </div>
+
         <div id="data-status" style="font-size:12px;color:var(--text3);margin-top:.75rem;padding:0 .25rem;display:none"></div>
 
         <div style="border-top:1px solid var(--border);padding-top:.875rem;margin-top:.875rem">
@@ -394,9 +402,8 @@
 <!-- FAB — add exercise (visible in settings) -->
 <button class="fab" id="fab" onclick="openExerciseModal()" title="Add exercise" style="display:none">+</button>
 
-<!-- Exercise sheet (level 3 of Today / the live session). Global: it used to
-     sit inside the Log screen, which is display:none while you're on Today
-     or the live session, so tapping an exercise there showed nothing. -->
+<!-- Exercise sheet (global) — level 3 of Today / the live session. Must live
+     outside every .screen: a hidden screen hides its children, position:fixed or not. -->
 <div id="ex-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeExSheet()">
   <div class="mv-sheet" onclick="event.stopPropagation()" id="ex-sheet"></div>
 </div>
@@ -461,6 +468,7 @@ function setTheme(t) {
 }
 </script>
 <script src="data/library.js"></script>
+<script src="data/complementary.js"></script>
 <script src="data/scaffold.js"></script>
 <script src="data/monthplan.js"></script>
 <script src="js/app.js"></script>
@@ -723,6 +731,138 @@ function _cardioLogs(limit = 40) {
   return out.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
+// ── Strength targets: where each lift stands against its checkpoints ──
+// plan.targets are prose ("60 by 16 Oct · 62.5 by 13 Nov · …"), so they are
+// parsed here rather than changing the seed's shape. Anything that doesn't
+// parse falls back to the old text row, so a reworded target never breaks
+// the card. "Where you stand" comes from logged sets, floored at the
+// block's starting numbers.
+const _LIFT_IDS = [[/squat/i, 'squat'], [/deadlift/i, 'deadlift'], [/incline|bench/i, 'incline-bench'],
+                   [/overhead|ohp/i, 'overhead-press'], [/pull/i, 'pull-up']];
+const _MON3 = { jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11 };
+
+function _parseLiftTarget(t, plan) {
+  const hit = _LIFT_IDS.find(([re]) => re.test(t.metric));
+  if (!hit) return null;
+  const id = hit[1], byReps = id === 'pull-up';
+  const y0 = +String(plan.blockStart || '').slice(0, 4) || new Date().getFullYear();
+  const m0 = (+String(plan.blockStart || '').slice(5, 7) || 1) - 1;
+  const when = s => {
+    const m = /(\d{1,2})\s+([A-Za-z]{3})/.exec(s); if (!m) return null;
+    const mo = _MON3[m[2].toLowerCase()]; if (mo == null) return null;
+    return { d: new Date(mo < m0 ? y0 + 1 : y0, mo, +m[1], 12), label: `${+m[1]} ${m[2]}` };
+  };
+  const scheme = /(\d+)\s*x\s*(\d+)/i.exec(t.metric);          // "Squat 3x5"
+  const cps = String(t.to || '').split('·').map(s => {
+    const w = when(s); if (!w) return null;
+    if (byReps) {
+      const m = /(\d+)\s*x\s*(\d+)/i.exec(s);
+      return m ? { sets: +m[1], reps: +m[2], v: +m[1] * +m[2], ...w } : null;
+    }
+    const m = /^\s*([\d.]+)/.exec(s);
+    return m ? { sets: scheme ? +scheme[1] : 3, reps: scheme ? +scheme[2] : 5, v: +m[1], ...w } : null;
+  });
+  if (!cps.length || cps.some(c => !c)) return null;
+
+  let base;
+  if (byReps) {
+    const list = ((String(t.from).match(/\d+(?:\/\d+)+/) || [''])[0]).split('/').map(Number).filter(n => n > 0);
+    if (!list.length) return null;
+    const top = [...list].sort((a, b) => b - a).slice(0, cps[0].sets);
+    base = { v: top.reduce((a, b) => a + b, 0), label: top.join('/') };
+  } else {
+    const m = /([\d.]+)\s*x\s*(\d+)/i.exec(t.from); if (!m) return null;
+    base = { v: +m[1], label: `${m[1]}×${m[2]}` };
+  }
+  const name = t.metric.replace(/\s*\d+\s*x\s*\d+\s*$/i, '').trim();
+  return { id, byReps, name, scheme: scheme ? `${scheme[1]}×${scheme[2]}` : '', cps, base };
+}
+
+// Best standing in the last 60 days. `cur` drives the bar (top set for the
+// target reps; for pull-ups, total reps over the best N sets). `proven` is
+// the highest checkpoint met in full — every set, one session.
+function _liftStanding(p) {
+  const since = Date.now() - 60 * 86400000;
+  const hist = History.getExerciseHistory(p.id, 40).filter(h => new Date(h.date).getTime() >= since);
+  let cur = { v: p.base.v, label: p.base.label, date: null };
+  let proven = -1;
+  const need = p.cps[0];
+  hist.forEach(h => {
+    const sets = h.sets || [];
+    if (p.byReps) {
+      const r = sets.map(s => +s.reps || 0).filter(n => n > 0).sort((a, b) => b - a);
+      const v = r.slice(0, need.sets).reduce((a, b) => a + b, 0);
+      if (v > cur.v) cur = { v, label: r.slice(0, need.sets).join('/'), date: h.date };
+      p.cps.forEach((c, i) => { if (r.length >= c.sets && r[c.sets - 1] >= c.reps) proven = Math.max(proven, i); });
+    } else {
+      const q = sets.filter(s => s.weight && (+s.reps || 0) >= need.reps)
+        .map(s => ({ w: +s.weight, r: +s.reps })).sort((a, b) => b.w - a.w);
+      if (q.length && q[0].w > cur.v) cur = { v: q[0].w, label: `${q[0].w}×${q[0].r}`, date: h.date };
+      p.cps.forEach((c, i) => { if (q.length >= c.sets && q[c.sets - 1].w >= c.v) proven = Math.max(proven, i); });
+    }
+  });
+  return { cur, proven };
+}
+
+function _strengthRow(t, plan) {
+  const p = _parseLiftTarget(t, plan);
+  if (!p) return `<div class="mv-lift">
+      <div class="mv-lift-name">${t.metric}</div>
+      <div class="mv-lift-next">${t.from} &rarr; ${t.to}</div>
+    </div>`;
+  const { cur, proven } = _liftStanding(p);
+  const r1 = n => Math.round(n * 10) / 10;
+  const today = new Date(); today.setHours(12, 0, 0, 0);
+  const nextIdx = p.cps.findIndex((c, i) => i > proven);
+  const next = nextIdx >= 0 ? p.cps[nextIdx] : null;
+
+  const fills = p.cps.map((c, i) => {
+    const prev = i === 0 ? p.base.v : p.cps[i - 1].v;
+    return i <= proven ? 1
+      : c.v <= prev ? (cur.v >= c.v ? 1 : 0)
+      : Math.max(0, Math.min(1, (cur.v - prev) / (c.v - prev)));
+  });
+  // Yellow "you are here" dot: fills run full-then-partial, so their mean
+  // is how far along the whole track the current number sits.
+  const here = fills.reduce((a, b) => a + b, 0) / fills.length;
+  const segs = p.cps.map((c, i) => {
+    const fill = fills[i];
+    const cls = i <= proven ? 'done' : (i === nextIdx ? 'next' : '');
+    const what = p.byReps ? `${c.sets}×${c.reps}` : `${c.v}`;
+    return `<div class="mv-lift-seg ${cls}">
+      <i><b style="width:${(fill * 100).toFixed(1)}%"></b></i>
+      <div class="mv-lift-cp">${i <= proven ? '✓ ' : ''}${what}<em>${c.label}</em></div>
+    </div>`;
+  }).join('');
+
+  let nextTxt;
+  if (!next) nextTxt = `<b>Every block target hit.</b>`;
+  else {
+    const days = Math.round((next.d - today) / 86400000);
+    const when = days > 1 ? `${days} days` : days === 1 ? 'tomorrow' : days === 0 ? 'today' : `${-days}d past`;
+    const goal = p.byReps ? `${next.sets}×${next.reps}` : `${next.sets}×${next.reps} @ ${next.v} kg`;
+    const gap = r1(next.v - cur.v);
+    const how = p.byReps
+      ? (gap > 0 ? `${gap} more rep${gap === 1 ? '' : 's'} across the ${next.sets} sets` : `the total is there — now ${next.reps} on every set`)
+      : (gap > 0 ? `${gap} kg to go on the top set` : `top set is there — now all ${next.sets} sets`);
+    nextTxt = `Next <b>${goal}</b> by ${next.label} · ${how} · ${when}`;
+  }
+
+  const src = cur.date ? Utils.formatDate(cur.date) : 'starting point';
+  const now = p.byReps
+    ? `<div class="mv-lift-v">${cur.v}<span>reps</span></div><div class="mv-lift-src">best ${p.cps[0].sets} sets ${cur.label} · ${src}</div>`
+    : `<div class="mv-lift-v">${cur.v}<span>kg</span></div><div class="mv-lift-src">top set ${cur.label} · ${src}</div>`;
+
+  return `<div class="mv-lift">
+    <div class="mv-lift-head">
+      <div><div class="mv-lift-name">${p.name}</div><div class="mv-lift-scheme">${p.scheme ? p.scheme + ' working sets' : 'strict, best ' + p.cps[0].sets + ' sets'}</div></div>
+      <div class="mv-lift-now">${now}</div>
+    </div>
+    <div class="mv-lift-track">${segs}<span class="mv-lift-here" style="left:${(here * 100).toFixed(1)}%" title="Where you are now"></span></div>
+    <div class="mv-lift-next">${nextTxt}</div>
+  </div>`;
+}
+
 function _mvCard(eyebrow, tone, body, extra) {
   return `<div class="mv-card"${extra || ''}>
     <div class="mv-eyebrow ${tone}" style="margin-bottom:.6rem">${eyebrow}</div>${body}</div>`;
@@ -734,9 +874,23 @@ function renderProgress() {
   const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
   const st = (App.profile && App.profile.settings) || {};
   const idx = History.getIndex(200);
-  const doneDates = new Set(idx.map(r => (r.date || '').slice(0, 10)));
+  // Local calendar date, not the UTC slice — a session late in a Lisbon
+  // evening would otherwise tick the next day's square. Only completed
+  // sessions count; an abandoned in-progress snapshot is not a day done.
+  const doneDates = new Set(idx
+    .filter(r => r.date && r.status !== 'in-progress')
+    .map(r => { const t = new Date(r.date), p = n => String(n).padStart(2, '0');
+      return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}`; }));
   const cardio = _cardioLogs();
   const z2ceil = (st.hrZones && st.hrZones.z2) || 153;
+  // Settings values win; otherwise the latest watch reading (VO2 max) or the
+  // 7-day average (resting HR) from imported vitals.
+  const _watch = m => {
+    if (typeof Vitals === 'undefined') return null;
+    if (m === 'vo2') { const l = Vitals.latest('vo2'); return l ? l.v.toFixed(1) : null; }
+    const l = Vitals.latest(m); const a = l && Vitals._trailing(m, l.date, 7);
+    return a ? Math.round(a.mean) : null;
+  };
   let h = `<div style="padding:.4rem 0 .9rem">
     <div class="logo" style="font-size:1.45rem">Progress</div>
     <div style="font-size:.76rem;color:var(--text3);margin-top:.15rem">${plan ? plan.title : 'No block loaded'}</div>
@@ -765,12 +919,15 @@ function renderProgress() {
 
   // 2 — the engine
   const tests = cardio.filter(c => c.isBenchmark);
+  // A test is a 30-min window inside a longer run, so its distance lives on
+  // `benchmark`, not on the whole-run distanceKm (5.7km run, 4.4km window).
+  const bm = tests.length ? (tests[0].benchmark || { distanceKm: tests[0].distanceKm }) : null;
   const stat = (v, k) => `<div><div class="mv-stat-v" style="color:${v ? 'var(--text)' : 'var(--text3)'}">${v || '—'}</div><div class="mv-stat-k">${k}</div></div>`;
   h += _mvCard('The engine', 'mv-eyebrow--green', `
     <div class="mv-stat3" style="margin-bottom:.7rem">
-      ${stat(tests.length ? tests[0].distanceKm + '<span style="font-size:.85rem;font-weight:500;color:var(--text3)">km</span>' : null, '@' + z2ceil + 'bpm / 30min')}
-      ${stat(st.vo2max, 'VO2 max')}
-      ${stat(st.restingHR, 'resting HR')}
+      ${stat(bm ? Number(bm.distanceKm).toFixed(2) + '<span style="font-size:.85rem;font-weight:500;color:var(--text3)">km</span>' : null, bm && bm.avgHR ? 'avg ' + bm.avgHR + 'bpm / 30min' : '@' + z2ceil + 'bpm / 30min')}
+      ${stat(st.vo2max || (_watch('vo2') || null), 'VO2 max')}
+      ${stat(st.restingHR || (_watch('rhr') || null), 'resting HR')}
     </div>
     <div class="mv-body" style="padding-top:.6rem;border-top:1px solid var(--border)">${tests.length
       ? 'Same cap and route every block — distance is the only thing that can move.'
@@ -809,14 +966,9 @@ function renderProgress() {
 
   // 5 — strength
   const lifts = ((plan && plan.targets) || []).filter(t => /squat|deadlift|bench|press|pull/i.test(t.metric));
-  if (lifts.length) h += _mvCard('Strength', 'mv-eyebrow--accent', lifts.map(t => `
-    <div style="margin-bottom:.7rem">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.25rem">
-        <div style="font-size:.82rem;font-weight:500">${t.metric}</div>
-        <div style="font-size:.74rem;color:var(--text3);font-variant-numeric:tabular-nums">${t.from} <span style="opacity:.5">→</span> <span style="color:var(--text)">${t.to}</span></div>
-      </div>
-      <div class="mv-bar"><i style="width:0%"></i></div>
-    </div>`).join(''));
+  if (lifts.length) h += _mvCard('Strength', 'mv-eyebrow--accent',
+    lifts.map(t => _strengthRow(t, plan)).join('') +
+    `<div class="mv-lift-foot">Yellow is where you are now. Bars fill from the block's starting numbers toward each checkpoint; a checkpoint turns green once every set lands in one session.</div>`);
 
   // 6 — movements
   const goals = Custom.getAllGoals().filter(g => g.priority <= 2).slice(0, 6);
@@ -874,7 +1026,13 @@ let _todayOpen;
 function _todayPlan() {
   const key = _todayInstanceKey();
   const stored = DB.get(key);
-  if (stored) return { session: stored, stored: true };
+  if (stored) {
+    // A plan built by an older generator is rebuilt, but only if nothing in
+    // it has been touched yet — a session in progress is never replaced.
+    const untouched = stored.status !== 'completed' &&
+      !(stored.blocks || []).some(b => (b.exercises || []).some(e => e.completed || e.skipped || (e.sets || []).length));
+    if (!(untouched && stored.genVersion !== Generator.GEN_VERSION)) return { session: stored, stored: true };
+  }
   const gen = Generator.generateFromScaffold({
     date: new Date(), profile: App.profile,
     sleep: App.checkin.sleep, energy: App.checkin.energy,
@@ -901,11 +1059,18 @@ function _clockAdd(hhmm, mins) {
   return `${String(Math.floor(t / 60) % 24).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
 }
 
+// The prescribed dose (sets × reps / hold, load) when the generator set one;
+// a cardio protocol is too long for the row, so that shows its minutes and
+// keeps the protocol for the exercise sheet.
 function _dose(ex) {
   const bits = [];
-  if (ex.allocatedMinutes) bits.push(ex.allocatedMinutes + 'm');
-  if (ex.lastLog && ex.lastLog.weight) bits.push(ex.lastLog.weight + 'kg');
-  else if (ex.pr && ex.pr.reps) bits.push('PR ' + ex.pr.reps);
+  const t = ex.target && ex.target.text;
+  const short = t && !(ex.logType === 'cardio' && t.length > 24);
+  if (short) bits.push(t);
+  else if (ex.allocatedMinutes) bits.push(ex.allocatedMinutes + 'm');
+  const hasLoad = ex.target && ex.target.loadKg != null;
+  if (!hasLoad && ex.lastLog && ex.lastLog.weight) bits.push('last ' + ex.lastLog.weight + 'kg');
+  else if (!short && ex.pr && ex.pr.reps) bits.push('PR ' + ex.pr.reps);
   return bits.join(' · ');
 }
 
@@ -2115,7 +2280,7 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
       <div class="ex-clickarea" onclick="openExSheetFromSession('${ex.id}',${bIdx})" title="View exercise details">
         ${photoHtml}
         <div class="ex-info">
-          <div class="ex-name">${ex.link?`<a href="${ex.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:ex.name}${ex.allocatedMinutes?`<span class="ex-target">~${Utils.formatDuration(Math.round(ex.allocatedMinutes*60))}</span>`:''}</div>
+          <div class="ex-name">${ex.link?`<a href="${ex.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:ex.name}${(ex.target&&ex.target.text&&ex.target.text.length<=32)?`<span class="ex-target">${ex.target.text}</span>`:(ex.allocatedMinutes?`<span class="ex-target">~${Utils.formatDuration(Math.round(ex.allocatedMinutes*60))}</span>`:'')}</div>
           ${ex.notes?`<div class="ex-notes">${ex.notes}</div>`:''}
         </div>
       </div>
@@ -2993,7 +3158,7 @@ function openDaySheet(dateStr) {
            +   '<span>' + escAttr(e.name)
            +     (e.notes ? '<span style="display:block;font-size:.71rem;color:var(--text3);line-height:1.4;margin-top:.1rem">' + escAttr(e.notes) + '</span>' : '')
            +   '</span>'
-           +   '<span style="color:var(--text3);white-space:nowrap">' + (e.allocatedMinutes ? e.allocatedMinutes + ' min' : '') + '</span>'
+           +   '<span style="color:var(--text3);white-space:nowrap">' + ((e.target && e.target.text && e.target.text.length <= 32) ? escAttr(e.target.text) : (e.allocatedMinutes ? e.allocatedMinutes + ' min' : '')) + '</span>'
            + '</div>';
       });
       h += '</div>';
@@ -3334,6 +3499,23 @@ function importBackup(input) {
       renderSettings();
     } catch(err) {
       setDataStatus('Import failed — invalid file', true);
+    }
+    input.value = '';
+  };
+  reader.readAsText(f);
+}
+
+// ── IMPORT VITALS — watch measurements, merged by date ────────
+function importVitals(input) {
+  const f = input.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const r = Vitals.merge(JSON.parse(e.target.result));
+      await DB._flush();
+      setDataStatus(`Vitals imported ✓ ${r.added} new day${r.added === 1 ? '' : 's'}, ${r.updated} refreshed · ${r.total} in total`);
+    } catch (err) {
+      setDataStatus('Vitals import failed — ' + (err && err.message ? err.message : 'invalid file'), true);
     }
     input.value = '';
   };

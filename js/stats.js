@@ -568,7 +568,12 @@ function _statsVitals(el, now) {
   const to = Stats._ymd(now);
   const f = new Date(now); f.setDate(f.getDate() - (_statsMode === 'month' ? 182 : 83));
   const from = Stats._ymd(f);
-  const W = Math.max(240, ((el && el.clientWidth) || 360) - 34 - 34);   // card padding+border, y-label gutter
+  // On a laptop (≥1180px, css/desktop.css) the Body cards sit two to a row,
+  // so each chart gets half the width minus the 1.25rem column gap. Sized
+  // from the whole body width, the SVGs spilled out of their cards.
+  const twoCol = window.matchMedia && window.matchMedia('(min-width: 1180px)').matches;
+  const colW = ((el && el.clientWidth) || 360);
+  const W = Math.max(240, (twoCol ? (colW - 20) / 2 : colW) - 34 - 34);   // card padding+border, y-label gutter
   Vitals.ORDER.forEach(m => { h += _vitalCard(m, from, to, W); });
   const upd = doc.range ? `Watch data ${Stats._short(doc.range[0])} – ${Stats._short(doc.range[1])}` : '';
   h += `<div class="st-sub" style="margin:.2rem 0 1rem">${upd}. Nights under 3h are shown hollow and left out of the average.</div>`;
@@ -638,8 +643,9 @@ function _vitalCard(metric, from, to, W) {
   // the line: 7-day average, or the estimates themselves for VO2 max
   const line = cfg.sparse ? pts.map(p => ({ date: p.date, v: p.v })) : avg.filter(a => a.a).map(a => ({ date: a.date, v: a.a.mean }));
   if (line.length > 1) marks += `<polyline points="${line.map(p => `${xOf(p.date).toFixed(1)},${yOf(p.v).toFixed(1)}`).join(' ')}" class="st-vline"/>`;
-  if (cfg.sparse) marks += line.map(p => `<circle cx="${xOf(p.date).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="4" class="st-vdot"/>`).join('');
-  else if (line.length) { const e = line[line.length - 1]; marks += `<circle cx="${xOf(e.date).toFixed(1)}" cy="${yOf(e.v).toFixed(1)}" r="4" class="st-vdot"/>`; }
+  // The most recent reading is drawn in the "now" colour (yellow), last so it sits on top.
+  if (cfg.sparse) marks += line.slice(0, -1).map(p => `<circle cx="${xOf(p.date).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="4" class="st-vdot"/>`).join('');
+  if (line.length) { const e = line[line.length - 1]; marks += `<circle cx="${xOf(e.date).toFixed(1)}" cy="${yOf(e.v).toFixed(1)}" r="4.5" class="st-vdot st-vnow"/>`; }
 
   // headline
   const last = line[line.length - 1];
