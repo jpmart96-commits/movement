@@ -731,7 +731,9 @@ const Importer = {
   },
 
   _plannedZone(session) {
-    const slotKey = session.themeOverride || session.weekday;
+    // dayType first: a plan day that borrowed another day type (a test on a
+    // Wednesday) is judged against what it actually was.
+    const slotKey = session.themeOverride || session.dayType || session.weekday;
     const slot = (typeof WEEK_SCAFFOLD !== 'undefined' && slotKey) ? WEEK_SCAFFOLD[slotKey] : null;
     if (!slot || !slot.mainFocus) return null;
     if (slot.mainFocus.cardioMode === 'steady') return 2;
