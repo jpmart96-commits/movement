@@ -30,7 +30,7 @@ let fails=0; const ok=(c,m)=>{ console.log((c?'PASS ':'FAIL ')+m); if(!c) fails+
   await A.page.click('#today-body >> text=+ Note'); await W(200);
   ok(await A.page.isVisible('#note-sheet'), 'Today + Note opens the sheet');
   await A.page.fill('#note-sheet-text','Slept 6h, HR drifted early.');
-  await A.page.click('#note-sheet .mv-sheet-foot >> text=Save'); await W(200);
+  await A.page.click('#note-sheet .mv-sheet-foot >> text=Save'); await W(450); // sheets animate out (~180ms)
   ok(!(await A.page.isVisible('#note-sheet')), 'sheet closes on save');
 
   // 3. from the exercise sheet
