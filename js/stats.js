@@ -367,7 +367,7 @@ const Vitals = {
   // Returns { added, updated, total } or throws on a file that isn't ours.
   merge(doc) {
     if (!doc || doc.kind !== 'movement-vitals' || !doc.days || typeof doc.days !== 'object') {
-      throw new Error('Not a vitals file — make it with tools/health_vitals.py');
+      throw new Error('Not a vitals file — pick the Apple Health export.zip or a vitals.json');
     }
     const cur = this.load() || { kind: 'movement-vitals', version: 1, days: {} };
     let added = 0, updated = 0;
@@ -586,7 +586,7 @@ function _statsVitals(el, now) {
   const doc = Vitals.load();
   let h = `<div class="mv-eyebrow" style="margin:1.3rem 0 .55rem">Body</div>`;
   if (!doc || !Object.keys(doc.days || {}).length) {
-    return h + `<div class="mv-card"><div class="st-empty">No watch vitals yet. Settings → Data → Import vitals, with a file made by <code>tools/health_vitals.py</code> from an Apple Health export.</div></div>`;
+    return h + `<div class="mv-card"><div class="st-empty">No watch vitals yet. Settings → Data → Import vitals, with the <code>export.zip</code> from Apple Health (Health → profile → Export All Health Data).</div></div>`;
   }
   const to = Stats._ymd(now);
   const f = new Date(now); f.setDate(f.getDate() - (_statsMode === 'month' ? 182 : 83));
