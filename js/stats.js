@@ -597,6 +597,89 @@ function _statsPlot(cols, ticks, data, showLbl, ref) {
 // mean ± 1 SD, the usual way to read whether today is unusual *for you*.
 // ─────────────────────────────────────────────────────────────
 const _vitalsHover = {};
+// Sleep card view: 'night' (daily line) or 'month' (a bar per month).
+// Remembered per device.
+let _sleepView = (() => { try { return localStorage.getItem('pb_sleep_view') === 'month' ? 'month' : 'night'; } catch (e) { return 'night'; } })();
+function setSleepView(v) {
+  _sleepView = v === 'month' ? 'month' : 'night';
+  try { localStorage.setItem('pb_sleep_view', _sleepView); } catch (e) {}
+  if (typeof renderStats === 'function') renderStats();
+}
+function _sleepToggle() {
+  const b = (v, l) => `<button type="button" role="tab" aria-selected="${_sleepView === v}" class="${_sleepView === v ? 'on' : ''}" onclick="setSleepView('${v}')">${l}</button>`;
+  return `<div class="st-seg st-seg--mini" role="tablist" aria-label="Sleep view">${b('night', 'Nightly')}${b('month', 'Monthly')}</div>`;
+}
+
+// Sleep by month, up to the last 12 months: bar = average per night
+// (comparable across short and partial months); the readout adds the
+// month's total hours and how many nights it covers. Partial nights
+// (< 3h) count toward the total but not the average, as elsewhere.
+function _sleepMonthCard(to, W, head) {
+  const doc = Vitals.load();
+  const by = {};
+  Object.entries(doc.days).forEach(([d, r]) => {
+    if (d > to || r.sleep == null) return;
+    const k = d.slice(0, 7), m = by[k] || (by[k] = { total: 0, nights: 0, good: 0, goodN: 0, deep: 0, rem: 0 });
+    m.total += r.sleep; m.nights++;
+    if (Vitals._valid('sleep', r.sleep)) { m.good += r.sleep; m.goodN++; m.deep += r.deep || 0; m.rem += r.rem || 0; }
+  });
+  const keys = Object.keys(by).sort().slice(-12);
+  if (!keys.length) return `<div class="mv-card">${head('—', 'no sleep recorded')}</div>`;
+  // Every calendar month from the first with data to now, so a month with
+  // no nights shows as a gap rather than disappearing.
+  const months = [];
+  for (let [y, mo] = keys[0].split('-').map(Number); ; ) {
+    const k = `${y}-${String(mo).padStart(2, '0')}`;
+    months.push(k);
+    if (k >= to.slice(0, 7) || months.length >= 12) break;
+    if (++mo > 12) { mo = 1; y++; }
+  }
+  const MON = Stats._MON;
+  const H = 86, PAD = 6;
+  const rows = months.map(k => {
+    const m = by[k];
+    return { k, label: MON[+k.slice(5) - 1], m, avg: m && m.goodN ? m.good / m.goodN : null };
+  });
+  const maxAvg = Math.max(...rows.map(r => r.avg || 0));
+  const hi = Math.max(9 * 60, Math.ceil(maxAvg / 180) * 180);          // at least 9h, 3h steps
+  const yOf = v => PAD + (1 - v / hi) * (H - PAD * 2);
+  const ticks = []; for (let t = 0; t <= hi; t += 180) ticks.push(t);
+  const short = m => `${Math.floor(Math.round(m) / 60)}h${String(Math.round(m) % 60).padStart(2, '0')}`;
+  const grid = ticks.map(t => `<line x1="0" x2="${W}" y1="${yOf(t).toFixed(1)}" y2="${yOf(t).toFixed(1)}" class="st-vgrid"/>
+      <text x="${W + 6}" y="${(yOf(t) + 3.5).toFixed(1)}" class="st-vtick">${t / 60}h</text>`).join('');
+  const slot = (W - PAD * 2) / rows.length, bw = Math.min(34, slot * 0.62);
+  const cur = to.slice(0, 7);
+  let bars = '';
+  const hov = [];
+  rows.forEach((r, i) => {
+    const cx = PAD + slot * (i + 0.5);
+    bars += `<text x="${cx.toFixed(1)}" y="${H + 13}" text-anchor="middle" class="st-vtick">${r.label}${i === 0 || r.k.endsWith('-01') ? ' ’' + r.k.slice(2, 4) : ''}</text>`;
+    if (r.avg == null) {
+      hov.push({ x: cx, y: yOf(0), text: `${r.label} ${r.k.slice(0, 4)} · no nights recorded` });
+      return;
+    }
+    const y = yOf(r.avg);
+    bars += `<rect x="${(cx - bw / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${(yOf(0) - y).toFixed(1)}" rx="3" class="st-vbar${r.k === cur ? ' st-vbar--now' : ''}"/>`;
+    if (slot >= 28) bars += `<text x="${cx.toFixed(1)}" y="${(y - 4).toFixed(1)}" text-anchor="middle" class="st-vtick st-vbarv">${short(r.avg)}</text>`;
+    const m = r.m, part = m.nights - m.goodN;
+    hov.push({ x: cx, y, text: `${r.label} ${r.k.slice(0, 4)} · ${Stats.fmtMin(r.avg)}/night · ${Math.round(m.total / 60)}h total over ${m.nights} night${m.nights === 1 ? '' : 's'}` +
+      (m.goodN ? ` · deep ${Stats.fmtMin(m.deep / m.goodN)}, REM ${Stats.fmtMin(m.rem / m.goodN)}` : '') + (part ? ` · ${part} partial` : '') });
+  });
+  const last = rows.filter(r => r.avg != null).pop();
+  const totalAll = rows.reduce((a, r) => a + (r.m ? r.m.total : 0), 0);
+  const sub = `${last.label}: ${Math.round(last.m.total / 60)}h over ${last.m.nights} nights · avg per night`;
+  _vitalsHover.sleep = { pts: hov, sub };
+  return `<div class="mv-card">
+    ${head(`${Stats.fmtMin(last.avg)}`, sub)}
+    <svg class="st-vsvg" width="${W + 34}" height="${H + 16}" viewBox="0 0 ${W + 34} ${H + 16}" role="img"
+      aria-label="Sleep, average per night by month, ${months[0]} to ${months[months.length - 1]}; ${Math.round(totalAll / 60)} hours in all"
+      onpointermove="vitalsHover('sleep', event)" onpointerdown="vitalsHover('sleep', event)" onpointerleave="vitalsHover('sleep', null)">
+      ${grid}${bars}
+      <line id="vx-sleep" x1="0" x2="0" y1="0" y2="${H}" class="st-vcross" style="display:none"/>
+      <circle id="vd-sleep" r="4" class="st-vdot" style="display:none"/>
+    </svg>
+  </div>`;
+}
 
 function _statsVitals(el, now) {
   const doc = Vitals.load();
@@ -630,7 +713,8 @@ function _vitalCard(metric, from, to, W) {
   const head = (big, sub) => `<div class="st-vhead">
       <div><div class="st-title">${cfg.label}</div><div class="st-sub" id="vr-${metric}" style="margin:.1rem 0 0">${sub}</div></div>
       <div class="st-vbig">${big}</div>
-    </div>`;
+    </div>${metric === 'sleep' ? _sleepToggle() : ''}`;
+  if (metric === 'sleep' && _sleepView === 'month') return _sleepMonthCard(to, W, head);
   if (!pts.length) {
     return `<div class="mv-card">${head('—', 'nothing in this window')}</div>`;
   }
@@ -745,6 +829,7 @@ function vitalsHover(metric, ev) {
   const p = hv.pts.reduce((a, q) => (Math.abs(q.x - px) < Math.abs(a.x - px) ? q : a), hv.pts[0]);
   x.setAttribute('x1', p.x); x.setAttribute('x2', p.x); x.style.display = '';
   dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y); dot.style.display = '';
+  if (p.text) { ro.textContent = p.text; dot.style.display = 'none'; return; }
   const cfg = Vitals.METRICS[metric];
   const u = cfg.unit ? ' ' + cfg.unit : '';
   ro.textContent = `${Stats._short(p.date)} · ${Vitals.fmt(metric, p.v)}${u}` +
