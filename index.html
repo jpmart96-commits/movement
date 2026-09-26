@@ -13,6 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/rework.css">
+<link rel="stylesheet" href="css/desktop.css">
 </head>
 <body>
 
@@ -41,6 +42,7 @@
 
 <!-- NAV: Block / Today / Session(hidden) / Progress / Stats / Log / Settings -->
 <nav id="nav">
+  <div class="nav-brand" aria-hidden="true">MOVEMENT</div>
   <button class="nav-btn active" data-screen="home" onclick="navTo('home')" aria-label="Block">
     <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span>Block</span>
   </button>
@@ -376,14 +378,6 @@
           </label>
         </div>
 
-        <div class="data-action" style="border-top:1px solid var(--border);padding-top:.875rem">
-          <div class="data-action-label">Import vitals</div>
-          <div class="data-action-sub">Resting HR, HRV, VO2 max and sleep from an Apple Health export. Make the file with <code>tools/health_vitals.py export.zip</code>. Merges by date — never removes days.</div>
-          <label class="btn-ghost" style="cursor:pointer;color:var(--accent)">Import vitals ↑
-            <input type="file" accept=".json" style="display:none" onchange="importVitals(this)">
-          </label>
-        </div>
-
         <div id="data-status" style="font-size:12px;color:var(--text3);margin-top:.75rem;padding:0 .25rem;display:none"></div>
 
         <div style="border-top:1px solid var(--border);padding-top:.875rem;margin-top:.875rem">
@@ -400,8 +394,9 @@
 <!-- FAB — add exercise (visible in settings) -->
 <button class="fab" id="fab" onclick="openExerciseModal()" title="Add exercise" style="display:none">+</button>
 
-<!-- Exercise sheet (global) — level 3 of Today / the live session. Must live
-     outside every .screen: a hidden screen hides its children, position:fixed or not. -->
+<!-- Exercise sheet (level 3 of Today / the live session). Global: it used to
+     sit inside the Log screen, which is display:none while you're on Today
+     or the live session, so tapping an exercise there showed nothing. -->
 <div id="ex-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeExSheet()">
   <div class="mv-sheet" onclick="event.stopPropagation()" id="ex-sheet"></div>
 </div>
@@ -466,7 +461,6 @@ function setTheme(t) {
 }
 </script>
 <script src="data/library.js"></script>
-<script src="data/complementary.js"></script>
 <script src="data/scaffold.js"></script>
 <script src="data/monthplan.js"></script>
 <script src="js/app.js"></script>
@@ -559,13 +553,17 @@ function renderHome() {
   let h = '';
 
   // top bar
-  h += `<div style="display:flex;align-items:baseline;justify-content:space-between;padding:.4rem 0 .9rem">
-    <div class="logo">MOVEMENT</div>
+  // On a wide screen the sidebar carries the wordmark, so the top bar
+  // switches to a page title like every other screen (dk-* classes are
+  // desktop-only; see the DESKTOP section at the end of style.css).
+  h += `<div class="mv-topbar" style="display:flex;align-items:baseline;justify-content:space-between;padding:.4rem 0 .9rem">
+    <div class="logo"><span class="dk-hide">MOVEMENT</span><span class="dk-only">Block</span></div>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <span style="font-size:.72rem;color:var(--text3)">${days[now.getDay()].slice(0,3)} ${now.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getMonth()]}</span>
-      <button class="mv-cal-nav" style="font-size:1rem" onclick="navTo('settings')" aria-label="Settings">&#9881;</button>
+      <span class="mv-topbar-date" style="font-size:.72rem;color:var(--text3)">${days[now.getDay()].slice(0,3)} ${now.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][now.getMonth()]}</span>
+      <button class="mv-cal-nav dk-hide" style="font-size:1rem" onclick="navTo('settings')" aria-label="Settings">&#9881;</button>
     </div>
-  </div>`;
+  </div>
+  <div class="dk-grid dk-grid--home"><div class="dk-main">`;
 
   // block card
   if (plan) {
@@ -640,7 +638,8 @@ function renderHome() {
   }
 
   h += `<button class="mv-ghost" onclick="startToday()">Compose manually</button>
-        <button class="mv-ghost" onclick="openManualLogModal()">Log a past session</button>`;
+        <button class="mv-ghost" onclick="openManualLogModal()">Log a past session</button>
+  </div><div class="dk-side">`;
 
   // week strip
   if (plan) {
@@ -686,7 +685,8 @@ function renderHome() {
     <div style="flex:1"><div class="mv-stat-v">${idx[0] ? Utils.daysSince(idx[0].date)+'d' : '—'}</div><div class="mv-stat-k">Last</div></div>
   </div>
   <div class="mv-eyebrow" style="margin:1.2rem 0 .5rem">Recent</div>
-  ${History.getIndex(5).map(sessionRow).join('') || '<div class="empty-state">No sessions yet.</div>'}`;
+  ${History.getIndex(5).map(sessionRow).join('') || '<div class="empty-state">No sessions yet.</div>'}
+  </div></div>`;
 
   el.innerHTML = h;
 }
@@ -734,27 +734,14 @@ function renderProgress() {
   const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
   const st = (App.profile && App.profile.settings) || {};
   const idx = History.getIndex(200);
-  // Local calendar date, not the UTC slice — a session late in a Lisbon
-  // evening would otherwise tick the next day's square. Only completed
-  // sessions count; an abandoned in-progress snapshot is not a day done.
-  const doneDates = new Set(idx
-    .filter(r => r.date && r.status !== 'in-progress')
-    .map(r => { const t = new Date(r.date), p = n => String(n).padStart(2, '0');
-      return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}`; }));
+  const doneDates = new Set(idx.map(r => (r.date || '').slice(0, 10)));
   const cardio = _cardioLogs();
   const z2ceil = (st.hrZones && st.hrZones.z2) || 153;
-  // Settings values win; otherwise the latest watch reading (VO2 max) or the
-  // 7-day average (resting HR) from imported vitals.
-  const _watch = m => {
-    if (typeof Vitals === 'undefined') return null;
-    if (m === 'vo2') { const l = Vitals.latest('vo2'); return l ? l.v.toFixed(1) : null; }
-    const l = Vitals.latest(m); const a = l && Vitals._trailing(m, l.date, 7);
-    return a ? Math.round(a.mean) : null;
-  };
   let h = `<div style="padding:.4rem 0 .9rem">
     <div class="logo" style="font-size:1.45rem">Progress</div>
     <div style="font-size:.76rem;color:var(--text3);margin-top:.15rem">${plan ? plan.title : 'No block loaded'}</div>
-  </div>`;
+  </div>
+  <div class="dk-grid dk-grid--even"><div class="dk-main">`;
 
   // 1 — the plan
   if (plan && Array.isArray(plan.days)) {
@@ -778,15 +765,12 @@ function renderProgress() {
 
   // 2 — the engine
   const tests = cardio.filter(c => c.isBenchmark);
-  // A test is a 30-min window inside a longer run, so its distance lives on
-  // `benchmark`, not on the whole-run distanceKm (5.7km run, 4.4km window).
-  const bm = tests.length ? (tests[0].benchmark || { distanceKm: tests[0].distanceKm }) : null;
   const stat = (v, k) => `<div><div class="mv-stat-v" style="color:${v ? 'var(--text)' : 'var(--text3)'}">${v || '—'}</div><div class="mv-stat-k">${k}</div></div>`;
   h += _mvCard('The engine', 'mv-eyebrow--green', `
     <div class="mv-stat3" style="margin-bottom:.7rem">
-      ${stat(bm ? bm.distanceKm + '<span style="font-size:.85rem;font-weight:500;color:var(--text3)">km</span>' : null, bm && bm.avgHR ? 'avg ' + bm.avgHR + 'bpm / 30min' : '@' + z2ceil + 'bpm / 30min')}
-      ${stat(st.vo2max || (_watch('vo2') || null), 'VO2 max')}
-      ${stat(st.restingHR || (_watch('rhr') || null), 'resting HR')}
+      ${stat(tests.length ? tests[0].distanceKm + '<span style="font-size:.85rem;font-weight:500;color:var(--text3)">km</span>' : null, '@' + z2ceil + 'bpm / 30min')}
+      ${stat(st.vo2max, 'VO2 max')}
+      ${stat(st.restingHR, 'resting HR')}
     </div>
     <div class="mv-body" style="padding-top:.6rem;border-top:1px solid var(--border)">${tests.length
       ? 'Same cap and route every block — distance is the only thing that can move.'
@@ -807,6 +791,8 @@ function renderProgress() {
       <div style="font-size:.7rem;color:var(--text3)">${b ? b.when + (b.hr ? ' · HR ' + b.hr : '') : 'no run yet'}</div>
     </div>`;
   }).join(''));
+
+  h += `</div><div class="dk-side">`;
 
   // 4 — easy-day discipline
   const easy = cardio.filter(c => c.zones).slice(0, 10).reverse();
@@ -871,6 +857,7 @@ function renderProgress() {
       </div>`;
     }).join('')}`);
 
+  h += `</div></div>`;
   el.innerHTML = h;
 }
 
@@ -887,13 +874,7 @@ let _todayOpen;
 function _todayPlan() {
   const key = _todayInstanceKey();
   const stored = DB.get(key);
-  if (stored) {
-    // A plan built by an older generator is rebuilt, but only if nothing in
-    // it has been touched yet — a session in progress is never replaced.
-    const untouched = stored.status !== 'completed' &&
-      !(stored.blocks || []).some(b => (b.exercises || []).some(e => e.completed || e.skipped || (e.sets || []).length));
-    if (!(untouched && stored.genVersion !== Generator.GEN_VERSION)) return { session: stored, stored: true };
-  }
+  if (stored) return { session: stored, stored: true };
   const gen = Generator.generateFromScaffold({
     date: new Date(), profile: App.profile,
     sleep: App.checkin.sleep, energy: App.checkin.energy,
@@ -920,18 +901,11 @@ function _clockAdd(hhmm, mins) {
   return `${String(Math.floor(t / 60) % 24).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
 }
 
-// The prescribed dose (sets × reps / hold, load) when the generator set one;
-// a cardio protocol is too long for the row, so that shows its minutes and
-// keeps the protocol for the exercise sheet.
 function _dose(ex) {
   const bits = [];
-  const t = ex.target && ex.target.text;
-  const short = t && !(ex.logType === 'cardio' && t.length > 24);
-  if (short) bits.push(t);
-  else if (ex.allocatedMinutes) bits.push(ex.allocatedMinutes + 'm');
-  const hasLoad = ex.target && ex.target.loadKg != null;
-  if (!hasLoad && ex.lastLog && ex.lastLog.weight) bits.push('last ' + ex.lastLog.weight + 'kg');
-  else if (!short && ex.pr && ex.pr.reps) bits.push('PR ' + ex.pr.reps);
+  if (ex.allocatedMinutes) bits.push(ex.allocatedMinutes + 'm');
+  if (ex.lastLog && ex.lastLog.weight) bits.push(ex.lastLog.weight + 'kg');
+  else if (ex.pr && ex.pr.reps) bits.push('PR ' + ex.pr.reps);
   return bits.join(' · ');
 }
 
@@ -1095,10 +1069,15 @@ function renderToday() {
     ${session.weekday ? `<button class="mv-pill" style="flex-shrink:0;margin-top:.2rem;border-color:color-mix(in srgb,var(--accent) 35%,var(--bg2));background:color-mix(in srgb,var(--accent) 12%,var(--bg2));color:var(--accent);font-weight:600" onclick="openAdjust()">Adjust</button>` : ''}
   </div>`;
 
-  if (planDay && planDay.focusNote) h += `<div class="mv-note" style="margin-bottom:.9rem">${planDay.focusNote}</div>`;
+  // Three parts: note, timeline, footer. Stacked on a phone; on a wide
+  // screen the timeline takes the main column and note + footer sit beside
+  // it (grid areas in the DESKTOP section of style.css).
+  h += `<div class="dk-today">`;
+  if (planDay && planDay.focusNote) h += `<div class="mv-note dk-today-note" style="margin-bottom:.9rem">${planDay.focusNote}</div>`;
 
   // the timeline
   let clock = session.variant === 'light' ? '09:00' : '09:00';
+  h += `<div class="dk-today-line">`;
   h += session.blocks.map(b => {
     const at = clock;
     clock = _clockAdd(clock, b.duration || 0);
@@ -1123,16 +1102,18 @@ function renderToday() {
       </div>`}
     </div>`;
   }).join('');
+  h += `</div>`;
 
   // footer
   const slot = (typeof WEEK_SCAFFOLD !== 'undefined' && session.weekday) ? WEEK_SCAFFOLD[session.themeOverride || session.dayType || session.weekday] : null;
   const z2 = (App.profile.settings.hrZones && App.profile.settings.hrZones.z2) || 153;
-  h += `<div style="margin-top:1rem">
+  h += `<div class="dk-today-foot" style="margin-top:1rem">
     <div class="mv-tiles">
       ${slot && slot.fuel ? `<div class="mv-tile"><div class="mv-tile-k">Fuel</div><div class="mv-tile-v">${slot.fuel}</div></div>` : ''}
       <div class="mv-tile"><div class="mv-tile-k">Easy cap</div><div class="mv-tile-v">${z2} bpm</div></div>
     </div>
     <button class="mv-cta" onclick="${live ? "navTo('session')" : 'startTodayFromPlan()'}">${live ? 'Continue session →' : 'Start session'}</button>
+  </div>
   </div>`;
 
   el.innerHTML = h;
@@ -2134,7 +2115,7 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
       <div class="ex-clickarea" onclick="openExSheetFromSession('${ex.id}',${bIdx})" title="View exercise details">
         ${photoHtml}
         <div class="ex-info">
-          <div class="ex-name">${ex.link?`<a href="${ex.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:ex.name}${(ex.target&&ex.target.text&&ex.target.text.length<=32)?`<span class="ex-target">${ex.target.text}</span>`:(ex.allocatedMinutes?`<span class="ex-target">~${Utils.formatDuration(Math.round(ex.allocatedMinutes*60))}</span>`:'')}</div>
+          <div class="ex-name">${ex.link?`<a href="${ex.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:ex.name}${ex.allocatedMinutes?`<span class="ex-target">~${Utils.formatDuration(Math.round(ex.allocatedMinutes*60))}</span>`:''}</div>
           ${ex.notes?`<div class="ex-notes">${ex.notes}</div>`:''}
         </div>
       </div>
@@ -2675,7 +2656,12 @@ let _calYear=new Date().getFullYear(), _calMonth=new Date().getMonth();
 function renderLog() {
   const el = document.getElementById('log-body');
   if (!el) return;
-  el.innerHTML = _logCalendar() + _logDetail() + _logLifts() + _logDistribution() + _logSessions();
+  // Calendar + day detail | lifts + distribution, then the session list.
+  // The wrappers are plain blocks on a phone, so the order there is unchanged.
+  el.innerHTML = `<div class="dk-grid dk-grid--even">
+      <div class="dk-main">${_logCalendar() + _logDetail()}</div>
+      <div class="dk-side">${_logLifts() + _logDistribution()}</div>
+    </div>` + _logSessions();
 }
 
 // The month grid. A logged session gets its theme colour; a planned day
@@ -2869,7 +2855,7 @@ function _logSessions() {
       <span class="mv-eyebrow">Sessions</span>
       <button class="mv-pill" onclick="openManualLogModal()">+ Log a session</button>
     </div>
-    ${rows || '<div class="empty-state">No sessions logged yet.</div>'}`;
+    ${rows ? `<div class="dk-rows">${rows}</div>` : '<div class="empty-state">No sessions logged yet.</div>'}`;
 }
 
 function openLiftHistory(id) {
@@ -3007,7 +2993,7 @@ function openDaySheet(dateStr) {
            +   '<span>' + escAttr(e.name)
            +     (e.notes ? '<span style="display:block;font-size:.71rem;color:var(--text3);line-height:1.4;margin-top:.1rem">' + escAttr(e.notes) + '</span>' : '')
            +   '</span>'
-           +   '<span style="color:var(--text3);white-space:nowrap">' + ((e.target && e.target.text && e.target.text.length <= 32) ? escAttr(e.target.text) : (e.allocatedMinutes ? e.allocatedMinutes + ' min' : '')) + '</span>'
+           +   '<span style="color:var(--text3);white-space:nowrap">' + (e.allocatedMinutes ? e.allocatedMinutes + ' min' : '') + '</span>'
            + '</div>';
       });
       h += '</div>';
@@ -3348,23 +3334,6 @@ function importBackup(input) {
       renderSettings();
     } catch(err) {
       setDataStatus('Import failed — invalid file', true);
-    }
-    input.value = '';
-  };
-  reader.readAsText(f);
-}
-
-// ── IMPORT VITALS — watch measurements, merged by date ────────
-function importVitals(input) {
-  const f = input.files[0]; if (!f) return;
-  const reader = new FileReader();
-  reader.onload = async e => {
-    try {
-      const r = Vitals.merge(JSON.parse(e.target.result));
-      await DB._flush();
-      setDataStatus(`Vitals imported ✓ ${r.added} new day${r.added === 1 ? '' : 's'}, ${r.updated} refreshed · ${r.total} in total`);
-    } catch (err) {
-      setDataStatus('Vitals import failed — ' + (err && err.message ? err.message : 'invalid file'), true);
     }
     input.value = '';
   };
