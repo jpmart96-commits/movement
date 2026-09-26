@@ -38,11 +38,9 @@ const AppleHealth = {
     } else {
       const entry = await this._findExportXml(file);
       const data = file.slice(entry.dataStart, entry.dataStart + entry.csize);
-      raw = data.stream(); total = entry.csize;
-      if (entry.method === 8) raw = this._counted(raw, total, onProgress).pipeThrough(new DecompressionStream('deflate-raw'));
-      else if (entry.method === 0) raw = this._counted(raw, total, onProgress);
-      else throw new Error('export.xml uses an unsupported zip compression (' + entry.method + ')');
-      onProgress = null;                          // already counted on the compressed side
+      raw = data.stream(); total = entry.usize || entry.csize;   // progress = XML bytes scanned
+      if (entry.method === 8) raw = raw.pipeThrough(new DecompressionStream('deflate-raw'));
+      else if (entry.method !== 0) throw new Error('export.xml uses an unsupported zip compression (' + entry.method + ')');
     }
     if (onProgress) raw = this._counted(raw, total, onProgress);
     const text = raw.pipeThrough(new TextDecoderStream());
