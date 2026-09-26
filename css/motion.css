@@ -10,8 +10,9 @@
   --mv-in:  cubic-bezier(.4, 0, 1, 1);     /* accelerate: leaving */
 }
 
-@keyframes mvFadeIn   { from { opacity: 0; } }
-@keyframes mvFadeOut  { from { opacity: 1; } to { opacity: 0; } }
+/* the scrim fades its colour, not its opacity, so the sheet on it stays solid */
+@keyframes mvScrimIn  { from { background-color: transparent; } }
+@keyframes mvScrimOut { to { background-color: transparent; } }
 @keyframes mvSheetIn  { from { transform: translateY(100%); } }
 @keyframes mvSheetOut { from { transform: none; } to { transform: translateY(100%); } }
 @keyframes mvDialogIn { from { opacity: 0; transform: translateY(10px) scale(.97); } }
@@ -31,20 +32,20 @@
 .screen { animation: mvScreenIn .22s var(--mv-out); }
 
 /* backdrops fade; what sits on them moves */
-.modal-backdrop, .mv-sheet-back, .rest-overlay { animation: mvFadeIn .22s ease-out; }
+.modal-backdrop, .mv-sheet-back, .rest-overlay { animation: mvScrimIn .22s ease-out; }
 .modal-backdrop > .modal,
 .modal-backdrop > .goal-ring-modal,
 .mv-sheet-back > .mv-sheet { animation: mvSheetIn .34s var(--mv-out); }
 .modal-backdrop.centered > .modal,
 .rest-overlay > * { animation: mvDialogIn .26s var(--mv-out) both; }
 
-/* leaving (class set by Motion for ~220ms before display:none) */
-.mv-leaving { animation: mvFadeOut .22s var(--mv-in) forwards !important; pointer-events: none; }
+/* leaving (class set by Motion for ~180ms before display:none) */
+.mv-leaving { animation: mvScrimOut .18s var(--mv-in) forwards !important; pointer-events: none; }
 .mv-leaving > .modal,
 .mv-leaving > .goal-ring-modal,
-.mv-leaving > .mv-sheet { animation: mvSheetOut .22s var(--mv-in) forwards; }
+.mv-leaving > .mv-sheet { animation: mvSheetOut .18s var(--mv-in) forwards; }
 .mv-leaving.centered > .modal,
-.rest-overlay.mv-leaving > * { animation: mvDialogOut .2s var(--mv-in) forwards; }
+.rest-overlay.mv-leaving > * { animation: mvDialogOut .16s var(--mv-in) forwards; }
 
 /* on a wide screen the sheets are centred dialogs, so they pop instead */
 @media (min-width: 900px) {
@@ -53,7 +54,7 @@
   .mv-sheet-back > .mv-sheet { animation: mvDialogIn .26s var(--mv-out); }
   .mv-leaving > .modal,
   .mv-leaving > .goal-ring-modal,
-  .mv-leaving > .mv-sheet { animation: mvDialogOut .2s var(--mv-in) forwards; }
+  .mv-leaving > .mv-sheet { animation: mvDialogOut .16s var(--mv-in) forwards; }
 }
 
 /* the live session answers the tap */

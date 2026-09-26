@@ -32,6 +32,9 @@ under "now passing"; remove the `todo` then.
 - `tests/browser/suite.js` — sync layer against a fake in-memory Supabase shared by two
   "devices": token expiry mid-session, offline start, two-device index, custom-list
   merge/delete, quota, API-key scrubbing, outbox across reloads. `node tests/browser/suite.js`
+- `tests/browser/motion.js` — keep-awake (lock held while a session is live, dropped when hidden,
+  re-taken on return, released on finish) and motion (new set / completed check tagged, sheets
+  animate out, re-open mid-exit stays open).
 - `tests/browser/today-flow.js` — the Today edit flow end to end (run → bike, remove a
   block, reload, one-tap logging with RPE, finish with rows open).
 - `tests/browser/notes.js` — Notes tab end to end: write from the tab, quick add from Today
