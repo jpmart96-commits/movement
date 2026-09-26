@@ -1,0 +1,4860 @@
+{
+  "from": "2026-09-26",
+  "to": "2026-11-30",
+  "days": {
+    "2026-09-26": {
+      "dayType": "z2-run",
+      "theme": "Long Easy + Flexibility",
+      "minutes": 140,
+      "coordDomain": "vision",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "yoga-cat-cow", "target": "10 reps", "sets": 1 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "body-tapping", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 25,
+          "exercises": [
+            { "id": "peripheral-tracking", "target": "4 × 1 min", "sets": 4 },
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 },
+            { "id": "near-far-focus", "target": "4 × 1 min", "sets": 4 },
+            { "id": "ball-eye-patched", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "yoga-pigeon", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "single-leg-hamstring-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "runners-lunge-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 long run",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "45 min under 153 · 10 min walk", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "fin-pushups", "target": "2 × 8", "sets": 2 },
+            { "id": "wall-walk", "target": "3 × 2", "sets": 3 },
+            { "id": "wall-shoulder-taps", "target": "3 × 6", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-calves", "target": "1:45", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:30", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-09-27": {
+      "dayType": "light",
+      "theme": "Light",
+      "minutes": 85,
+      "coordDomain": "ball-reaction",
+      "skillLine": "hang-project",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 15,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "3 × 8", "sets": 3 },
+            { "id": "deep-squat-hold", "target": "3 × 1 min", "sets": 3 },
+            { "id": "tre-tremoring", "target": "3 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 20,
+          "exercises": [
+            { "id": "tennis-ball-dribble", "target": "4 × 1 min", "sets": 4 },
+            { "id": "tennis-ball-punch", "target": "4 × 1 min", "sets": 4 },
+            { "id": "tennis-ball-floor", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 30,
+          "exercises": [
+            { "id": "yoga-sun-salutation-a", "target": "3–5 rounds", "sets": 1 },
+            { "id": "yoga-butterfly", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-happy-baby", "target": "2 × 1:15", "sets": 2 },
+            { "id": "single-leg-hamstring-stretch", "target": "3 × 1:15 each side", "sets": 3 },
+            { "id": "yoga-childs-pose", "target": "2 × 1:15", "sets": 2 },
+            { "id": "bridge", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Hang project",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "5 × 45s", "sets": 5 },
+            { "id": "one-arm-passive-hang", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "meat-hook-hang", "target": "2 × 30s each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-legs-up-wall", "target": "4:30", "sets": 1 },
+            { "id": "body-scan", "target": "4:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-09-28": {
+      "dayType": "strength-a",
+      "theme": "Strength A",
+      "minutes": 140,
+      "coordDomain": "balance",
+      "skillLine": "prehab-shoulder-wrist",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-pump", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 25,
+          "exercises": [
+            { "id": "single-leg-eyes-closed", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "heel-toe-line-walk", "target": "3 × 1 min", "sets": 3 },
+            { "id": "single-leg-head-turns", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "single-leg-ball-pass", "target": "3 × 1 min each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "get-up-squat-stand", "target": "2 × 5", "sets": 2 },
+            { "id": "spine-cars", "target": "3 × 3", "sets": 3 },
+            { "id": "shoulder-cars", "target": "3 × 5 each side", "sets": 3 },
+            { "id": "ankle-dorsiflexion", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-thread-needle", "target": "3 × 30s", "sets": 3 },
+            { "id": "scap-pushups", "target": "3 × 10", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength A",
+          "minutes": 60,
+          "exercises": [
+            { "id": "squat", "target": "3 × 5 @ 57.5kg", "sets": 3, "loadKg": 57.5 },
+            { "id": "incline-bench", "target": "3 × 5 @ 54kg", "sets": 3, "loadKg": 54 },
+            { "id": "pull-up", "target": "4 × 4", "sets": 4 },
+            { "id": "toes-to-bar", "target": "3 × 8", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Shoulder & wrist prehab",
+          "minutes": 15,
+          "exercises": [
+            { "id": "face-pulls", "target": "2 × 15", "sets": 2 },
+            { "id": "ext-rotation-bands", "target": "2 × 12 each side", "sets": 2 },
+            { "id": "wrist-prep", "target": "2:15", "sets": 1 },
+            { "id": "first-knuckle-raises", "target": "2 × 20s", "sets": 2 },
+            { "id": "prayer-stretch", "target": "2 × 30s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "knee-to-chest-stretch", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-glutes", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "2:45", "sets": 1 },
+            { "id": "extended-exhale", "target": "2:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-09-29": {
+      "dayType": "z2-bike",
+      "theme": "Zone 2 bike",
+      "minutes": 140,
+      "coordDomain": "stick",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "2 × 8", "sets": 2 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 25,
+          "exercises": [
+            { "id": "stick-seated-hip-to-butt", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-360-rotation", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-two-stick-tangle", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-feet-balance-transition", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "yoga-cobra", "target": "2 × 1:15", "sets": 2 },
+            { "id": "sleeper-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "windshield-wipers", "target": "2 × 8", "sets": 2 },
+            { "id": "couch-stretch", "target": "2 × 1:15 each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 bike",
+          "minutes": 60,
+          "exercises": [
+            { "id": "z2-cycling", "target": "50 min at 134–153 · 5 min spin-up · 5 min easy spin", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "slingshot-rebound-plank", "target": "2 × 8", "sets": 2 },
+            { "id": "pike-pushup", "target": "3 × 6", "sets": 3 },
+            { "id": "donkey-kicks", "target": "2 × 8", "sets": 2 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-reclined-twist", "target": "1:45", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:45", "sets": 1 },
+            { "id": "box-breathing", "target": "5 min", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-09-30": {
+      "dayType": "plyo-power",
+      "theme": "Plyo · Power · Sprints",
+      "minutes": 140,
+      "coordDomain": "objects",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "arch-hang", "target": "3 × 20s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-heel-raise-toe-stretch", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 25,
+          "exercises": [
+            { "id": "juggling-under-leg", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-cascade", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-variations", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-columns", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "high-knees", "target": "2 × 15m", "sets": 2 },
+            { "id": "ankle-mobility", "target": "2 × 10 each side", "sets": 2 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 },
+            { "id": "glute-bridge-bw", "target": "2 × 12", "sets": 2 },
+            { "id": "straight-leg-bound", "target": "2 × 20m", "sets": 2 },
+            { "id": "a-march", "target": "2 × 20m", "sets": 2 },
+            { "id": "pogo-hops", "target": "3 × 15", "sets": 3 },
+            { "id": "strides", "target": "3 × 60m", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:power-plyo",
+          "label": "Plyo · Power · Sprints",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "10 min", "sets": 1 },
+            { "id": "uphill-sprints", "target": "6 × 20s", "sets": 6 },
+            { "id": "box-jump", "target": "4 × 4", "sets": 4 },
+            { "id": "broad-jump", "target": "3 × 3", "sets": 3 },
+            { "id": "med-ball-slams", "target": "3 × 8", "sets": 3 },
+            { "id": "walking", "target": "8 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "explosive-pullup", "target": "3 × 2", "sets": 3 },
+            { "id": "russian-dip", "target": "2 × 5", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-quads", "target": "2:45", "sets": 1 },
+            { "id": "tre-tremoring", "target": "2 min", "sets": 1 },
+            { "id": "physiological-sigh", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-01": {
+      "dayType": "z2-run",
+      "theme": "Zone 2 long run",
+      "minutes": 140,
+      "coordDomain": "movement",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "yoga-cat-cow", "target": "10 reps", "sets": 1 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "body-tapping", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 25,
+          "exercises": [
+            { "id": "ground-flow-sit-through", "target": "5 × 1 min", "sets": 5 },
+            { "id": "ground-flow-shoulder-roll", "target": "5 × 1 min", "sets": 5 },
+            { "id": "level-change-step", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "freestyle", "target": "5 × 1 min", "sets": 5 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "frog-stretch", "target": "3 × 1:15", "sets": 3 },
+            { "id": "hurdler-stretch", "target": "3 × 1:15 each side", "sets": 3 },
+            { "id": "standing-quad-stretch", "target": "3 × 1:15 each side", "sets": 3 },
+            { "id": "worlds-greatest-stretch", "target": "5 reps each side", "sets": 1 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 long run",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "50 min under 153 · 5 min walk", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "slingshot-rebound-plank", "target": "2 × 8", "sets": 2 },
+            { "id": "pike-pushup", "target": "3 × 6", "sets": 3 },
+            { "id": "donkey-kicks", "target": "2 × 8", "sets": 2 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-it-band", "target": "2:15", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:30", "sets": 1 },
+            { "id": "extended-exhale", "target": "4:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-02": {
+      "dayType": "strength-b",
+      "theme": "Strength B",
+      "minutes": 140,
+      "coordDomain": "vision",
+      "skillLine": "pancake-hips",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "spine-cars", "target": "3 reps", "sets": 1 },
+            { "id": "yoga-garland-pose", "target": "2 × 45s", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 25,
+          "exercises": [
+            { "id": "ball-eye-patched", "target": "4 × 1 min", "sets": 4 },
+            { "id": "saccade-chart", "target": "4 × 1 min", "sets": 4 },
+            { "id": "gaze-stabilisation", "target": "4 × 1 min", "sets": 4 },
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "crab-walk", "target": "2 × 15m", "sets": 2 },
+            { "id": "wrist-cars", "target": "2 × 8", "sets": 2 },
+            { "id": "hip-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "single-leg-hamstring-stretch", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "yoga-thread-needle", "target": "3 × 30s", "sets": 3 },
+            { "id": "dead-bug", "target": "3 × 8 each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength B",
+          "minutes": 60,
+          "exercises": [
+            { "id": "deadlift", "target": "3 × 5 @ 80kg", "sets": 3, "loadKg": 80 },
+            { "id": "overhead-press", "target": "3 × 5 @ 32kg", "sets": 3, "loadKg": 32 },
+            { "id": "cable-row", "target": "3 × 8 @ 50kg", "sets": 3, "loadKg": 50 },
+            { "id": "triceps-dip", "target": "3 × 6 +7.5kg", "sets": 3, "loadKg": 7.5 },
+            { "id": "farmers-walk", "target": "3 × 40m · RPE 8", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Pancake & hips",
+          "minutes": 15,
+          "exercises": [
+            { "id": "pancake", "target": "2 × 1:15", "sets": 2 },
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "straddle-sit-compression", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-butterfly", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "knee-to-chest-stretch", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-glutes", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "2:45", "sets": 1 },
+            { "id": "extended-exhale", "target": "2:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-03": {
+      "dayType": "quality-run",
+      "theme": "Intervals / Tempo",
+      "minutes": 140,
+      "coordDomain": "ball-reaction",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 25,
+          "exercises": [
+            { "id": "keepie-uppies", "target": "4 × 1 min", "sets": 4 },
+            { "id": "reaction-ball-wall", "target": "4 × 1 min", "sets": 4 },
+            { "id": "two-ball-wall-alternating", "target": "4 × 1 min", "sets": 4 },
+            { "id": "drop-catch-reaction", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "high-knees", "target": "2 × 15m", "sets": 2 },
+            { "id": "ankle-mobility", "target": "3 × 10 each side", "sets": 3 },
+            { "id": "ankle-cars", "target": "2 × 8 each side", "sets": 2 },
+            { "id": "glute-bridge-bw", "target": "3 × 12", "sets": 3 },
+            { "id": "a-skip", "target": "4 × 20m", "sets": 4 },
+            { "id": "strides", "target": "4 × 60m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Intervals / Tempo",
+          "minutes": 60,
+          "exercises": [
+            { "id": "interval-run", "target": "Norwegian 4x4 · 10 min warm-up · 4 × 4 min at 167–175 · 3 min easy between · 5 min cool-down", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "false-grip-ring-row", "target": "2 × 6", "sets": 2 },
+            { "id": "ring-hold-support", "target": "2 × 20s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-quads", "target": "2:45", "sets": 1 },
+            { "id": "tre-tremoring", "target": "2 min", "sets": 1 },
+            { "id": "physiological-sigh", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-04": {
+      "dayType": "light",
+      "theme": "Light",
+      "minutes": 85,
+      "coordDomain": "balance",
+      "skillLine": "hang-project",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 15,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "3 × 8", "sets": 3 },
+            { "id": "deep-squat-hold", "target": "3 × 1 min", "sets": 3 },
+            { "id": "tre-tremoring", "target": "3 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 20,
+          "exercises": [
+            { "id": "heel-toe-line-walk", "target": "3 × 1 min", "sets": 3 },
+            { "id": "single-leg-head-turns", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "single-leg-ball-pass", "target": "3 × 1 min each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 30,
+          "exercises": [
+            { "id": "yoga-sun-salutation-a", "target": "3–5 rounds", "sets": 1 },
+            { "id": "yoga-happy-baby", "target": "2 × 1:15", "sets": 2 },
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "yoga-head-to-knee-pose", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "bridge", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-sphinx", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Hang project",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "5 × 45s", "sets": 5 },
+            { "id": "one-arm-passive-hang", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "meat-hook-hang", "target": "2 × 30s each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-legs-up-wall", "target": "4:30", "sets": 1 },
+            { "id": "open-awareness", "target": "4:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-05": {
+      "dayType": "strength-a",
+      "theme": "Strength A",
+      "minutes": 140,
+      "coordDomain": "stick",
+      "skillLine": "prehab-shoulder-wrist",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-pump", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 25,
+          "exercises": [
+            { "id": "stick-360-rotation", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-two-stick-tangle", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-feet-balance-transition", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-static", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "worlds-greatest-stretch", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "shoulder-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "hip-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "shoulder-overhead-stretch", "target": "3 × 30s", "sets": 3 },
+            { "id": "banded-lateral-walk", "target": "2 × 12 steps each way", "sets": 2 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength A",
+          "minutes": 60,
+          "exercises": [
+            { "id": "squat", "target": "3 × 5 @ 60kg", "sets": 3, "loadKg": 60 },
+            { "id": "incline-bench", "target": "3 × 5 @ 55kg", "sets": 3, "loadKg": 55 },
+            { "id": "pull-up", "target": "4 × 5", "sets": 4 },
+            { "id": "toes-to-bar", "target": "3 × 10", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Shoulder & wrist prehab",
+          "minutes": 15,
+          "exercises": [
+            { "id": "band-pull-aparts", "target": "3 × 15", "sets": 3 },
+            { "id": "neck-work", "target": "3 × 12", "sets": 3 },
+            { "id": "wrist-prep", "target": "2:45", "sets": 1 },
+            { "id": "dorsal-pushups", "target": "2 × 6", "sets": 2 },
+            { "id": "prayer-stretch", "target": "3 × 30s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-childs-pose", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-quads", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:15", "sets": 1 },
+            { "id": "physiological-sigh", "target": "2:15", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-06": {
+      "dayType": "z2-bike",
+      "theme": "Zone 2 bike",
+      "minutes": 140,
+      "coordDomain": "objects",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "2 × 8", "sets": 2 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 25,
+          "exercises": [
+            { "id": "indian-clubs-basic", "target": "4 × 1 min", "sets": 4 },
+            { "id": "indian-clubs-flows", "target": "4 × 1 min", "sets": 4 },
+            { "id": "contact-juggling", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-cascade", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "low-bridge-rotations", "target": "3 × 8", "sets": 3 },
+            { "id": "yoga-thread-needle", "target": "3 × 1:15", "sets": 3 },
+            { "id": "yoga-seated-twist", "target": "3 × 1:15 each side", "sets": 3 },
+            { "id": "frog-stretch", "target": "3 × 1:15", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 bike",
+          "minutes": 60,
+          "exercises": [
+            { "id": "z2-cycling", "target": "55 min at 134–153 · 5 min spin-up · 5 min easy spin", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "fin-pushups", "target": "2 × 8", "sets": 2 },
+            { "id": "wall-walk", "target": "3 × 2", "sets": 3 },
+            { "id": "wall-shoulder-taps", "target": "3 × 6", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "knee-to-chest-stretch", "target": "1:15", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:45", "sets": 1 },
+            { "id": "body-scan", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-07": {
+      "dayType": "plyo-power",
+      "theme": "Plyo · Power · Sprints",
+      "minutes": 140,
+      "coordDomain": "movement",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "arch-hang", "target": "3 × 20s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-heel-raise-toe-stretch", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 25,
+          "exercises": [
+            { "id": "freestyle", "target": "4 × 1 min", "sets": 4 },
+            { "id": "corta-capim", "target": "4 × 1 min each side", "sets": 4 },
+            { "id": "au-cortado", "target": "4 × 4", "sets": 4 },
+            { "id": "role-into-au-cortado", "target": "4 × 4", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "butt-kicks", "target": "2 × 15m", "sets": 2 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 },
+            { "id": "banded-lateral-walk", "target": "2 × 12 steps each way", "sets": 2 },
+            { "id": "a-march", "target": "2 × 20m", "sets": 2 },
+            { "id": "a-skip", "target": "3 × 20m", "sets": 3 },
+            { "id": "pogo-hops", "target": "3 × 15", "sets": 3 },
+            { "id": "strides", "target": "3 × 60m", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:power-plyo",
+          "label": "Plyo · Power · Sprints",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "10 min", "sets": 1 },
+            { "id": "uphill-sprints", "target": "8 × 20s", "sets": 8 },
+            { "id": "box-jump", "target": "5 × 3", "sets": 5 },
+            { "id": "broad-jump", "target": "4 × 3", "sets": 4 },
+            { "id": "med-ball-slams", "target": "3 × 8", "sets": 3 },
+            { "id": "walking", "target": "8 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "ring-row", "target": "2 × 8", "sets": 2 },
+            { "id": "straight-bar-dip", "target": "2 × 6", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-it-band", "target": "2:15", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:30", "sets": 1 },
+            { "id": "extended-exhale", "target": "4:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-08": {
+      "dayType": "z2-run",
+      "theme": "Zone 2 long run",
+      "minutes": 140,
+      "coordDomain": "vision",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "yoga-cat-cow", "target": "10 reps", "sets": 1 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "body-tapping", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 25,
+          "exercises": [
+            { "id": "saccade-chart", "target": "4 × 1 min", "sets": 4 },
+            { "id": "gaze-stabilisation", "target": "4 × 1 min", "sets": 4 },
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 },
+            { "id": "near-far-focus", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "yoga-lizard-pose", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "hamstring-pnf", "target": "2 × 1:15", "sets": 2 },
+            { "id": "couch-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 long run",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "55 min under 153 · 5 min walk", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "slingshot-rebound-plank", "target": "2 × 8", "sets": 2 },
+            { "id": "pike-pushup", "target": "3 × 6", "sets": 3 },
+            { "id": "donkey-kicks", "target": "2 × 8", "sets": 2 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-calves", "target": "1:45", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:30", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-09": {
+      "dayType": "strength-b",
+      "theme": "Strength B",
+      "minutes": 140,
+      "coordDomain": "ball-reaction",
+      "skillLine": "pancake-hips",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "spine-cars", "target": "3 reps", "sets": 1 },
+            { "id": "yoga-garland-pose", "target": "2 × 45s", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 25,
+          "exercises": [
+            { "id": "reaction-ball-wall", "target": "4 × 1 min", "sets": 4 },
+            { "id": "two-ball-wall-alternating", "target": "4 × 1 min", "sets": 4 },
+            { "id": "drop-catch-reaction", "target": "4 × 1 min", "sets": 4 },
+            { "id": "keepie-uppies", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "worlds-greatest-stretch", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "hip-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "shoulder-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "hip-90-90-stretch", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "bear-hug-stretch", "target": "3 × 30s", "sets": 3 },
+            { "id": "scap-pushups", "target": "3 × 10", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength B",
+          "minutes": 60,
+          "exercises": [
+            { "id": "deadlift", "target": "3 × 5 @ 82.5kg", "sets": 3, "loadKg": 82.5 },
+            { "id": "overhead-press", "target": "3 × 5 @ 34kg", "sets": 3, "loadKg": 34 },
+            { "id": "cable-row", "target": "3 × 8 @ 52kg", "sets": 3, "loadKg": 52 },
+            { "id": "triceps-dip", "target": "3 × 6 +10kg", "sets": 3, "loadKg": 10 },
+            { "id": "farmers-walk", "target": "3 × 40m · RPE 8", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Pancake & hips",
+          "minutes": 15,
+          "exercises": [
+            { "id": "pancake", "target": "2 × 1:15", "sets": 2 },
+            { "id": "frog-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "straddle-sit-compression", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-butterfly", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-childs-pose", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-quads", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:15", "sets": 1 },
+            { "id": "physiological-sigh", "target": "2:15", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-10": {
+      "dayType": "quality-run",
+      "theme": "Intervals / Tempo",
+      "minutes": 140,
+      "coordDomain": "balance",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 25,
+          "exercises": [
+            { "id": "single-leg-head-turns", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "single-leg-ball-pass", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "single-leg-eyes-closed", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "heel-toe-line-walk", "target": "3 × 1 min", "sets": 3 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "butt-kicks", "target": "2 × 15m", "sets": 2 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 },
+            { "id": "banded-lateral-walk", "target": "2 × 12 steps each way", "sets": 2 },
+            { "id": "a-skip", "target": "4 × 20m", "sets": 4 },
+            { "id": "strides", "target": "4 × 60m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Intervals / Tempo",
+          "minutes": 60,
+          "exercises": [
+            { "id": "interval-run", "target": "Norwegian 4x4 · 10 min warm-up · 4 × 4 min at 172–182 · 3 min easy between · 5 min cool-down", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "explosive-pullup", "target": "3 × 2", "sets": 3 },
+            { "id": "russian-dip", "target": "2 × 5", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-it-band", "target": "2:15", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:30", "sets": 1 },
+            { "id": "extended-exhale", "target": "4:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-11": {
+      "dayType": "light",
+      "theme": "Light",
+      "minutes": 85,
+      "coordDomain": "stick",
+      "skillLine": "hang-project",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 15,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "3 × 8", "sets": 3 },
+            { "id": "deep-squat-hold", "target": "3 × 1 min", "sets": 3 },
+            { "id": "tre-tremoring", "target": "3 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 20,
+          "exercises": [
+            { "id": "stick-two-stick-tangle", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-feet-balance-transition", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-static", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 30,
+          "exercises": [
+            { "id": "yoga-sun-salutation-a", "target": "3–5 rounds", "sets": 1 },
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "yoga-pigeon", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "yoga-seated-forward-fold", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-sphinx", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-reclined-twist", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Hang project",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "5 × 45s", "sets": 5 },
+            { "id": "one-arm-passive-hang", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "switch-grip-hang-beginner", "target": "2 × 30s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-legs-up-wall", "target": "4:30", "sets": 1 },
+            { "id": "yoga-nidra", "target": "4:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-12": {
+      "dayType": "strength-a",
+      "theme": "Strength retest A",
+      "minutes": 140,
+      "coordDomain": "objects",
+      "skillLine": "prehab-shoulder-wrist",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-pump", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 25,
+          "exercises": [
+            { "id": "indian-clubs-flows", "target": "4 × 1 min", "sets": 4 },
+            { "id": "indian-clubs-basic", "target": "4 × 1 min", "sets": 4 },
+            { "id": "contact-juggling", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-cascade", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "bear-crawl", "target": "2 × 15m forward and back", "sets": 2 },
+            { "id": "hip-cars", "target": "5 reps each side", "sets": 1 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 },
+            { "id": "ido-squat-routine-2", "target": "2 slow rounds", "sets": 1 },
+            { "id": "scapula-mobilization-routine", "target": "2 × 8", "sets": 2 },
+            { "id": "glute-bridge-bw", "target": "2 × 12", "sets": 2 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength A",
+          "minutes": 60,
+          "exercises": [
+            { "id": "squat", "target": "3 × 5 @ 60kg", "sets": 3, "loadKg": 60 },
+            { "id": "incline-bench", "target": "3 × 5 @ 55kg", "sets": 3, "loadKg": 55 },
+            { "id": "pull-up", "target": "3 × 6", "sets": 3 },
+            { "id": "plank", "target": "3 × 45s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Shoulder & wrist prehab",
+          "minutes": 15,
+          "exercises": [
+            { "id": "band-pull-aparts", "target": "3 × 15", "sets": 3 },
+            { "id": "neck-work", "target": "3 × 12", "sets": 3 },
+            { "id": "wrist-prep", "target": "2:45", "sets": 1 },
+            { "id": "fin-pushups", "target": "2 × 8", "sets": 2 },
+            { "id": "tendon-glides", "target": "1:15", "sets": 1 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "couch-stretch", "target": "45s each side", "sets": 1 },
+            { "id": "foam-roll-upper-back", "target": "1:15", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "2:30", "sets": 1 },
+            { "id": "box-breathing", "target": "2:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-13": {
+      "dayType": "z2-bike",
+      "theme": "Zone 2 bike",
+      "minutes": 140,
+      "coordDomain": "movement",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "2 × 8", "sets": 2 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 25,
+          "exercises": [
+            { "id": "ground-flow-scorpion-reach", "target": "6 × 1 min", "sets": 6 },
+            { "id": "level-change-step", "target": "3 × 6 each side", "sets": 3 },
+            { "id": "donkey-kicks", "target": "3 × 8", "sets": 3 },
+            { "id": "freestyle", "target": "6 × 1 min", "sets": 6 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "bridge", "target": "3 × 1:15", "sets": 3 },
+            { "id": "shoulder-overhead-stretch", "target": "3 × 1:15", "sets": 3 },
+            { "id": "yoga-reclined-twist", "target": "3 × 1:15", "sets": 3 },
+            { "id": "hip-90-90-stretch", "target": "3 × 1:15 each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 bike",
+          "minutes": 60,
+          "exercises": [
+            { "id": "z2-cycling", "target": "40 min at 134–153 · 5 min spin-up · 5 min easy spin", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "first-knuckle-raises", "target": "2 × 20s", "sets": 2 },
+            { "id": "front-line-drill", "target": "3 × 30s", "sets": 3 },
+            { "id": "wall-shoulder-taps", "target": "3 × 6", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-childs-pose", "target": "1:45", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:45", "sets": 1 },
+            { "id": "extended-exhale", "target": "5 min", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-14": {
+      "dayType": "aerobic-test",
+      "theme": "Aerobic retest",
+      "minutes": 140,
+      "coordDomain": "vision",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "deep-squat-hold", "target": "2 × 45s", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 25,
+          "exercises": [
+            { "id": "gaze-stabilisation", "target": "4 × 1 min", "sets": 4 },
+            { "id": "saccade-chart", "target": "4 × 1 min", "sets": 4 },
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 },
+            { "id": "near-far-focus", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "carioca", "target": "2 × 20m each side", "sets": 2 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 },
+            { "id": "worlds-greatest-stretch", "target": "3 × 5 each side", "sets": 3 },
+            { "id": "calf-raise-iso", "target": "3 × 30s each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Aerobic retest",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "10 min build · 30 min at avg ~148 (nothing above 156) · 10 min walk", "sets": 1 },
+            { "id": "dead-hang", "target": "Max unbroken hang, after the run. Record it.", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "ring-row", "target": "2 × 8", "sets": 2 },
+            { "id": "straight-bar-dip", "target": "2 × 6", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-calves", "target": "1:45", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:30", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-15": {
+      "dayType": "z2-run",
+      "theme": "Zone 2 long run",
+      "minutes": 140,
+      "coordDomain": "ball-reaction",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "yoga-cat-cow", "target": "10 reps", "sets": 1 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "body-tapping", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 25,
+          "exercises": [
+            { "id": "two-ball-wall-alternating", "target": "4 × 1 min", "sets": 4 },
+            { "id": "drop-catch-reaction", "target": "4 × 1 min", "sets": 4 },
+            { "id": "keepie-uppies", "target": "4 × 1 min", "sets": 4 },
+            { "id": "reaction-ball-wall", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "half-split-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "runners-lunge-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 long run",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "40 min under 153 · 5 min walk", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "fin-pushups", "target": "2 × 8", "sets": 2 },
+            { "id": "wall-walk", "target": "3 × 2", "sets": 3 },
+            { "id": "wall-shoulder-taps", "target": "3 × 6", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-quads", "target": "2:45", "sets": 1 },
+            { "id": "tre-tremoring", "target": "2 min", "sets": 1 },
+            { "id": "physiological-sigh", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-16": {
+      "dayType": "strength-b",
+      "theme": "Strength retest B",
+      "minutes": 140,
+      "coordDomain": "balance",
+      "skillLine": "pancake-hips",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "spine-cars", "target": "3 reps", "sets": 1 },
+            { "id": "yoga-garland-pose", "target": "2 × 45s", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 25,
+          "exercises": [
+            { "id": "single-leg-ball-pass", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "single-leg-eyes-closed", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "heel-toe-line-walk", "target": "3 × 1 min", "sets": 3 },
+            { "id": "single-leg-head-turns", "target": "3 × 1 min each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "inchworm", "target": "2 × 5", "sets": 2 },
+            { "id": "shoulder-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "wrist-cars", "target": "2 × 8", "sets": 2 },
+            { "id": "bodyweight-good-morning-stretch", "target": "3 × 8", "sets": 3 },
+            { "id": "shoulder-overhead-stretch", "target": "3 × 30s", "sets": 3 },
+            { "id": "glute-bridge-bw", "target": "3 × 12", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength B",
+          "minutes": 60,
+          "exercises": [
+            { "id": "deadlift", "target": "3 × 5 @ 85kg", "sets": 3, "loadKg": 85 },
+            { "id": "overhead-press", "target": "3 × 5 @ 35kg", "sets": 3, "loadKg": 35 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Pancake & hips",
+          "minutes": 15,
+          "exercises": [
+            { "id": "pancake", "target": "2 × 1:15", "sets": 2 },
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "straddle-sit-compression", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-butterfly", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "couch-stretch", "target": "45s each side", "sets": 1 },
+            { "id": "foam-roll-upper-back", "target": "1:15", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "2:30", "sets": 1 },
+            { "id": "box-breathing", "target": "2:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-17": {
+      "dayType": "quality-run",
+      "theme": "Intervals / Tempo",
+      "minutes": 140,
+      "coordDomain": "stick",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 25,
+          "exercises": [
+            { "id": "stick-feet-balance-transition", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-static", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-walking", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-transfer", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "carioca", "target": "2 × 20m each side", "sets": 2 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 },
+            { "id": "worlds-greatest-stretch", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "calf-raise-iso", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "a-march", "target": "3 × 20m", "sets": 3 },
+            { "id": "strides", "target": "4 × 60m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Intervals / Tempo",
+          "minutes": 60,
+          "exercises": [
+            { "id": "tempo-run", "target": "10 min easy · 2 × 10 min at 153–165 · 3 min easy between · 5 min easy", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "explosive-pullup", "target": "3 × 2", "sets": 3 },
+            { "id": "russian-dip", "target": "2 × 5", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-calves", "target": "1:45", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:30", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-18": {
+      "dayType": "light",
+      "theme": "Light",
+      "minutes": 85,
+      "coordDomain": "objects",
+      "skillLine": "hang-project",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 15,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "3 × 8", "sets": 3 },
+            { "id": "deep-squat-hold", "target": "3 × 1 min", "sets": 3 },
+            { "id": "tre-tremoring", "target": "3 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 20,
+          "exercises": [
+            { "id": "contact-juggling", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-cascade", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-variations", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 30,
+          "exercises": [
+            { "id": "yoga-sun-salutation-a", "target": "3–5 rounds", "sets": 1 },
+            { "id": "yoga-pigeon", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "frog-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "single-leg-hamstring-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "yoga-reclined-twist", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-thread-needle", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Hang project",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "5 × 45s", "sets": 5 },
+            { "id": "one-arm-passive-hang", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "switch-grip-hang-beginner", "target": "2 × 30s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-legs-up-wall", "target": "4:30", "sets": 1 },
+            { "id": "body-scan", "target": "4:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-19": {
+      "dayType": "strength-a",
+      "theme": "Strength A",
+      "minutes": 140,
+      "coordDomain": "movement",
+      "skillLine": "prehab-shoulder-wrist",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-pump", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 25,
+          "exercises": [
+            { "id": "au-cortado", "target": "6 × 4", "sets": 6 },
+            { "id": "role-into-au-cortado", "target": "6 × 4", "sets": 6 },
+            { "id": "half-au-cortado", "target": "6 × 4", "sets": 6 },
+            { "id": "reverse-corta-capim-au-cortado", "target": "6 × 4", "sets": 6 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "worlds-greatest-stretch", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "ankle-cars", "target": "2 × 8 each side", "sets": 2 },
+            { "id": "spine-cars", "target": "2 × 3", "sets": 2 },
+            { "id": "knee-over-toe-stretch", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "chest-doorway-stretch", "target": "3 × 30s", "sets": 3 },
+            { "id": "dead-bug", "target": "3 × 8 each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength A",
+          "minutes": 60,
+          "exercises": [
+            { "id": "squat", "target": "3 × 5 @ 60kg", "sets": 3, "loadKg": 60 },
+            { "id": "incline-bench", "target": "3 × 5 @ 55kg", "sets": 3, "loadKg": 55 },
+            { "id": "pull-up", "target": "3 × 6", "sets": 3 },
+            { "id": "hollow-body-hold", "target": "3 × 30s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Shoulder & wrist prehab",
+          "minutes": 15,
+          "exercises": [
+            { "id": "band-pull-aparts", "target": "3 × 15", "sets": 3 },
+            { "id": "neck-work", "target": "3 × 12", "sets": 3 },
+            { "id": "wrist-prep", "target": "2:45", "sets": 1 },
+            { "id": "dorsal-pushups", "target": "2 × 6", "sets": 2 },
+            { "id": "pronator-stretch", "target": "3 × 30s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "hamstring-hang", "target": "1 min", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1 min", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3 min", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3 min", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-20": {
+      "dayType": "z2-bike",
+      "theme": "Zone 2 bike",
+      "minutes": 140,
+      "coordDomain": "vision",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "2 × 8", "sets": 2 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 25,
+          "exercises": [
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 },
+            { "id": "near-far-focus", "target": "4 × 1 min", "sets": 4 },
+            { "id": "peripheral-tracking", "target": "4 × 1 min", "sets": 4 },
+            { "id": "ball-eye-patched", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "yoga-sphinx", "target": "3 × 1:15", "sets": 3 },
+            { "id": "chest-doorway-stretch", "target": "3 × 1:15", "sets": 3 },
+            { "id": "windshield-wipers", "target": "3 × 8", "sets": 3 },
+            { "id": "yoga-pigeon", "target": "3 × 1:15 each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 bike",
+          "minutes": 60,
+          "exercises": [
+            { "id": "z2-cycling", "target": "60 min at 134–153 · 5 min spin-up · 5 min easy spin", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "2 min", "sets": 1 },
+            { "id": "first-knuckle-raises", "target": "2 × 20s", "sets": 2 },
+            { "id": "front-line-drill", "target": "3 × 30s", "sets": 3 },
+            { "id": "hs-wall-plank", "target": "3 × 30s", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-reclined-twist", "target": "1:15", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:45", "sets": 1 },
+            { "id": "box-breathing", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-21": {
+      "dayType": "plyo-power",
+      "theme": "Plyo · Power · Sprints",
+      "minutes": 140,
+      "coordDomain": "ball-reaction",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "arch-hang", "target": "3 × 20s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-heel-raise-toe-stretch", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 25,
+          "exercises": [
+            { "id": "drop-catch-reaction", "target": "4 × 1 min", "sets": 4 },
+            { "id": "keepie-uppies", "target": "4 × 1 min", "sets": 4 },
+            { "id": "reaction-ball-wall", "target": "4 × 1 min", "sets": 4 },
+            { "id": "two-ball-wall-alternating", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "high-knees", "target": "2 × 15m", "sets": 2 },
+            { "id": "worlds-greatest-stretch", "target": "5 reps each side", "sets": 1 },
+            { "id": "dynamic-hip-circles", "target": "10 each direction", "sets": 1 },
+            { "id": "tibialis-raise", "target": "2 × 15", "sets": 2 },
+            { "id": "b-skip", "target": "2 × 20m", "sets": 2 },
+            { "id": "straight-leg-bound", "target": "2 × 20m", "sets": 2 },
+            { "id": "pogo-hops", "target": "4 × 15", "sets": 4 },
+            { "id": "strides", "target": "3 × 60m", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:power-plyo",
+          "label": "Plyo · Power · Sprints",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "10 min", "sets": 1 },
+            { "id": "uphill-sprints", "target": "8 × 20s", "sets": 8 },
+            { "id": "box-jump", "target": "5 × 3", "sets": 5 },
+            { "id": "broad-jump", "target": "4 × 3", "sets": 4 },
+            { "id": "med-ball-slams", "target": "3 × 8", "sets": 3 },
+            { "id": "walking", "target": "8 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "false-grip-ring-row", "target": "2 × 6", "sets": 2 },
+            { "id": "ring-hold-support", "target": "2 × 20s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-quads", "target": "2:45", "sets": 1 },
+            { "id": "tre-tremoring", "target": "2 min", "sets": 1 },
+            { "id": "physiological-sigh", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-22": {
+      "dayType": "z2-run",
+      "theme": "Zone 2 long run",
+      "minutes": 140,
+      "coordDomain": "balance",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "yoga-cat-cow", "target": "10 reps", "sets": 1 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "body-tapping", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 25,
+          "exercises": [
+            { "id": "balance-board-single-leg", "target": "5 × 1 min each side", "sets": 5 },
+            { "id": "balance-board-squat-hold", "target": "5 × 1 min", "sets": 5 },
+            { "id": "edge-walk-head-tilt", "target": "4 × 5m", "sets": 4 },
+            { "id": "edge-walk-turning", "target": "4 × 5m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "yoga-pigeon", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "single-leg-hamstring-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "standing-quad-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "worlds-greatest-stretch", "target": "5 reps each side", "sets": 1 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 long run",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "2 min", "sets": 1 },
+            { "id": "first-knuckle-raises", "target": "2 × 20s", "sets": 2 },
+            { "id": "front-line-drill", "target": "3 × 30s", "sets": 3 },
+            { "id": "hs-wall-plank", "target": "3 × 30s", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-it-band", "target": "2:15", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:30", "sets": 1 },
+            { "id": "extended-exhale", "target": "4:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-23": {
+      "dayType": "strength-b",
+      "theme": "Strength B",
+      "minutes": 140,
+      "coordDomain": "stick",
+      "skillLine": "pancake-hips",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "spine-cars", "target": "3 reps", "sets": 1 },
+            { "id": "yoga-garland-pose", "target": "2 × 45s", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 25,
+          "exercises": [
+            { "id": "stick-static", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-walking", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-transfer", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-grip-types", "target": "4 × 1 min each side", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "bear-crawl", "target": "2 × 15m forward and back", "sets": 2 },
+            { "id": "wrist-cars", "target": "2 × 8", "sets": 2 },
+            { "id": "hip-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "hamstring-pike", "target": "3 × 30s", "sets": 3 },
+            { "id": "scapula-mobilization-routine", "target": "3 × 8", "sets": 3 },
+            { "id": "bird-dog", "target": "3 × 8 each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength B",
+          "minutes": 60,
+          "exercises": [
+            { "id": "deadlift", "target": "3 × 5 @ 85kg", "sets": 3, "loadKg": 85 },
+            { "id": "overhead-press", "target": "3 × 5 @ 35kg", "sets": 3, "loadKg": 35 },
+            { "id": "cable-row", "target": "3 × 10 @ 50kg", "sets": 3, "loadKg": 50 },
+            { "id": "triceps-dip", "target": "3 × 7 +10kg", "sets": 3, "loadKg": 10 },
+            { "id": "farmers-walk", "target": "3 × 40m · RPE 8", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Pancake & hips",
+          "minutes": 15,
+          "exercises": [
+            { "id": "straddle-fold-passive", "target": "2 × 1:15", "sets": 2 },
+            { "id": "frog-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "pike-sit-wall", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-pigeon", "target": "2 × 1:15 each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "hamstring-hang", "target": "1 min", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1 min", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3 min", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3 min", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-24": {
+      "dayType": "quality-run",
+      "theme": "Intervals / Tempo",
+      "minutes": 140,
+      "coordDomain": "objects",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 25,
+          "exercises": [
+            { "id": "juggling-cascade", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-variations", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-columns", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-reverse-cascade", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "high-knees", "target": "2 × 15m", "sets": 2 },
+            { "id": "worlds-greatest-stretch", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "dynamic-hip-circles", "target": "10 each direction", "sets": 1 },
+            { "id": "tibialis-raise", "target": "3 × 15", "sets": 3 },
+            { "id": "a-march", "target": "4 × 20m", "sets": 4 },
+            { "id": "strides", "target": "4 × 60m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Intervals / Tempo",
+          "minutes": 60,
+          "exercises": [
+            { "id": "interval-run", "target": "Norwegian 4x4 · 10 min warm-up · 4 × 4 min at 172–182 · 3 min easy between · 5 min cool-down", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "ring-row", "target": "2 × 8", "sets": 2 },
+            { "id": "straight-bar-dip", "target": "2 × 6", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-quads", "target": "2:45", "sets": 1 },
+            { "id": "tre-tremoring", "target": "2 min", "sets": 1 },
+            { "id": "physiological-sigh", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-25": {
+      "dayType": "light",
+      "theme": "Light",
+      "minutes": 85,
+      "coordDomain": "movement",
+      "skillLine": "hang-project",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 15,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "3 × 8", "sets": 3 },
+            { "id": "deep-squat-hold", "target": "3 × 1 min", "sets": 3 },
+            { "id": "tre-tremoring", "target": "3 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 20,
+          "exercises": [
+            { "id": "get-up-kick-through", "target": "6 × 1 min", "sets": 6 },
+            { "id": "get-up-backward-roll", "target": "6 × 1 min", "sets": 6 },
+            { "id": "get-up-squat-stand", "target": "3 × 5", "sets": 3 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 30,
+          "exercises": [
+            { "id": "yoga-sun-salutation-a", "target": "3–5 rounds", "sets": 1 },
+            { "id": "frog-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-butterfly", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-head-to-knee-pose", "target": "3 × 1:15 each side", "sets": 3 },
+            { "id": "yoga-thread-needle", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-childs-pose", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Hang project",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "5 × 45s", "sets": 5 },
+            { "id": "one-arm-passive-hang", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "switch-grip-hang-beginner", "target": "2 × 30s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-legs-up-wall", "target": "4:30", "sets": 1 },
+            { "id": "open-awareness", "target": "4:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-26": {
+      "dayType": "monday",
+      "theme": "Strength A",
+      "minutes": 140,
+      "coordDomain": "vision",
+      "skillLine": "prehab-shoulder-wrist",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-pump", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 25,
+          "exercises": [
+            { "id": "near-far-focus", "target": "4 × 1 min", "sets": 4 },
+            { "id": "peripheral-tracking", "target": "4 × 1 min", "sets": 4 },
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 },
+            { "id": "ball-eye-patched", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "get-up-squat-stand", "target": "2 × 5", "sets": 2 },
+            { "id": "spine-cars", "target": "3 × 3", "sets": 3 },
+            { "id": "shoulder-cars", "target": "3 × 5 each side", "sets": 3 },
+            { "id": "ankle-dorsiflexion", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-thread-needle", "target": "3 × 30s", "sets": 3 },
+            { "id": "scap-pushups", "target": "3 × 10", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength A",
+          "minutes": 60,
+          "exercises": [
+            { "id": "squat", "target": "3 × 5 @ 60kg", "sets": 3, "loadKg": 60 },
+            { "id": "incline-bench", "target": "3 × 5 @ 55kg", "sets": 3, "loadKg": 55 },
+            { "id": "pull-up", "target": "3 × 6", "sets": 3 },
+            { "id": "hollow-body-hold", "target": "3 × 30s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Shoulder & wrist prehab",
+          "minutes": 15,
+          "exercises": [
+            { "id": "face-pulls", "target": "2 × 15", "sets": 2 },
+            { "id": "ext-rotation-bands", "target": "2 × 12 each side", "sets": 2 },
+            { "id": "wrist-prep", "target": "2 min", "sets": 1 },
+            { "id": "rice-bucket", "target": "2 min", "sets": 1 },
+            { "id": "pronator-stretch", "target": "2 × 30s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "knee-to-chest-stretch", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-glutes", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "2:45", "sets": 1 },
+            { "id": "extended-exhale", "target": "2:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-27": {
+      "dayType": "tuesday",
+      "theme": "Zone 2 bike",
+      "minutes": 140,
+      "coordDomain": "ball-reaction",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "2 × 8", "sets": 2 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 25,
+          "exercises": [
+            { "id": "tennis-ball-punch", "target": "4 × 1 min", "sets": 4 },
+            { "id": "tennis-ball-floor", "target": "4 × 1 min", "sets": 4 },
+            { "id": "tennis-ball-dribble", "target": "4 × 1 min", "sets": 4 },
+            { "id": "keepie-uppies", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "yoga-cobra", "target": "2 × 1:15", "sets": 2 },
+            { "id": "sleeper-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "yoga-seated-twist", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "couch-stretch", "target": "2 × 1:15 each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 bike",
+          "minutes": 60,
+          "exercises": [
+            { "id": "z2-cycling", "target": "60 min at 134–153 · 5 min spin-up · 5 min easy spin", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "slingshot-rebound-plank", "target": "2 × 8", "sets": 2 },
+            { "id": "pike-pushup", "target": "3 × 6", "sets": 3 },
+            { "id": "donkey-kicks", "target": "2 × 8", "sets": 2 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "knee-to-chest-stretch", "target": "1:45", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:45", "sets": 1 },
+            { "id": "body-scan", "target": "5 min", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-28": {
+      "dayType": "wednesday",
+      "theme": "Plyo · Power · Sprints",
+      "minutes": 140,
+      "coordDomain": "balance",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "arch-hang", "target": "3 × 20s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-heel-raise-toe-stretch", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 25,
+          "exercises": [
+            { "id": "balance-board-squat-hold", "target": "6 × 1:30", "sets": 6 },
+            { "id": "edge-walk-head-tilt", "target": "6 × 5m", "sets": 6 },
+            { "id": "edge-walk-turning", "target": "6 × 5m", "sets": 6 },
+            { "id": "edge-sl-eyes-closed-taps", "target": "4 × 8 each side", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "butt-kicks", "target": "2 × 15m", "sets": 2 },
+            { "id": "dynamic-hip-circles", "target": "10 each direction", "sets": 1 },
+            { "id": "ankle-mobility", "target": "2 × 10 each side", "sets": 2 },
+            { "id": "glute-bridge-bw", "target": "2 × 12", "sets": 2 },
+            { "id": "straight-leg-bound", "target": "2 × 20m", "sets": 2 },
+            { "id": "a-march", "target": "2 × 20m", "sets": 2 },
+            { "id": "pogo-hops", "target": "3 × 15", "sets": 3 },
+            { "id": "strides", "target": "3 × 60m", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:power-plyo",
+          "label": "Plyo · Power · Sprints",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "10 min", "sets": 1 },
+            { "id": "uphill-sprints", "target": "8 × 20s", "sets": 8 },
+            { "id": "box-jump", "target": "5 × 3", "sets": 5 },
+            { "id": "broad-jump", "target": "4 × 3", "sets": 4 },
+            { "id": "med-ball-slams", "target": "3 × 8", "sets": 3 },
+            { "id": "walking", "target": "8 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "explosive-pullup", "target": "3 × 2", "sets": 3 },
+            { "id": "russian-dip", "target": "2 × 5", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-it-band", "target": "2:15", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:30", "sets": 1 },
+            { "id": "extended-exhale", "target": "4:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-29": {
+      "dayType": "thursday",
+      "theme": "Zone 2 long run",
+      "minutes": 140,
+      "coordDomain": "stick",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "yoga-cat-cow", "target": "10 reps", "sets": 1 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "body-tapping", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 25,
+          "exercises": [
+            { "id": "stick-walking", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-transfer", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-grip-types", "target": "4 × 1 min each side", "sets": 4 },
+            { "id": "stick-hip-pike-slide", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "frog-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "hurdler-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "couch-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 long run",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "2 min", "sets": 1 },
+            { "id": "first-knuckle-raises", "target": "2 × 20s", "sets": 2 },
+            { "id": "front-line-drill", "target": "3 × 30s", "sets": 3 },
+            { "id": "hs-wall-plank", "target": "3 × 30s", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-calves", "target": "1:45", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:30", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-30": {
+      "dayType": "friday",
+      "theme": "Strength B",
+      "minutes": 140,
+      "coordDomain": "objects",
+      "skillLine": "pancake-hips",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "spine-cars", "target": "3 reps", "sets": 1 },
+            { "id": "yoga-garland-pose", "target": "2 × 45s", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 25,
+          "exercises": [
+            { "id": "juggling-variations", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-columns", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-reverse-cascade", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-half-shower", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "crab-walk", "target": "2 × 15m", "sets": 2 },
+            { "id": "hip-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "shoulder-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "single-leg-hamstring-stretch", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "yoga-thread-needle", "target": "3 × 30s", "sets": 3 },
+            { "id": "dead-bug", "target": "3 × 8 each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength B",
+          "minutes": 60,
+          "exercises": [
+            { "id": "deadlift", "target": "3 × 5 @ 85kg", "sets": 3, "loadKg": 85 },
+            { "id": "overhead-press", "target": "3 × 5 @ 35kg", "sets": 3, "loadKg": 35 },
+            { "id": "cable-row", "target": "3 × 10 @ 50kg", "sets": 3, "loadKg": 50 },
+            { "id": "triceps-dip", "target": "3 × 7 +10kg", "sets": 3, "loadKg": 10 },
+            { "id": "farmers-walk", "target": "3 × 40m · RPE 8", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Pancake & hips",
+          "minutes": 15,
+          "exercises": [
+            { "id": "straddle-fold-passive", "target": "2 × 1:15", "sets": 2 },
+            { "id": "frog-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "pike-sit-wall", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-pigeon", "target": "2 × 1:15 each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "knee-to-chest-stretch", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-glutes", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "2:45", "sets": 1 },
+            { "id": "extended-exhale", "target": "2:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-10-31": {
+      "dayType": "saturday",
+      "theme": "Intervals / Tempo",
+      "minutes": 140,
+      "coordDomain": "movement",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 25,
+          "exercises": [
+            { "id": "half-au-cortado", "target": "6 × 4", "sets": 6 },
+            { "id": "reverse-corta-capim-au-cortado", "target": "6 × 4", "sets": 6 },
+            { "id": "qdr-circles", "target": "6 × 4", "sets": 6 },
+            { "id": "role-into-qdr", "target": "6 × 4", "sets": 6 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "butt-kicks", "target": "2 × 15m", "sets": 2 },
+            { "id": "dynamic-hip-circles", "target": "10 each direction", "sets": 1 },
+            { "id": "ankle-mobility", "target": "3 × 10 each side", "sets": 3 },
+            { "id": "glute-bridge-bw", "target": "3 × 12", "sets": 3 },
+            { "id": "a-skip", "target": "4 × 20m", "sets": 4 },
+            { "id": "strides", "target": "4 × 60m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Intervals / Tempo",
+          "minutes": 60,
+          "exercises": [
+            { "id": "interval-run", "target": "Norwegian 4x4 · 10 min warm-up · 4 × 4 min at 172–182 · 3 min easy between · 5 min cool-down", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "false-grip-ring-row", "target": "2 × 6", "sets": 2 },
+            { "id": "ring-hold-support", "target": "2 × 20s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-it-band", "target": "2:15", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:30", "sets": 1 },
+            { "id": "extended-exhale", "target": "4:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-01": {
+      "dayType": "sunday",
+      "theme": "Light",
+      "minutes": 85,
+      "coordDomain": "vision",
+      "skillLine": "hang-project",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 15,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "3 × 8", "sets": 3 },
+            { "id": "deep-squat-hold", "target": "3 × 1 min", "sets": 3 },
+            { "id": "tre-tremoring", "target": "3 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 20,
+          "exercises": [
+            { "id": "peripheral-tracking", "target": "4 × 1 min", "sets": 4 },
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 },
+            { "id": "near-far-focus", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 30,
+          "exercises": [
+            { "id": "yoga-sun-salutation-a", "target": "3–5 rounds", "sets": 1 },
+            { "id": "yoga-butterfly", "target": "3 × 1:15", "sets": 3 },
+            { "id": "yoga-happy-baby", "target": "3 × 1:15", "sets": 3 },
+            { "id": "yoga-seated-forward-fold", "target": "3 × 1:15", "sets": 3 },
+            { "id": "yoga-childs-pose", "target": "3 × 1:15", "sets": 3 },
+            { "id": "bridge", "target": "3 × 1:15", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Hang project",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "5 × 45s", "sets": 5 },
+            { "id": "one-arm-passive-hang", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "meat-hook-hang", "target": "2 × 30s each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-legs-up-wall", "target": "4:30", "sets": 1 },
+            { "id": "yoga-nidra", "target": "4:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-02": {
+      "dayType": "monday",
+      "theme": "Strength A",
+      "minutes": 140,
+      "coordDomain": "ball-reaction",
+      "skillLine": "prehab-shoulder-wrist",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-pump", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 25,
+          "exercises": [
+            { "id": "tennis-ball-floor", "target": "4 × 1 min", "sets": 4 },
+            { "id": "tennis-ball-dribble", "target": "4 × 1 min", "sets": 4 },
+            { "id": "tennis-ball-punch", "target": "4 × 1 min", "sets": 4 },
+            { "id": "keepie-uppies", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "worlds-greatest-stretch", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "shoulder-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "hip-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "shoulder-overhead-stretch", "target": "3 × 30s", "sets": 3 },
+            { "id": "banded-lateral-walk", "target": "2 × 12 steps each way", "sets": 2 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength A",
+          "minutes": 60,
+          "exercises": [
+            { "id": "squat", "target": "3 × 5 @ 60kg", "sets": 3, "loadKg": 60 },
+            { "id": "incline-bench", "target": "3 × 5 @ 55kg", "sets": 3, "loadKg": 55 },
+            { "id": "pull-up", "target": "3 × 6", "sets": 3 },
+            { "id": "hollow-body-hold", "target": "3 × 30s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Shoulder & wrist prehab",
+          "minutes": 15,
+          "exercises": [
+            { "id": "face-pulls", "target": "2 × 15", "sets": 2 },
+            { "id": "ext-rotation-bands", "target": "2 × 12 each side", "sets": 2 },
+            { "id": "wrist-prep", "target": "2:15", "sets": 1 },
+            { "id": "first-knuckle-raises", "target": "2 × 20s", "sets": 2 },
+            { "id": "prayer-stretch", "target": "2 × 30s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-childs-pose", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-quads", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:15", "sets": 1 },
+            { "id": "physiological-sigh", "target": "2:15", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-03": {
+      "dayType": "tuesday",
+      "theme": "Zone 2 bike",
+      "minutes": 140,
+      "coordDomain": "balance",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "2 × 8", "sets": 2 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 25,
+          "exercises": [
+            { "id": "edge-walk-head-tilt", "target": "6 × 5m", "sets": 6 },
+            { "id": "edge-walk-turning", "target": "6 × 5m", "sets": 6 },
+            { "id": "edge-sl-eyes-closed-taps", "target": "6 × 8 each side", "sets": 6 },
+            { "id": "edge-squat-eyes-closed", "target": "6 × 5", "sets": 6 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "low-bridge-rotations", "target": "3 × 8", "sets": 3 },
+            { "id": "yoga-thread-needle", "target": "3 × 1:30", "sets": 3 },
+            { "id": "yoga-reclined-twist", "target": "3 × 1:30", "sets": 3 },
+            { "id": "frog-stretch", "target": "3 × 1:30", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 bike",
+          "minutes": 60,
+          "exercises": [
+            { "id": "z2-cycling", "target": "60 min at 134–153 · 5 min spin-up · 5 min easy spin", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "fin-pushups", "target": "2 × 8", "sets": 2 },
+            { "id": "wall-walk", "target": "3 × 2", "sets": 3 },
+            { "id": "wall-shoulder-taps", "target": "3 × 6", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "knee-to-chest-stretch", "target": "1:15", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:45", "sets": 1 },
+            { "id": "extended-exhale", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-04": {
+      "dayType": "wednesday",
+      "theme": "Plyo · Power · Sprints",
+      "minutes": 140,
+      "coordDomain": "stick",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "arch-hang", "target": "3 × 20s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-heel-raise-toe-stretch", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 25,
+          "exercises": [
+            { "id": "stick-transfer", "target": "3 × 1 min", "sets": 3 },
+            { "id": "stick-grip-types", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "stick-hip-pike-slide", "target": "3 × 1 min", "sets": 3 },
+            { "id": "stick-overhead-behind-back", "target": "3 × 1 min each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "carioca", "target": "2 × 20m each side", "sets": 2 },
+            { "id": "ankle-mobility", "target": "2 × 10 each side", "sets": 2 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 },
+            { "id": "banded-lateral-walk", "target": "2 × 12 steps each way", "sets": 2 },
+            { "id": "a-march", "target": "2 × 20m", "sets": 2 },
+            { "id": "a-skip", "target": "3 × 20m", "sets": 3 },
+            { "id": "pogo-hops", "target": "3 × 15", "sets": 3 },
+            { "id": "strides", "target": "3 × 60m", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:power-plyo",
+          "label": "Plyo · Power · Sprints",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "10 min", "sets": 1 },
+            { "id": "uphill-sprints", "target": "8 × 20s", "sets": 8 },
+            { "id": "box-jump", "target": "5 × 3", "sets": 5 },
+            { "id": "broad-jump", "target": "4 × 3", "sets": 4 },
+            { "id": "med-ball-slams", "target": "3 × 8", "sets": 3 },
+            { "id": "walking", "target": "8 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "explosive-pullup", "target": "3 × 2", "sets": 3 },
+            { "id": "russian-dip", "target": "2 × 5", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-calves", "target": "1:45", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:30", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-05": {
+      "dayType": "thursday",
+      "theme": "Zone 2 long run",
+      "minutes": 140,
+      "coordDomain": "objects",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "yoga-cat-cow", "target": "10 reps", "sets": 1 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "body-tapping", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 25,
+          "exercises": [
+            { "id": "juggling-columns", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-reverse-cascade", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-half-shower", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-shower", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "yoga-lizard-pose", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "hamstring-pnf", "target": "2 × 1:15", "sets": 2 },
+            { "id": "runners-lunge-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 long run",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "slingshot-rebound-plank", "target": "2 × 8", "sets": 2 },
+            { "id": "pike-pushup", "target": "3 × 6", "sets": 3 },
+            { "id": "donkey-kicks", "target": "2 × 8", "sets": 2 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-quads", "target": "2:45", "sets": 1 },
+            { "id": "tre-tremoring", "target": "2 min", "sets": 1 },
+            { "id": "physiological-sigh", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-06": {
+      "dayType": "friday",
+      "theme": "Strength B",
+      "minutes": 140,
+      "coordDomain": "movement",
+      "skillLine": "pancake-hips",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "spine-cars", "target": "3 reps", "sets": 1 },
+            { "id": "yoga-garland-pose", "target": "2 × 45s", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 25,
+          "exercises": [
+            { "id": "reverse-corta-capim-au-cortado", "target": "6 × 4", "sets": 6 },
+            { "id": "qdr-circles", "target": "6 × 4", "sets": 6 },
+            { "id": "role-into-qdr", "target": "6 × 4", "sets": 6 },
+            { "id": "half-au-role-qdr-combo", "target": "6 × 4", "sets": 6 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "worlds-greatest-stretch", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "shoulder-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "wrist-cars", "target": "2 × 8", "sets": 2 },
+            { "id": "hip-90-90-stretch", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "bear-hug-stretch", "target": "3 × 30s", "sets": 3 },
+            { "id": "scap-pushups", "target": "3 × 10", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength B",
+          "minutes": 60,
+          "exercises": [
+            { "id": "deadlift", "target": "3 × 5 @ 85kg", "sets": 3, "loadKg": 85 },
+            { "id": "overhead-press", "target": "3 × 5 @ 35kg", "sets": 3, "loadKg": 35 },
+            { "id": "cable-row", "target": "3 × 10 @ 50kg", "sets": 3, "loadKg": 50 },
+            { "id": "triceps-dip", "target": "3 × 7 +10kg", "sets": 3, "loadKg": 10 },
+            { "id": "farmers-walk", "target": "3 × 40m · RPE 8", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Pancake & hips",
+          "minutes": 15,
+          "exercises": [
+            { "id": "straddle-fold-passive", "target": "2 × 1:15", "sets": 2 },
+            { "id": "frog-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "pike-sit-wall", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-pigeon", "target": "2 × 1:15 each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-childs-pose", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-quads", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:15", "sets": 1 },
+            { "id": "physiological-sigh", "target": "2:15", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-07": {
+      "dayType": "saturday",
+      "theme": "Intervals / Tempo",
+      "minutes": 140,
+      "coordDomain": "vision",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 25,
+          "exercises": [
+            { "id": "ball-eye-patched", "target": "4 × 1 min", "sets": 4 },
+            { "id": "saccade-chart", "target": "4 × 1 min", "sets": 4 },
+            { "id": "gaze-stabilisation", "target": "4 × 1 min", "sets": 4 },
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "carioca", "target": "2 × 20m each side", "sets": 2 },
+            { "id": "ankle-mobility", "target": "3 × 10 each side", "sets": 3 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 },
+            { "id": "banded-lateral-walk", "target": "2 × 12 steps each way", "sets": 2 },
+            { "id": "a-march", "target": "3 × 20m", "sets": 3 },
+            { "id": "strides", "target": "4 × 60m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Intervals / Tempo",
+          "minutes": 60,
+          "exercises": [
+            { "id": "interval-run", "target": "Norwegian 4x4 · 10 min warm-up · 4 × 4 min at 172–182 · 3 min easy between · 5 min cool-down", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "false-grip-ring-row", "target": "2 × 6", "sets": 2 },
+            { "id": "ring-hold-support", "target": "2 × 20s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-calves", "target": "1:45", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:30", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-08": {
+      "dayType": "sunday",
+      "theme": "Light",
+      "minutes": 85,
+      "coordDomain": "ball-reaction",
+      "skillLine": "hang-project",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 15,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "3 × 8", "sets": 3 },
+            { "id": "deep-squat-hold", "target": "3 × 1 min", "sets": 3 },
+            { "id": "tre-tremoring", "target": "3 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 20,
+          "exercises": [
+            { "id": "tennis-ball-dribble", "target": "4 × 1 min", "sets": 4 },
+            { "id": "tennis-ball-punch", "target": "4 × 1 min", "sets": 4 },
+            { "id": "tennis-ball-floor", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 30,
+          "exercises": [
+            { "id": "yoga-sun-salutation-a", "target": "3–5 rounds", "sets": 1 },
+            { "id": "yoga-happy-baby", "target": "2 × 1:15", "sets": 2 },
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "single-leg-hamstring-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "bridge", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-sphinx", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Hang project",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "5 × 45s", "sets": 5 },
+            { "id": "one-arm-passive-hang", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "meat-hook-hang", "target": "2 × 30s each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-legs-up-wall", "target": "4:30", "sets": 1 },
+            { "id": "body-scan", "target": "4:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-09": {
+      "dayType": "monday",
+      "theme": "Strength A",
+      "minutes": 140,
+      "coordDomain": "balance",
+      "skillLine": "prehab-shoulder-wrist",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-pump", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 25,
+          "exercises": [
+            { "id": "edge-walk-turning", "target": "6 × 5m", "sets": 6 },
+            { "id": "edge-sl-eyes-closed-taps", "target": "6 × 8 each side", "sets": 6 },
+            { "id": "edge-squat-eyes-closed", "target": "5 × 5", "sets": 5 },
+            { "id": "edge-sl-gaze-shifts", "target": "6 × 30s each side", "sets": 6 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "bear-crawl", "target": "2 × 15m forward and back", "sets": 2 },
+            { "id": "hip-cars", "target": "5 reps each side", "sets": 1 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 },
+            { "id": "ido-squat-routine-2", "target": "2 slow rounds", "sets": 1 },
+            { "id": "scapula-mobilization-routine", "target": "2 × 8", "sets": 2 },
+            { "id": "glute-bridge-bw", "target": "2 × 12", "sets": 2 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength A",
+          "minutes": 60,
+          "exercises": [
+            { "id": "squat", "target": "3 × 5 @ 60kg", "sets": 3, "loadKg": 60 },
+            { "id": "incline-bench", "target": "3 × 5 @ 55kg", "sets": 3, "loadKg": 55 },
+            { "id": "pull-up", "target": "3 × 6", "sets": 3 },
+            { "id": "hollow-body-hold", "target": "3 × 30s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Shoulder & wrist prehab",
+          "minutes": 15,
+          "exercises": [
+            { "id": "face-pulls", "target": "2 × 15", "sets": 2 },
+            { "id": "ext-rotation-bands", "target": "2 × 12 each side", "sets": 2 },
+            { "id": "wrist-prep", "target": "2:15", "sets": 1 },
+            { "id": "rice-bucket", "target": "2:15", "sets": 1 },
+            { "id": "tendon-glides", "target": "1 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "couch-stretch", "target": "45s each side", "sets": 1 },
+            { "id": "foam-roll-upper-back", "target": "1:15", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "2:30", "sets": 1 },
+            { "id": "box-breathing", "target": "2:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-10": {
+      "dayType": "tuesday",
+      "theme": "Zone 2 bike",
+      "minutes": 140,
+      "coordDomain": "stick",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "2 × 8", "sets": 2 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 25,
+          "exercises": [
+            { "id": "stick-grip-types", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "stick-hip-pike-slide", "target": "3 × 1 min", "sets": 3 },
+            { "id": "stick-overhead-behind-back", "target": "3 × 1 min each side", "sets": 3 },
+            { "id": "stick-fingertip-stepover", "target": "3 × 1 min", "sets": 3 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "bridge", "target": "3 × 1:15", "sets": 3 },
+            { "id": "shoulder-overhead-stretch", "target": "3 × 1:15", "sets": 3 },
+            { "id": "windshield-wipers", "target": "3 × 8", "sets": 3 },
+            { "id": "hip-90-90-stretch", "target": "3 × 1:15 each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 bike",
+          "minutes": 60,
+          "exercises": [
+            { "id": "z2-cycling", "target": "60 min at 134–153 · 5 min spin-up · 5 min easy spin", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "fin-pushups", "target": "2 × 8", "sets": 2 },
+            { "id": "wall-walk", "target": "3 × 2", "sets": 3 },
+            { "id": "wall-shoulder-taps", "target": "3 × 6", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-reclined-twist", "target": "1:45", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:45", "sets": 1 },
+            { "id": "box-breathing", "target": "5 min", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-11": {
+      "dayType": "wednesday",
+      "theme": "Plyo · Power · Sprints",
+      "minutes": 140,
+      "coordDomain": "objects",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "arch-hang", "target": "3 × 20s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-heel-raise-toe-stretch", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 25,
+          "exercises": [
+            { "id": "juggling-reverse-cascade", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-half-shower", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-shower", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-tennis", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "high-knees", "target": "2 × 15m", "sets": 2 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 },
+            { "id": "calf-raise-iso", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "a-skip", "target": "3 × 20m", "sets": 3 },
+            { "id": "b-skip", "target": "2 × 20m", "sets": 2 },
+            { "id": "pogo-hops", "target": "3 × 15", "sets": 3 },
+            { "id": "strides", "target": "3 × 60m", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:power-plyo",
+          "label": "Plyo · Power · Sprints",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "10 min", "sets": 1 },
+            { "id": "uphill-sprints", "target": "8 × 20s", "sets": 8 },
+            { "id": "box-jump", "target": "5 × 3", "sets": 5 },
+            { "id": "broad-jump", "target": "4 × 3", "sets": 4 },
+            { "id": "med-ball-slams", "target": "3 × 8", "sets": 3 },
+            { "id": "walking", "target": "8 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "ring-row", "target": "2 × 8", "sets": 2 },
+            { "id": "straight-bar-dip", "target": "2 × 6", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-quads", "target": "2:45", "sets": 1 },
+            { "id": "tre-tremoring", "target": "2 min", "sets": 1 },
+            { "id": "physiological-sigh", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-12": {
+      "dayType": "thursday",
+      "theme": "Zone 2 long run",
+      "minutes": 140,
+      "coordDomain": "movement",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "yoga-cat-cow", "target": "10 reps", "sets": 1 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "body-tapping", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 25,
+          "exercises": [
+            { "id": "half-au-cortado", "target": "6 × 4", "sets": 6 },
+            { "id": "reverse-corta-capim-au-cortado", "target": "6 × 4", "sets": 6 },
+            { "id": "level-change-step", "target": "4 × 6 each side", "sets": 4 },
+            { "id": "breakfalls", "target": "4 × 5 each side", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "half-split-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "standing-quad-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "worlds-greatest-stretch", "target": "5 reps each side", "sets": 1 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 long run",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "fin-pushups", "target": "2 × 8", "sets": 2 },
+            { "id": "wall-walk", "target": "3 × 2", "sets": 3 },
+            { "id": "wall-shoulder-taps", "target": "3 × 6", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-it-band", "target": "2:15", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:30", "sets": 1 },
+            { "id": "extended-exhale", "target": "4:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-13": {
+      "dayType": "friday",
+      "theme": "Strength B",
+      "minutes": 140,
+      "coordDomain": "vision",
+      "skillLine": "pancake-hips",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "spine-cars", "target": "3 reps", "sets": 1 },
+            { "id": "yoga-garland-pose", "target": "2 × 45s", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 25,
+          "exercises": [
+            { "id": "saccade-chart", "target": "4 × 1 min", "sets": 4 },
+            { "id": "gaze-stabilisation", "target": "4 × 1 min", "sets": 4 },
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 },
+            { "id": "near-far-focus", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "inchworm", "target": "2 × 5", "sets": 2 },
+            { "id": "wrist-cars", "target": "2 × 8", "sets": 2 },
+            { "id": "hip-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "bodyweight-good-morning-stretch", "target": "3 × 8", "sets": 3 },
+            { "id": "shoulder-overhead-stretch", "target": "3 × 30s", "sets": 3 },
+            { "id": "glute-bridge-bw", "target": "3 × 12", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength B",
+          "minutes": 60,
+          "exercises": [
+            { "id": "deadlift", "target": "3 × 5 @ 85kg", "sets": 3, "loadKg": 85 },
+            { "id": "overhead-press", "target": "3 × 5 @ 35kg", "sets": 3, "loadKg": 35 },
+            { "id": "cable-row", "target": "3 × 10 @ 50kg", "sets": 3, "loadKg": 50 },
+            { "id": "triceps-dip", "target": "3 × 7 +10kg", "sets": 3, "loadKg": 10 },
+            { "id": "farmers-walk", "target": "3 × 40m · RPE 8", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Pancake & hips",
+          "minutes": 15,
+          "exercises": [
+            { "id": "pancake", "target": "2 × 1:15", "sets": 2 },
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "straddle-sit-compression", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-butterfly", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "couch-stretch", "target": "45s each side", "sets": 1 },
+            { "id": "foam-roll-upper-back", "target": "1:15", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "2:30", "sets": 1 },
+            { "id": "box-breathing", "target": "2:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-14": {
+      "dayType": "saturday",
+      "theme": "Intervals / Tempo",
+      "minutes": 140,
+      "coordDomain": "ball-reaction",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 25,
+          "exercises": [
+            { "id": "keepie-uppies", "target": "4 × 1 min", "sets": 4 },
+            { "id": "reaction-ball-wall", "target": "4 × 1 min", "sets": 4 },
+            { "id": "two-ball-wall-alternating", "target": "4 × 1 min", "sets": 4 },
+            { "id": "drop-catch-reaction", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "high-knees", "target": "2 × 15m", "sets": 2 },
+            { "id": "ankle-cars", "target": "2 × 8 each side", "sets": 2 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 },
+            { "id": "calf-raise-iso", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "a-skip", "target": "4 × 20m", "sets": 4 },
+            { "id": "strides", "target": "4 × 60m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Intervals / Tempo",
+          "minutes": 60,
+          "exercises": [
+            { "id": "interval-run", "target": "Norwegian 4x4 · 10 min warm-up · 4 × 4 min at 172–182 · 3 min easy between · 5 min cool-down", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "explosive-pullup", "target": "3 × 2", "sets": 3 },
+            { "id": "russian-dip", "target": "2 × 5", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-quads", "target": "2:45", "sets": 1 },
+            { "id": "tre-tremoring", "target": "2 min", "sets": 1 },
+            { "id": "physiological-sigh", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-15": {
+      "dayType": "sunday",
+      "theme": "Light",
+      "minutes": 85,
+      "coordDomain": "balance",
+      "skillLine": "hang-project",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 15,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "3 × 8", "sets": 3 },
+            { "id": "deep-squat-hold", "target": "3 × 1 min", "sets": 3 },
+            { "id": "tre-tremoring", "target": "3 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 20,
+          "exercises": [
+            { "id": "edge-sl-eyes-closed-taps", "target": "6 × 8 each side", "sets": 6 },
+            { "id": "edge-squat-eyes-closed", "target": "5 × 5", "sets": 5 },
+            { "id": "edge-sl-gaze-shifts", "target": "6 × 30s each side", "sets": 6 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 30,
+          "exercises": [
+            { "id": "yoga-sun-salutation-a", "target": "3–5 rounds", "sets": 1 },
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "yoga-pigeon", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "yoga-head-to-knee-pose", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "yoga-sphinx", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-reclined-twist", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Hang project",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "5 × 45s", "sets": 5 },
+            { "id": "one-arm-passive-hang", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "meat-hook-hang", "target": "2 × 30s each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-legs-up-wall", "target": "4:30", "sets": 1 },
+            { "id": "open-awareness", "target": "4:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-16": {
+      "dayType": "monday",
+      "theme": "Strength A",
+      "minutes": 140,
+      "coordDomain": "stick",
+      "skillLine": "prehab-shoulder-wrist",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-pump", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 25,
+          "exercises": [
+            { "id": "stick-hip-pike-slide", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-overhead-behind-back", "target": "4 × 1 min each side", "sets": 4 },
+            { "id": "stick-fingertip-stepover", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-hop-jump-over", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "inchworm", "target": "2 × 5", "sets": 2 },
+            { "id": "ankle-cars", "target": "2 × 8 each side", "sets": 2 },
+            { "id": "spine-cars", "target": "2 × 3", "sets": 2 },
+            { "id": "knee-over-toe-stretch", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "chest-doorway-stretch", "target": "3 × 30s", "sets": 3 },
+            { "id": "dead-bug", "target": "3 × 8 each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength A",
+          "minutes": 60,
+          "exercises": [
+            { "id": "squat", "target": "3 × 5 @ 60kg", "sets": 3, "loadKg": 60 },
+            { "id": "incline-bench", "target": "3 × 5 @ 55kg", "sets": 3, "loadKg": 55 },
+            { "id": "pull-up", "target": "3 × 6", "sets": 3 },
+            { "id": "hollow-body-hold", "target": "3 × 30s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Shoulder & wrist prehab",
+          "minutes": 15,
+          "exercises": [
+            { "id": "band-pull-aparts", "target": "3 × 15", "sets": 3 },
+            { "id": "neck-work", "target": "3 × 12", "sets": 3 },
+            { "id": "wrist-prep", "target": "2:45", "sets": 1 },
+            { "id": "fin-pushups", "target": "2 × 8", "sets": 2 },
+            { "id": "tendon-glides", "target": "1:15", "sets": 1 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "hamstring-hang", "target": "1 min", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1 min", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3 min", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3 min", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-17": {
+      "dayType": "tuesday",
+      "theme": "Zone 2 bike",
+      "minutes": 140,
+      "coordDomain": "objects",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "2 × 8", "sets": 2 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 25,
+          "exercises": [
+            { "id": "juggling-half-shower", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-shower", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-tennis", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-mills-mess", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "yoga-sphinx", "target": "2 × 1:15", "sets": 2 },
+            { "id": "chest-doorway-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-seated-twist", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "yoga-pigeon", "target": "2 × 1:15 each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 bike",
+          "minutes": 60,
+          "exercises": [
+            { "id": "z2-cycling", "target": "60 min at 134–153 · 5 min spin-up · 5 min easy spin", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "2 min", "sets": 1 },
+            { "id": "first-knuckle-raises", "target": "2 × 20s", "sets": 2 },
+            { "id": "front-line-drill", "target": "3 × 30s", "sets": 3 },
+            { "id": "hs-wall-plank", "target": "3 × 30s", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "knee-to-chest-stretch", "target": "1:15", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:45", "sets": 1 },
+            { "id": "body-scan", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-18": {
+      "dayType": "wednesday",
+      "theme": "Plyo · Power · Sprints",
+      "minutes": 140,
+      "coordDomain": "movement",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "arch-hang", "target": "3 × 20s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-heel-raise-toe-stretch", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 25,
+          "exercises": [
+            { "id": "role-into-qdr", "target": "6 × 4", "sets": 6 },
+            { "id": "half-au-role-qdr-combo", "target": "6 × 4", "sets": 6 },
+            { "id": "the-centaur", "target": "6 × 1 min", "sets": 6 },
+            { "id": "two-limbs-negativa", "target": "4 × 5s each side", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "butt-kicks", "target": "2 × 15m", "sets": 2 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 },
+            { "id": "worlds-greatest-stretch", "target": "5 reps each side", "sets": 1 },
+            { "id": "tibialis-raise", "target": "2 × 15", "sets": 2 },
+            { "id": "b-skip", "target": "2 × 20m", "sets": 2 },
+            { "id": "straight-leg-bound", "target": "2 × 20m", "sets": 2 },
+            { "id": "pogo-hops", "target": "3 × 15", "sets": 3 },
+            { "id": "strides", "target": "3 × 60m", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:power-plyo",
+          "label": "Plyo · Power · Sprints",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "10 min", "sets": 1 },
+            { "id": "uphill-sprints", "target": "8 × 20s", "sets": 8 },
+            { "id": "box-jump", "target": "5 × 3", "sets": 5 },
+            { "id": "broad-jump", "target": "4 × 3", "sets": 4 },
+            { "id": "med-ball-slams", "target": "3 × 8", "sets": 3 },
+            { "id": "walking", "target": "8 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "false-grip-ring-row", "target": "2 × 6", "sets": 2 },
+            { "id": "ring-hold-support", "target": "2 × 20s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-it-band", "target": "2:15", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:30", "sets": 1 },
+            { "id": "extended-exhale", "target": "4:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-19": {
+      "dayType": "thursday",
+      "theme": "Zone 2 long run",
+      "minutes": 140,
+      "coordDomain": "vision",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "yoga-cat-cow", "target": "10 reps", "sets": 1 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "body-tapping", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 25,
+          "exercises": [
+            { "id": "gaze-stabilisation", "target": "4 × 1 min", "sets": 4 },
+            { "id": "saccade-chart", "target": "4 × 1 min", "sets": 4 },
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 },
+            { "id": "near-far-focus", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "yoga-pigeon", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "single-leg-hamstring-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "couch-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 long run",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "fin-pushups", "target": "2 × 8", "sets": 2 },
+            { "id": "wall-walk", "target": "3 × 2", "sets": 3 },
+            { "id": "wall-shoulder-taps", "target": "3 × 6", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-calves", "target": "1:45", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:30", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-20": {
+      "dayType": "friday",
+      "theme": "Strength B",
+      "minutes": 140,
+      "coordDomain": "ball-reaction",
+      "skillLine": "pancake-hips",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "spine-cars", "target": "3 reps", "sets": 1 },
+            { "id": "yoga-garland-pose", "target": "2 × 45s", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 25,
+          "exercises": [
+            { "id": "reaction-ball-wall", "target": "4 × 1 min", "sets": 4 },
+            { "id": "two-ball-wall-alternating", "target": "4 × 1 min", "sets": 4 },
+            { "id": "drop-catch-reaction", "target": "4 × 1 min", "sets": 4 },
+            { "id": "keepie-uppies", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "bear-crawl", "target": "2 × 15m forward and back", "sets": 2 },
+            { "id": "hip-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "shoulder-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "hamstring-pike", "target": "3 × 30s", "sets": 3 },
+            { "id": "scapula-mobilization-routine", "target": "3 × 8", "sets": 3 },
+            { "id": "bird-dog", "target": "3 × 8 each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength B",
+          "minutes": 60,
+          "exercises": [
+            { "id": "deadlift", "target": "3 × 5 @ 85kg", "sets": 3, "loadKg": 85 },
+            { "id": "overhead-press", "target": "3 × 5 @ 35kg", "sets": 3, "loadKg": 35 },
+            { "id": "cable-row", "target": "3 × 10 @ 50kg", "sets": 3, "loadKg": 50 },
+            { "id": "triceps-dip", "target": "3 × 7 +10kg", "sets": 3, "loadKg": 10 },
+            { "id": "farmers-walk", "target": "3 × 40m · RPE 8", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Pancake & hips",
+          "minutes": 15,
+          "exercises": [
+            { "id": "pancake", "target": "2 × 1:15", "sets": 2 },
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "straddle-sit-compression", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-butterfly", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "hamstring-hang", "target": "1 min", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1 min", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3 min", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3 min", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-21": {
+      "dayType": "saturday",
+      "theme": "Intervals / Tempo",
+      "minutes": 140,
+      "coordDomain": "balance",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 25,
+          "exercises": [
+            { "id": "edge-squat-eyes-closed", "target": "3 × 5", "sets": 3 },
+            { "id": "edge-sl-gaze-shifts", "target": "4 × 30s each side", "sets": 4 },
+            { "id": "edge-walk-ball-bounce", "target": "6 × 5m each side", "sets": 6 },
+            { "id": "balance-board", "target": "6 × 1:30", "sets": 6 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "butt-kicks", "target": "2 × 15m", "sets": 2 },
+            { "id": "dynamic-leg-swings", "target": "15 front-back + 15 lateral each leg", "sets": 1 },
+            { "id": "worlds-greatest-stretch", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "tibialis-raise", "target": "3 × 15", "sets": 3 },
+            { "id": "a-skip", "target": "4 × 20m", "sets": 4 },
+            { "id": "strides", "target": "4 × 60m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Intervals / Tempo",
+          "minutes": 60,
+          "exercises": [
+            { "id": "interval-run", "target": "Norwegian 4x4 · 10 min warm-up · 4 × 4 min at 172–182 · 3 min easy between · 5 min cool-down", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "ring-row", "target": "2 × 8", "sets": 2 },
+            { "id": "straight-bar-dip", "target": "2 × 6", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-it-band", "target": "2:15", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:30", "sets": 1 },
+            { "id": "extended-exhale", "target": "4:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-22": {
+      "dayType": "sunday",
+      "theme": "Light",
+      "minutes": 85,
+      "coordDomain": "stick",
+      "skillLine": "hang-project",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 15,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "3 × 8", "sets": 3 },
+            { "id": "deep-squat-hold", "target": "3 × 1 min", "sets": 3 },
+            { "id": "tre-tremoring", "target": "3 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 20,
+          "exercises": [
+            { "id": "stick-overhead-behind-back", "target": "4 × 1 min each side", "sets": 4 },
+            { "id": "stick-fingertip-stepover", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-hop-jump-over", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 30,
+          "exercises": [
+            { "id": "yoga-sun-salutation-a", "target": "3–5 rounds", "sets": 1 },
+            { "id": "yoga-pigeon", "target": "3 × 1:15 each side", "sets": 3 },
+            { "id": "frog-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-seated-forward-fold", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-reclined-twist", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-thread-needle", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Hang project",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "5 × 45s", "sets": 5 },
+            { "id": "one-arm-passive-hang", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "switch-grip-hang-beginner", "target": "2 × 30s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-legs-up-wall", "target": "4:30", "sets": 1 },
+            { "id": "yoga-nidra", "target": "4:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-23": {
+      "dayType": "monday",
+      "theme": "Strength A",
+      "minutes": 140,
+      "coordDomain": "objects",
+      "skillLine": "prehab-shoulder-wrist",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-pump", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 25,
+          "exercises": [
+            { "id": "juggling-shower", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-tennis", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-mills-mess", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-box", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "get-up-squat-stand", "target": "2 × 5", "sets": 2 },
+            { "id": "spine-cars", "target": "3 × 3", "sets": 3 },
+            { "id": "shoulder-cars", "target": "3 × 5 each side", "sets": 3 },
+            { "id": "ankle-dorsiflexion", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-thread-needle", "target": "3 × 30s", "sets": 3 },
+            { "id": "scap-pushups", "target": "3 × 10", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength A",
+          "minutes": 60,
+          "exercises": [
+            { "id": "squat", "target": "3 × 5 @ 60kg", "sets": 3, "loadKg": 60 },
+            { "id": "incline-bench", "target": "3 × 5 @ 55kg", "sets": 3, "loadKg": 55 },
+            { "id": "pull-up", "target": "3 × 6", "sets": 3 },
+            { "id": "hollow-body-hold", "target": "3 × 30s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Shoulder & wrist prehab",
+          "minutes": 15,
+          "exercises": [
+            { "id": "band-pull-aparts", "target": "3 × 15", "sets": 3 },
+            { "id": "neck-work", "target": "3 × 12", "sets": 3 },
+            { "id": "wrist-prep", "target": "2:45", "sets": 1 },
+            { "id": "dorsal-pushups", "target": "2 × 6", "sets": 2 },
+            { "id": "pronator-stretch", "target": "3 × 30s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "knee-to-chest-stretch", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-glutes", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "2:45", "sets": 1 },
+            { "id": "extended-exhale", "target": "2:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-24": {
+      "dayType": "tuesday",
+      "theme": "Zone 2 bike",
+      "minutes": 140,
+      "coordDomain": "movement",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "2 × 8", "sets": 2 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 25,
+          "exercises": [
+            { "id": "qdr-circles", "target": "6 × 4", "sets": 6 },
+            { "id": "qdr-rotational-pushups", "target": "6 × 4", "sets": 6 },
+            { "id": "level-change-step", "target": "4 × 6 each side", "sets": 4 },
+            { "id": "breakfalls", "target": "4 × 5 each side", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "yoga-cobra", "target": "2 × 1:15", "sets": 2 },
+            { "id": "sleeper-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "yoga-reclined-twist", "target": "2 × 1:15", "sets": 2 },
+            { "id": "couch-stretch", "target": "2 × 1:15 each side", "sets": 2 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 bike",
+          "minutes": 60,
+          "exercises": [
+            { "id": "z2-cycling", "target": "60 min at 134–153 · 5 min spin-up · 5 min easy spin", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "1:45", "sets": 1 },
+            { "id": "slingshot-rebound-plank", "target": "2 × 8", "sets": 2 },
+            { "id": "pike-pushup", "target": "3 × 6", "sets": 3 },
+            { "id": "donkey-kicks", "target": "2 × 8", "sets": 2 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-childs-pose", "target": "1:45", "sets": 1 },
+            { "id": "straightjacket-shake", "target": "1:45", "sets": 1 },
+            { "id": "extended-exhale", "target": "5 min", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-25": {
+      "dayType": "wednesday",
+      "theme": "Plyo · Power · Sprints",
+      "minutes": 140,
+      "coordDomain": "vision",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "arch-hang", "target": "3 × 20s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-heel-raise-toe-stretch", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Vision & eyes",
+          "minutes": 25,
+          "exercises": [
+            { "id": "eye-cars", "target": "4 × 1 min", "sets": 4 },
+            { "id": "near-far-focus", "target": "4 × 1 min", "sets": 4 },
+            { "id": "peripheral-tracking", "target": "4 × 1 min", "sets": 4 },
+            { "id": "ball-eye-patched", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "carioca", "target": "2 × 20m each side", "sets": 2 },
+            { "id": "worlds-greatest-stretch", "target": "5 reps each side", "sets": 1 },
+            { "id": "dynamic-hip-circles", "target": "10 each direction", "sets": 1 },
+            { "id": "glute-bridge-bw", "target": "2 × 12", "sets": 2 },
+            { "id": "straight-leg-bound", "target": "2 × 20m", "sets": 2 },
+            { "id": "a-march", "target": "2 × 20m", "sets": 2 },
+            { "id": "pogo-hops", "target": "4 × 15", "sets": 4 },
+            { "id": "strides", "target": "4 × 60m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "main-focus:power-plyo",
+          "label": "Plyo · Power · Sprints",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "10 min", "sets": 1 },
+            { "id": "uphill-sprints", "target": "8 × 20s", "sets": 8 },
+            { "id": "box-jump", "target": "5 × 3", "sets": 5 },
+            { "id": "broad-jump", "target": "4 × 3", "sets": 4 },
+            { "id": "med-ball-slams", "target": "3 × 8", "sets": 3 },
+            { "id": "walking", "target": "8 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "false-grip-ring-row", "target": "2 × 6", "sets": 2 },
+            { "id": "ring-hold-support", "target": "2 × 20s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-calves", "target": "1:45", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:30", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-26": {
+      "dayType": "thursday",
+      "theme": "Zone 2 long run",
+      "minutes": 140,
+      "coordDomain": "ball-reaction",
+      "skillLine": "handstand",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 45s", "sets": 3 },
+            { "id": "yoga-cat-cow", "target": "10 reps", "sets": 1 },
+            { "id": "deep-squat-hold", "target": "2 × 1 min", "sets": 2 },
+            { "id": "body-tapping", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Ball & reaction",
+          "minutes": 25,
+          "exercises": [
+            { "id": "two-ball-wall-alternating", "target": "4 × 1 min", "sets": 4 },
+            { "id": "drop-catch-reaction", "target": "4 × 1 min", "sets": 4 },
+            { "id": "keepie-uppies", "target": "4 × 1 min", "sets": 4 },
+            { "id": "reaction-ball-wall", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "frog-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "hurdler-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "runners-lunge-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "ankle-cars", "target": "8 reps each side", "sets": 1 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Zone 2 long run",
+          "minutes": 60,
+          "exercises": [
+            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Handstand",
+          "minutes": 15,
+          "exercises": [
+            { "id": "wrist-prep", "target": "2 min", "sets": 1 },
+            { "id": "first-knuckle-raises", "target": "2 × 20s", "sets": 2 },
+            { "id": "front-line-drill", "target": "3 × 30s", "sets": 3 },
+            { "id": "hs-wall-plank", "target": "3 × 30s", "sets": 3 },
+            { "id": "hs-wall-hold", "target": "4 × 20–30s chest to wall", "sets": 4 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-quads", "target": "2:45", "sets": 1 },
+            { "id": "tre-tremoring", "target": "2 min", "sets": 1 },
+            { "id": "physiological-sigh", "target": "3:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-27": {
+      "dayType": "friday",
+      "theme": "Strength B",
+      "minutes": 140,
+      "coordDomain": "balance",
+      "skillLine": "pancake-hips",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "spine-cars", "target": "3 reps", "sets": 1 },
+            { "id": "yoga-garland-pose", "target": "2 × 45s", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Balance",
+          "minutes": 25,
+          "exercises": [
+            { "id": "edge-sl-gaze-shifts", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "edge-walk-ball-bounce", "target": "3 × 5m each side", "sets": 3 },
+            { "id": "balance-board", "target": "5 × 1 min", "sets": 5 },
+            { "id": "yoga-eagle-pose", "target": "5 × 1 min each side", "sets": 5 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "crab-walk", "target": "2 × 15m", "sets": 2 },
+            { "id": "shoulder-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "wrist-cars", "target": "2 × 8", "sets": 2 },
+            { "id": "single-leg-hamstring-stretch", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "yoga-thread-needle", "target": "3 × 30s", "sets": 3 },
+            { "id": "dead-bug", "target": "3 × 8 each side", "sets": 3 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength B",
+          "minutes": 60,
+          "exercises": [
+            { "id": "deadlift", "target": "3 × 5 @ 85kg", "sets": 3, "loadKg": 85 },
+            { "id": "overhead-press", "target": "3 × 5 @ 35kg", "sets": 3, "loadKg": 35 },
+            { "id": "cable-row", "target": "3 × 10 @ 50kg", "sets": 3, "loadKg": 50 },
+            { "id": "triceps-dip", "target": "3 × 7 +10kg", "sets": 3, "loadKg": 10 },
+            { "id": "farmers-walk", "target": "3 × 40m · RPE 8", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Pancake & hips",
+          "minutes": 15,
+          "exercises": [
+            { "id": "pancake", "target": "2 × 1:15", "sets": 2 },
+            { "id": "hip-90-90-stretch", "target": "2 × 1:15 each side", "sets": 2 },
+            { "id": "straddle-sit-compression", "target": "3 × 30s", "sets": 3 },
+            { "id": "yoga-butterfly", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "knee-to-chest-stretch", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-glutes", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "2:45", "sets": 1 },
+            { "id": "extended-exhale", "target": "2:45", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-28": {
+      "dayType": "saturday",
+      "theme": "Intervals / Tempo",
+      "minutes": 140,
+      "coordDomain": "stick",
+      "skillLine": "muscle-up-prep",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "pandiculation", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Stick work",
+          "minutes": 25,
+          "exercises": [
+            { "id": "stick-fingertip-stepover", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-hop-jump-over", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-seated-hip-to-butt", "target": "4 × 1 min", "sets": 4 },
+            { "id": "stick-360-rotation", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "carioca", "target": "2 × 20m each side", "sets": 2 },
+            { "id": "worlds-greatest-stretch", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "dynamic-hip-circles", "target": "10 each direction", "sets": 1 },
+            { "id": "glute-bridge-bw", "target": "3 × 12", "sets": 3 },
+            { "id": "a-march", "target": "4 × 20m", "sets": 4 },
+            { "id": "strides", "target": "4 × 60m", "sets": 4 }
+          ]
+        },
+        {
+          "key": "main-focus:cardio",
+          "label": "Intervals / Tempo",
+          "minutes": 60,
+          "exercises": [
+            { "id": "interval-run", "target": "Norwegian 4x4 · 10 min warm-up · 4 × 4 min at 172–182 · 3 min easy between · 5 min cool-down", "sets": 1 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Muscle-up prep",
+          "minutes": 15,
+          "exercises": [
+            { "id": "low-bar-drill", "target": "2 × 4", "sets": 2 },
+            { "id": "false-grip-hang", "target": "2 × 20s", "sets": 2 },
+            { "id": "scap-pullups", "target": "2 × 8", "sets": 2 },
+            { "id": "ring-row", "target": "2 × 8", "sets": 2 },
+            { "id": "straight-bar-dip", "target": "2 × 6", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "foam-roll-calves", "target": "1:45", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:30", "sets": 1 },
+            { "id": "diaphragmatic-breathing", "target": "3:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-29": {
+      "dayType": "sunday",
+      "theme": "Light",
+      "minutes": 85,
+      "coordDomain": "objects",
+      "skillLine": "hang-project",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 15,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-floor", "target": "3 × 8", "sets": 3 },
+            { "id": "deep-squat-hold", "target": "3 × 1 min", "sets": 3 },
+            { "id": "tre-tremoring", "target": "3 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Object manipulation",
+          "minutes": 20,
+          "exercises": [
+            { "id": "juggling-tennis", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-mills-mess", "target": "4 × 1 min", "sets": 4 },
+            { "id": "juggling-box", "target": "4 × 1 min", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 30,
+          "exercises": [
+            { "id": "yoga-sun-salutation-a", "target": "3–5 rounds", "sets": 1 },
+            { "id": "frog-stretch", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-butterfly", "target": "2 × 1:15", "sets": 2 },
+            { "id": "single-leg-hamstring-stretch", "target": "3 × 1:15 each side", "sets": 3 },
+            { "id": "yoga-thread-needle", "target": "2 × 1:15", "sets": 2 },
+            { "id": "yoga-childs-pose", "target": "2 × 1:15", "sets": 2 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Hang project",
+          "minutes": 10,
+          "exercises": [
+            { "id": "dead-hang", "target": "5 × 45s", "sets": 5 },
+            { "id": "one-arm-passive-hang", "target": "2 × 30s each side", "sets": 2 },
+            { "id": "switch-grip-hang-beginner", "target": "2 × 30s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-legs-up-wall", "target": "4:30", "sets": 1 },
+            { "id": "body-scan", "target": "4:30", "sets": 1 }
+          ]
+        }
+      ]
+    },
+    "2026-11-30": {
+      "dayType": "monday",
+      "theme": "Strength A",
+      "minutes": 140,
+      "coordDomain": "movement",
+      "skillLine": "prehab-shoulder-wrist",
+      "blocks": [
+        {
+          "key": "open",
+          "label": "Open",
+          "minutes": 10,
+          "exercises": [
+            { "id": "active-hang", "target": "3 × 30s", "sets": 3 },
+            { "id": "spinal-waves-standing", "target": "2 × 8", "sets": 2 },
+            { "id": "squat-knee-pump", "target": "2 × 6 each side", "sets": 2 },
+            { "id": "vertical-shake", "target": "2 min", "sets": 1 }
+          ]
+        },
+        {
+          "key": "complementary",
+          "label": "Complementary — Movement practice",
+          "minutes": 25,
+          "exercises": [
+            { "id": "the-centaur", "target": "5 × 1 min", "sets": 5 },
+            { "id": "two-limbs-negativa", "target": "3 × 5s each side", "sets": 3 },
+            { "id": "corta-capim", "target": "5 × 1 min each side", "sets": 5 },
+            { "id": "au-cortado", "target": "4 × 4", "sets": 4 }
+          ]
+        },
+        {
+          "key": "mobility",
+          "label": "Mobility & Flexibility",
+          "minutes": 20,
+          "exercises": [
+            { "id": "worlds-greatest-stretch", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "shoulder-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "hip-cars", "target": "2 × 5 each side", "sets": 2 },
+            { "id": "squat-knee-rotation-hold", "target": "3 × 30s each side", "sets": 3 },
+            { "id": "shoulder-overhead-stretch", "target": "3 × 30s", "sets": 3 },
+            { "id": "banded-lateral-walk", "target": "2 × 12 steps each way", "sets": 2 }
+          ]
+        },
+        {
+          "key": "main-focus:weights",
+          "label": "Strength A",
+          "minutes": 60,
+          "exercises": [
+            { "id": "squat", "target": "3 × 5 @ 60kg", "sets": 3, "loadKg": 60 },
+            { "id": "incline-bench", "target": "3 × 5 @ 55kg", "sets": 3, "loadKg": 55 },
+            { "id": "pull-up", "target": "3 × 6", "sets": 3 },
+            { "id": "hollow-body-hold", "target": "3 × 30s", "sets": 3 }
+          ]
+        },
+        {
+          "key": "accessory",
+          "label": "Accessory & Skill — Shoulder & wrist prehab",
+          "minutes": 15,
+          "exercises": [
+            { "id": "band-pull-aparts", "target": "2 × 15", "sets": 2 },
+            { "id": "neck-work", "target": "2 × 12", "sets": 2 },
+            { "id": "wrist-prep", "target": "2:30", "sets": 1 },
+            { "id": "fin-pushups", "target": "2 × 8", "sets": 2 },
+            { "id": "prayer-stretch", "target": "2 × 30s", "sets": 2 }
+          ]
+        },
+        {
+          "key": "close",
+          "label": "Close",
+          "minutes": 10,
+          "exercises": [
+            { "id": "yoga-childs-pose", "target": "1 min", "sets": 1 },
+            { "id": "foam-roll-quads", "target": "1:30", "sets": 1 },
+            { "id": "yoga-legs-up-wall", "target": "3:15", "sets": 1 },
+            { "id": "physiological-sigh", "target": "2:15", "sets": 1 }
+          ]
+        }
+      ]
+    }
+  }
+}

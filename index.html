@@ -471,10 +471,14 @@ function setTheme(t) {
 <script src="data/complementary.js"></script>
 <script src="data/scaffold.js"></script>
 <script src="data/monthplan.js"></script>
+<script src="data/media.js"></script>
 <script src="js/app.js"></script>
 <script src="js/custom.js"></script>
 <script src="js/import.js"></script>
 <script src="js/monthplan.js"></script>
+<script src="js/day.js"></script>
+<script src="js/insights.js"></script>
+<script src="js/blockbuilder.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/overrides.js"></script>
@@ -552,10 +556,14 @@ function renderHome() {
   const idx = History.getIndex(100);
 
   // streak
-  let streak = 0, check = new Date(); check.setHours(0,0,0,0); check = check.getTime();
-  for (const r of [...idx].sort((a,b)=>new Date(b.date)-new Date(a.date))) {
-    const d = new Date(r.date); d.setHours(0,0,0,0);
-    if (d.getTime()===check||d.getTime()===check-86400000){streak++;check=d.getTime()-86400000;}else break;
+  // Counted on distinct local calendar dates: two sessions on one day are
+  // one day, and a 23- or 25-hour day at a clock change doesn't break it.
+  let streak = 0;
+  {
+    const dates = [...new Set(idx.map(r => Day.key(r.date)))].sort().reverse();
+    let expect = Day.key(new Date());
+    if (dates[0] !== expect) expect = Day.addDays(expect, -1);
+    for (const k of dates) { if (k === expect) { streak++; expect = Day.addDays(expect, -1); } else if (k < expect) break; }
   }
 
   let h = '';
@@ -868,6 +876,62 @@ function _mvCard(eyebrow, tone, body, extra) {
     <div class="mv-eyebrow ${tone}" style="margin-bottom:.6rem">${eyebrow}</div>${body}</div>`;
 }
 
+// Between the retests: speed held inside the Z2 band, and how much the
+// heart rate drifts, on every imported run or ride that has a heart-rate
+// series. Three test points a quarter can't show the engine moving; this can.
+function _engineTrend() {
+  if (typeof Insights === 'undefined') return '';
+  const sessions = History.getIndex(80).map(r => History.getSession(r.id)).filter(Boolean);
+  let tr; try { tr = Insights.aerobicTrend(sessions); } catch (e) { return ''; }
+  const rows = [...(tr.run || []).map(p => ({ ...p, kind: 'run' })), ...(tr.bike || []).map(p => ({ ...p, kind: 'bike' }))]
+    .filter(p => p.valid && (p.speedAtHr || p.decoupling != null))
+    .sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 6);
+  if (!rows.length) return `<div style="font-size:.72rem;color:var(--text3);margin-top:.5rem">Speed at ${Insights.AEROBIC ? Insights.AEROBIC.HR_LO || 139 : 139}–153 bpm appears here once runs are imported with heart rate.</div>`;
+  return `<div class="mv-eyebrow" style="margin:.8rem 0 .35rem">Between tests · Z2 band</div>` + rows.map(p => {
+    const sp = p.speedAtHr ? (p.kind === 'run' && p.speedAtHr.paceSecPerKm ? Utils.formatMMSS(Math.round(p.speedAtHr.paceSecPerKm)) + '/km' : p.speedAtHr.kmh + ' km/h') : '—';
+    return `<div class="mv-row" style="font-size:.78rem"><div style="width:4.2rem;color:var(--text3)">${Utils.formatDate(p.date)}</div>
+      <div style="width:2.6rem;color:var(--text3)">${p.kind}</div><div style="flex:1;font-variant-numeric:tabular-nums">${sp}</div>
+      <div style="font-size:.7rem;color:${p.decoupling != null && p.decoupling > 5 ? 'var(--warm)' : 'var(--text3)'}">${p.decoupling != null ? 'drift ' + p.decoupling + '%' : ''}${p.hilly ? ' · hilly' : ''}</div></div>`;
+  }).join('');
+}
+
+// ── The next block: a draft from the retests (BlockBuilder), reviewed here
+// and only used once adopted.
+let _draft = null;
+function _draftCard(plan) {
+  if (typeof BlockBuilder === 'undefined' || !plan || !Array.isArray(plan.days) || !plan.days.length) return '';
+  const last = plan.days.reduce((m, d) => d.date > m ? d.date : m, plan.days[0].date);
+  const daysLeft = Day.daysBetween(new Date(), last);
+  if (daysLeft > 21 && !_draft) return '';
+  const drafted = (plan.days || []).filter(d => d.source === 'draft');
+  if (!_draft) {
+    return _mvCard('Next block', 'mv-eyebrow--accent', `
+      <div class="mv-body" style="margin-bottom:.6rem">The written plan ends ${Utils.formatDate(last)}${daysLeft >= 0 ? ` (${daysLeft} day${daysLeft === 1 ? '' : 's'})` : ''}.
+      ${drafted.length ? `${drafted.length} drafted days are already in it.` : 'Until there is more, each day carries forward its latest loads and protocol.'}
+      A draft takes the retest results and the plan's own rules — one strength step if the retest landed, easy volume +5 min, one quality run, then deload and retest.</div>
+      <button type="button" class="mv-pill" onclick="makeDraft()">Draft the next 3 weeks</button>`);
+  }
+  const byWeek = {};
+  _draft.days.forEach(d => { (byWeek[d.week] = byWeek[d.week] || []).push(d); });
+  return _mvCard('Next block — draft', 'mv-eyebrow--accent', `
+    <div class="mv-body" style="margin-bottom:.5rem">${Utils.formatDate(_draft.from)} – ${Utils.formatDate(_draft.to)}. Nothing changes until you adopt it.</div>
+    ${_draft.notes.map(n => `<div style="font-size:.76rem;line-height:1.45;color:var(--text2);margin:.15rem 0">· ${escAttr(n)}</div>`).join('')}
+    ${Object.keys(byWeek).map(w => {
+      const wk = (_draft.weeks || []).find(x => String(x.n) === String(w)) || {};
+      return `<div class="mv-eyebrow" style="margin:.8rem 0 .3rem">Week ${w} · ${escAttr(wk.label || '')}</div>` +
+        byWeek[w].filter(d => d.dayType !== 'light').map(d => `<div style="font-size:.74rem;line-height:1.45;color:var(--text2);margin:.1rem 0"><span style="color:var(--text3);display:inline-block;width:3.2rem">${Utils.formatDate(d.date).split(' ').slice(0, 2).join(' ')}</span>${escAttr(MonthPlan.summarize(d.mainFocusPlan) || d.theme)}</div>`).join('');
+    }).join('')}
+    <div style="display:flex;gap:.4rem;margin-top:.8rem"><button type="button" class="mv-pill" style="background:var(--accent);color:var(--on-accent,#fff);border-color:var(--accent)" onclick="adoptDraft()">Adopt into the plan</button><button type="button" class="mv-pill" onclick="_draft=null;renderProgress()">Discard</button></div>`);
+}
+function makeDraft() { _draft = BlockBuilder.draft({ weeks: 3 }); if (!_draft) alert('Nothing to draft from.'); renderProgress(); }
+function adoptDraft() {
+  if (!_draft) return;
+  if (!confirm(`Add ${_draft.days.length} days (${Utils.formatDate(_draft.from)} – ${Utils.formatDate(_draft.to)}) to the plan?`)) return;
+  MonthPlan.adoptDraft(_draft);
+  _draft = null;
+  renderProgress();
+}
+
 function renderProgress() {
   const el = document.getElementById('progress-body');
   if (!el) return;
@@ -877,10 +941,11 @@ function renderProgress() {
   // Local calendar date, not the UTC slice — a session late in a Lisbon
   // evening would otherwise tick the next day's square. Only completed
   // sessions count; an abandoned in-progress snapshot is not a day done.
+  // A traded day ticks the plan day whose CONTENT it carried out (planRef):
+  // Friday's Strength B done on Thursday fills Friday's square.
   const doneDates = new Set(idx
     .filter(r => r.date && r.status !== 'in-progress')
-    .map(r => { const t = new Date(r.date), p = n => String(n).padStart(2, '0');
-      return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())}`; }));
+    .map(r => (r.planRef && r.planRef.kind === 'traded' && r.planRef.contentDate) ? r.planRef.contentDate : Day.key(r.date)));
   const cardio = _cardioLogs();
   const z2ceil = (st.hrZones && st.hrZones.z2) || 153;
   // Settings values win; otherwise the latest watch reading (VO2 max) or the
@@ -910,11 +975,15 @@ function renderProgress() {
         <div style="font-size:.78rem;color:var(--text2)">sessions done &middot; ${where}</div>
       </div>
       <div class="mv-grid28">${plan.days.map(d => {
-        const cls = doneDates.has(d.date) ? 'done' : (d.benchmark ? 'bench' : '');
-        return `<i class="${cls}" title="${escAttr(d.date + ' · ' + d.theme)}"></i>`;
+        // A benchmark keeps its colour either way: faint while it's still
+        // ahead, solid once that day is done.
+        const done = doneDates.has(d.date);
+        const cls = d.benchmark ? (done ? 'bench done' : 'bench') : (done ? 'done' : '');
+        const tip = d.date + ' · ' + d.theme + (d.benchmark ? (done ? ' · benchmark done' : ' · benchmark, to come') : '');
+        return `<i class="${cls}" title="${escAttr(tip)}"></i>`;
       }).join('')}</div>
       <div class="mv-weekbar-labels" style="margin-top:.5rem">${(plan.weeks||[]).map(w=>`<span>${w.label}</span>`).join('')}</div>
-      <div class="mv-legend"><span><i style="background:var(--accent)"></i>done</span><span><i style="background:var(--warm)"></i>benchmark</span></div>`);
+      <div class="mv-legend"><span><i style="background:var(--accent)"></i>done</span><span><i style="background:var(--warm)"></i>benchmark done</span><span><i class="mv-legend-bench"></i>benchmark to come</span></div>`);
   }
 
   // 2 — the engine
@@ -931,7 +1000,8 @@ function renderProgress() {
     </div>
     <div class="mv-body" style="padding-top:.6rem;border-top:1px solid var(--border)">${tests.length
       ? 'Same cap and route every block — distance is the only thing that can move.'
-      : 'No fixed-HR test logged yet. Run 30 minutes capped at ' + z2ceil + 'bpm and record the distance.'}</div>`);
+      : 'No fixed-HR test logged yet. Run 30 minutes capped at ' + z2ceil + 'bpm and record the distance.'}</div>
+    ${_engineTrend()}`);
 
   // 3 — best efforts
   const best = km => {
@@ -950,6 +1020,9 @@ function renderProgress() {
   }).join(''));
 
   h += `</div><div class="dk-side">`;
+
+  // 3b — the next block, drafted from the retests
+  h += _draftCard(plan);
 
   // 4 — easy-day discipline
   const easy = cardio.filter(c => c.zones).slice(0, 10).reverse();
@@ -1029,8 +1102,9 @@ function _todayPlan() {
   if (stored) {
     // A plan built by an older generator is rebuilt, but only if nothing in
     // it has been touched yet — a session in progress is never replaced.
-    const untouched = stored.status !== 'completed' &&
-      !(stored.blocks || []).some(b => (b.exercises || []).some(e => e.completed || e.skipped || (e.sets || []).length));
+    // "Touched" includes edits, trades and chat changes, not only logged
+    // work — an adjusted but unstarted day used to revert on the next deploy.
+    const untouched = !Day.isTouched(stored);
     if (!(untouched && stored.genVersion !== Generator.GEN_VERSION)) return { session: stored, stored: true };
   }
   const gen = Generator.generateFromScaffold({
@@ -1132,7 +1206,7 @@ function renderExSheet() {
 
   const sec = (label, cls, text) => text
     ? `<div class="mv-eyebrow ${cls}" style="margin-bottom:.4rem">${label}</div>
-       <div style="font-size:.84rem;line-height:1.6;color:var(--text2);margin-bottom:.9rem">${text}</div>`
+       <div style="font-size:.84rem;line-height:1.6;color:var(--text2);margin-bottom:.9rem;white-space:pre-line">${text}</div>`
     : '';
 
   const meta = [ex && ex.category, ex && ex.subcategory].filter(Boolean).join(' · ');
@@ -1201,6 +1275,93 @@ function exSheetGo() {
   startTodayFromPlan();
 }
 
+// ─────────────────────────────────────────────────────────────
+// MODULAR DAY EDITING
+// Each block on Today can be changed on its own: shorter or longer, moved,
+// removed (the day gets shorter — you don't have the time), put back, and
+// for some blocks a different content: bike instead of run, another
+// coordination domain, another skill line. Every change is scoped to this
+// date, goes through Generator.applyOverride (which keeps anything already
+// logged), and shows in the "changed today" strip.
+// ─────────────────────────────────────────────────────────────
+function dayEdit(intent, said) {
+  const { session } = _todayRecord();
+  if (!session) return;
+  const updated = Generator.applyOverride(session, intent, App.profile);
+  if (!updated) {
+    alert(intent.action === 'remove_block' ? 'That block already has logged work, so it stays.' : "Couldn't apply that to today's plan.");
+    return;
+  }
+  if (said) updated.chatLog = (session.chatLog || []).concat([{ role: 'assistant', text: said, at: Date.now() }]);
+  if (intent.action === 'remove_block' && _todayOpen === intent.blockKey) _todayOpen = null;
+  _commitToday(updated);
+}
+
+function _blockTools(b, session) {
+  if (!session.weekday) return '';
+  const key = escAttr(b.key);
+  const idx = session.blocks.indexOf(b);
+  const has = Generator._blockHasWork(b);
+  const btn = (label, intent, title) => `<button type="button" class="mv-pill" title="${escAttr(title || label)}" onclick="event.stopPropagation();dayEdit(${escAttr(JSON.stringify(intent))})">${label}</button>`;
+  const tools = [];
+  // Content swaps first — they are why you open a block.
+  const cardio = /^main-focus:cardio$/.test(b.key || '') && (b.exercises || []).find(e => Generator._cardioModality(e.id));
+  if (cardio && !Generator._exHasWork(cardio)) {
+    const toBike = Generator._cardioModality(cardio.id) === 'run';
+    tools.push(btn(toBike ? 'Run → bike' : 'Bike → run', { action: 'swap_modality', modality: toBike ? 'bike' : 'run' }, 'Same minutes, same heart-rate numbers'));
+  }
+  if (b.key === 'complementary' && typeof COORD_DOMAINS !== 'undefined') {
+    const cur = b.coordDomain || session.coordDomain;
+    tools.push(`<select class="mv-pill mv-select" onclick="event.stopPropagation()" onchange="dayEdit({action:'swap_domain',domain:this.value})" aria-label="Coordination domain">
+      ${COORD_DOMAINS.map(dm => `<option value="${dm}" ${dm === cur ? 'selected' : ''}>${escAttr(DOMAIN_LABEL[dm] || dm)}</option>`).join('')}</select>`);
+  }
+  if (b.key === 'accessory' && typeof SKILL_LINES !== 'undefined') {
+    const cur = b.recipeKey || session.skillLine;
+    tools.push(`<select class="mv-pill mv-select" onclick="event.stopPropagation()" onchange="dayEdit({action:'swap_skill_line',line:this.value})" aria-label="Skill line">
+      ${Object.keys(SKILL_LINES).map(k => `<option value="${k}" ${k === cur ? 'selected' : ''}>${escAttr(SKILL_LINES[k].label)}</option>`).join('')}</select>`);
+  }
+  tools.push(btn('−5m', { action: 'resize_block', blockKey: b.key, minutes: Math.max(5, (b.duration || 0) - 5) }, 'Five minutes shorter'));
+  tools.push(btn('+5m', { action: 'resize_block', blockKey: b.key, minutes: (b.duration || 0) + 5 }, 'Five minutes longer'));
+  if (idx > 0) tools.push(btn('↑', { action: 'move_block', blockKey: b.key, delta: -1 }, 'Earlier'));
+  if (idx < session.blocks.length - 1) tools.push(btn('↓', { action: 'move_block', blockKey: b.key, delta: 1 }, 'Later'));
+  if (!has) tools.push(btn('Remove', { action: 'remove_block', blockKey: b.key }, 'Drop this block today — the day gets shorter'));
+  return `<div class="mv-blk-tools">${tools.join('')}</div>`;
+}
+
+function _editsStrip(session) {
+  const edits = (session.edits || []).filter(e => e.action !== 'restore_block');
+  if (!edits.length && !(session.planSource && session.planSource.kind === 'carry-forward')) return '';
+  const bits = [];
+  if (session.planSource && session.planSource.kind === 'carry-forward') bits.push('Carried forward from ' + Utils.formatDate(session.planSource.from));
+  if (session.planSource && session.planSource.kind === 'borrowed') bits.push("Using " + Utils.formatDate(session.planSource.from) + "'s prescription");
+  // Latest state only: "Accessory removed" then "put back" cancels out.
+  const seen = new Set();
+  edits.slice().reverse().forEach(e => {
+    const k = e.action + ':' + (e.blockKey || '');
+    if (seen.has(k)) return; seen.add(k);
+    if (e.action === 'remove_block' && !(session.removedBlocks || []).some(r => r.block.key === e.blockKey)) return;
+    bits.unshift(Day.editLabel(e, session));
+  });
+  if (!bits.length) return '';
+  return `<div class="mv-edits"><span class="mv-edits-k">Changed today</span> ${bits.map(b => `<span class="mv-chip">${escAttr(b)}</span>`).join(' ')}</div>`;
+}
+
+// Readiness from the watch vitals (Settings → Data → Import vitals). Offers
+// Lighter; never changes the day by itself.
+function _readinessBanner(session) {
+  if (typeof Insights === 'undefined' || typeof Vitals === 'undefined') return '';
+  let r = null;
+  try { r = Insights.readiness(Vitals.load(), Day.key(new Date())); } catch (e) { return ''; }
+  if (!r || r.level !== 'low') return '';
+  const already = session && (session.edits || []).some(e => e.action === 'lighter');
+  return `<div class="mv-card mv-card--warm mv-ready">
+    <div class="mv-ready-k">Readiness low${r.stale ? ' · ' + Utils.formatDate(r.asOf) : ''}</div>
+    <div class="mv-ready-v">${r.reasons.map(escAttr).join(' · ')}</div>
+    ${already ? '<div class="mv-ready-v" style="margin-top:.35rem">Lighter is on for today.</div>'
+      : `<button type="button" class="mv-pill" style="margin-top:.5rem" onclick="dayEdit({action:'lighter',maxTier:'moderate'},'Lighter: readiness was low')">Make today lighter</button>`}
+  </div>`;
+}
+
 function renderToday() {
   const el = document.getElementById('today-body');
   if (!el) return;
@@ -1224,7 +1385,8 @@ function renderToday() {
 
   const d = new Date();
   const head = `${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]} ${d.getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][d.getMonth()]}`
-    + (prog && prog.week ? ` · WEEK ${prog.week}` : '') + ` · ${session.duration} MIN`;
+    + (prog && prog.week ? ` · WEEK ${prog.week}` : '')
+    + (session.plannedDuration && session.plannedDuration !== session.duration ? ` · ${session.duration} OF ${session.plannedDuration} MIN` : ` · ${session.duration} MIN`);
 
   let h = `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.6rem;padding:.4rem 0 .9rem;border-bottom:1px solid var(--border);margin-bottom:.9rem">
     <div>
@@ -1238,7 +1400,15 @@ function renderToday() {
   // screen the timeline takes the main column and note + footer sit beside
   // it (grid areas in the DESKTOP section of style.css).
   h += `<div class="dk-today">`;
-  if (planDay && planDay.focusNote) h += `<div class="mv-note dk-today-note" style="margin-bottom:.9rem">${planDay.focusNote}</div>`;
+  // The day's own note — from the plan day its content actually came from
+  // (borrowed, traded or carried forward), not blindly from today's date.
+  const focusNote = (session.planBlock && session.planBlock.focusNote) || (planDay && planDay.focusNote) || '';
+  const cardioBlk = session.blocks.find(b => /^main-focus:cardio$/.test(b.key || ''));
+  const swappedMachine = cardioBlk && cardioBlk.plannedNote;
+  if (focusNote && !swappedMachine) h += `<div class="mv-note dk-today-note" style="margin-bottom:.9rem">${escAttr(focusNote)}</div>`;
+  else if (focusNote) h += `<div class="mv-note dk-today-note" style="margin-bottom:.9rem">${escAttr(cardioBlk.note || '')}<div style="margin-top:.3rem;font-size:.72rem;color:var(--text3)">Planned: ${escAttr(focusNote)}</div></div>`;
+  h += _readinessBanner(session);
+  h += _editsStrip(session);
 
   // the timeline
   let clock = session.variant === 'light' ? '09:00' : '09:00';
@@ -1251,22 +1421,27 @@ function renderToday() {
       <button type="button" class="mv-blk-head" onclick="toggleTodayBlock('${escAttr(b.key)}')">
         <span class="mv-blk-time">${at}</span>
         <span class="mv-blk-rail" style="background:${b.color || 'var(--text3)'}"></span>
-        <span class="mv-blk-label">${b.label}</span>
+        <span class="mv-blk-label">${escAttr(b.label)}</span>
         <span class="mv-blk-meta">${b.duration}m · ${b.exercises.length}</span>
         <svg class="mv-blk-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
-      ${!open ? `<div class="mv-blk-summary">${b.exercises.map(e => e.name).join(' · ')}</div>` : `
+      ${!open ? `<div class="mv-blk-summary">${b.exercises.map(e => escAttr(e.name)).join(' · ')}</div>` : `
       <div class="mv-blk-body">
-        ${b.note ? `<div class="mv-body" style="padding:.5rem 0 .2rem">${b.note}</div>` : ''}
+        ${_blockTools(b, session)}
+        ${b.note ? `<div class="mv-body" style="padding:.5rem 0 .2rem">${escAttr(b.note)}</div>` : ''}
         ${b.exercises.map(e => `<button type="button" class="mv-ex" onclick="openExSheet('${escAttr(e.id)}','${escAttr(b.key)}')">
           <span class="mv-ex-bullet"></span>
-          <span class="mv-ex-name">${e.name}</span>
-          <span class="mv-ex-dose">${_dose(e)}</span>
+          <span class="mv-ex-name">${escAttr(e.name)}</span>
+          <span class="mv-ex-dose">${escAttr(_dose(e))}</span>
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="9 18 15 12 9 6"/></svg>
         </button>`).join('')}
       </div>`}
     </div>`;
   }).join('');
+  if ((session.removedBlocks || []).length) {
+    h += `<div class="mv-removed">Removed today: ${session.removedBlocks.map(r =>
+      `<span>${escAttr(String(r.block.label || r.block.key).replace(/ — .*$/, ''))} · ${r.block.duration}m <button type="button" class="mv-linkbtn" onclick="dayEdit({action:'restore_block',blockKey:'${escAttr(r.block.key)}'})">put back</button></span>`).join(' ')}</div>`;
+  }
   h += `</div>`;
 
   // footer
@@ -1307,11 +1482,13 @@ function startToday() {
 // WEEK_SCAFFOLD key) is exposed for a future chat override to call
 // directly; there's no UI path to it yet beyond the anti-correlated toggle.
 // ─────────────────────────────────────────────────────────────
+// Local calendar date. This used toISOString() — the UTC date — so between
+// midnight and 01:00 in Lisbon summer time "today" was still yesterday.
 function _todayDateKey(date) {
-  return (date || new Date()).toISOString().slice(0, 10);
+  return Day.key(date || new Date());
 }
 function _todayInstanceKey(date) {
-  return 'daily_instance_' + _todayDateKey(date);
+  return Day.instanceKey(date || new Date());
 }
 
 function startScaffoldToday(themeOverride) {
@@ -1371,7 +1548,7 @@ function _todayRecord() {
 
 function _commitToday(updated) {
   if (!updated) return;
-  DB.set(_todayInstanceKey(new Date(updated.date + 'T12:00:00')), updated);
+  DB.set(Day.instanceKey(updated.date), updated);
   if (LiveSession.getSession()) {
     LiveSession.start(updated, x => { App.session = x; if (App.screen === 'session') renderSessionScreen(); });
     App.session = updated;
@@ -1392,7 +1569,7 @@ function openAdjust() {
   if (!session) return;
   const body = document.getElementById('adjust-body');
   const cardio = session.blocks.find(b => /^main-focus:cardio$/.test(b.key || '') || b.key === 'cardio');
-  const isBike = cardio && (cardio.exercises[0] || {}).id === 'z2-cycling';
+  const isBike = cardio && (cardio.exercises || []).some(e => Generator._cardioModality(e.id) === 'bike');
 
   // Candidate days to trade with: the rest of this block, nearest first.
   const plan = (typeof MonthPlan !== 'undefined') ? MonthPlan.load() : null;
@@ -1444,7 +1621,7 @@ function openAdjust() {
     </div>
 
     <div class="mv-card mv-card--warm" style="margin-bottom:0">
-      <div style="font-size:.78rem;line-height:1.5;color:var(--warn-text)"><strong style="color:var(--warm)">Only today.</strong> Nothing here changes the week template or the rest of the block, and the calendar follows within the hour.</div>
+      <div style="font-size:.78rem;line-height:1.5;color:var(--warn-text)"><strong style="color:var(--warm)">Only today.</strong> Nothing here changes the week template or the rest of the block. Each block on Today also has its own controls: shorter, longer, move, remove.</div>
     </div>`;
   document.getElementById('adjust-backdrop').style.display = 'flex';
 }
@@ -1473,21 +1650,15 @@ function tradeDays(otherDate) {
   if (!a || !b) return;
   if (!confirm(`Do ${b.theme} today, and ${a.theme} on ${Utils.formatDate(otherDate)}?`)) return;
 
-  const mk = (dateKey, weekdayOfOther) => Generator.generateFromScaffold({
-    date: new Date(dateKey + 'T12:00:00'),
-    themeOverride: weekdayOfOther,
-    profile: App.profile,
-    sleep: App.checkin.sleep, energy: App.checkin.energy,
-    pain: App.checkin.pain, focus: App.checkin.focus,
-  });
+  // Day.trade swaps the plan-day CONTENT (lifts, loads, protocol, skill
+  // line), not weekday names — before, each date kept its own lifts under
+  // the other day's label.
+  const r = Day.trade(session, otherDate, { profile: App.profile, checkin: App.checkin });
+  if (!r) { alert('Could not rebuild both days.'); return; }
+  r.mine.chatLog = (session.chatLog || []).concat([{ role: 'assistant', text: `Traded with ${Utils.formatDate(otherDate)} \u2014 doing ${b.theme} today.`, at: Date.now() }]);
 
-  const mine = mk(today, b.weekday);
-  const theirs = mk(otherDate, a.weekday);
-  if (!mine || !theirs) { alert('Could not rebuild both days.'); return; }
-  mine.chatLog = (session.chatLog || []).concat([{ role: 'assistant', text: `Traded with ${Utils.formatDate(otherDate)} \u2014 doing ${b.theme} today.`, at: Date.now() }]);
-
-  DB.set(_todayInstanceKey(new Date(otherDate + 'T12:00:00')), theirs);
-  _commitToday(mine);
+  DB.set(Day.instanceKey(otherDate), r.theirs);
+  _commitToday(r.mine);
   closeAdjust();
 }
 
@@ -1501,8 +1672,11 @@ async function sendChatOverride() {
   const input = document.getElementById('chat-override-input');
   const message = (input?.value || '').trim();
   if (!message) return;
-  const session = LiveSession.getSession();
+  // Works before Start too: the plan for today is edited in place.
+  const rec = _todayRecord();
+  const session = rec.session;
   if (!session) return;
+  const isLive = rec.live;
 
   session.chatLog = session.chatLog || [];
   session.chatLog.push({ role: 'user', text: message, at: Date.now() });
@@ -1517,17 +1691,16 @@ async function sendChatOverride() {
     const updated = intent.action !== 'note_only' ? Generator.applyOverride(session, intent, App.profile) : null;
     const finalSession = updated || session;
     const replyText = intent.reply || (updated ? 'Updated.' : "Couldn't apply that automatically — no changes made.");
-    finalSession.chatLog.push({ role: 'assistant', text: replyText, at: Date.now() });
-    LiveSession.start(finalSession, s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
-    App.session = finalSession;
-    DB.set(_todayInstanceKey(new Date(finalSession.date)), finalSession);
+    finalSession.chatLog = session.chatLog.concat([{ role: 'assistant', text: replyText, at: Date.now() }]);
+    _commitToday(finalSession);
   } catch (e) {
     session.chatLog.push({ role: 'assistant', text: 'Error: ' + e.message, at: Date.now() });
-    LiveSession.start(session, s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
+    if (isLive) LiveSession._persist(); else DB.set(Day.instanceKey(session.date), session);
   }
 
   if (btn) { btn.disabled = false; btn.textContent = 'Send'; }
-  renderSessionScreen();
+  if (App.screen === 'session') renderSessionScreen();
+  if (App.screen === 'today') renderToday();
   // The input and log live inside the Adjust sheet, so redraw it while it is
   // open — otherwise the reply lands in a panel that is no longer on screen.
   const back = document.getElementById('adjust-backdrop');
@@ -2186,12 +2359,13 @@ function renderSessionScreen() {
     const wrap = document.createElement('div'); wrap.className='block-wrap' + (isCollapsed ? ' collapsed' : ''); wrap.id=`block-${bIdx}`;
     wrap.innerHTML=`
       <div class="block-header${done===block.exercises.length?' block-done':''}" onclick="toggleBlock(${bIdx})">
-        <div class="bh-left"><div class="bh-dot" style="background:${block.color}"></div><div><div class="bh-title">${block.label}</div>${block.duration?`<div class="bh-dur">~${block.duration} min</div>`:''}</div></div>
+        <div class="bh-left"><div class="bh-dot" style="background:${block.color}"></div><div><div class="bh-title">${escAttr(block.label)}</div>${block.duration?`<div class="bh-dur">~${block.duration} min</div>`:''}</div></div>
         <div class="bh-right"><span class="bh-count">${done}/${block.exercises.length}</span><svg class="bh-chevron" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg></div>
       </div>
-      ${isCollapsed ? `<div class="bh-summary" style="padding:0 .9rem .7rem 2.1rem;font-size:.76rem;line-height:1.45;color:var(--text3)">${block.exercises.map(e => e.name).join(' · ')}</div>` : ''}
+      ${isCollapsed ? `<div class="bh-summary" style="padding:0 .9rem .7rem 2.1rem;font-size:.76rem;line-height:1.45;color:var(--text3)">${block.exercises.map(e => escAttr(e.name)).join(' · ')}</div>` : ''}
       <div class="block-body" id="block-body-${bIdx}">
-        ${block.note?`<div class="block-note">${block.note}</div>`:''}
+        ${block.note?`<div class="block-note">${escAttr(block.note)}</div>`:''}
+        ${block.exercises.some(e=>!e.completed&&!e.skipped&&!(e.sets||[]).length&&!e.cardioLog)&&block.exercises.length>1?`<button type="button" class="block-done-btn" onclick="markBlockDone(${bIdx})">✓ Whole block as prescribed</button>`:''}
         <div class="ex-list" id="ex-list-${bIdx}"></div>
       </div>`;
     container.appendChild(wrap);
@@ -2224,13 +2398,17 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
       const best = liveBestEstimate(ex);
       if (best) estHint = `<div class="est-hint-row">Est. 1RM <strong>${best.e1rm}kg</strong> <span class="est-hint-sub">(${best.weight}kg × ${best.reps})</span></div>`;
     }
-    logHtml=`${lastWeightHint}${estHint}<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si,bIdx,eIdx)).join('')}</div>
+    // Inputs start at today's target, so logging the prescribed set is one
+    // tap on Log; the last log stays as the placeholder behind it.
+    const tw = ex.target && ex.target.loadKg != null ? ex.target.loadKg : '';
+    const tr = ex.target && typeof ex.target.reps === 'number' ? ex.target.reps : '';
+    logHtml=`${lastWeightHint}${estHint}${_progSuggestion(ex,bIdx,eIdx)}<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si,bIdx,eIdx)).join('')}</div>
       <div class="add-set-row">
-        <input type="number" class="num-in" id="w-${bIdx}-${eIdx}" placeholder="${lastLog?.lastWeight||'kg'}" min="0" step="2.5">
+        <input type="number" class="num-in" id="w-${bIdx}-${eIdx}" placeholder="${lastLog?.lastWeight||'kg'}" value="${tw}" min="0" step="0.5">
         <span class="mul">×</span>
-        <input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" min="0">
+        <input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" value="${tr}" min="0">
         <button class="log-btn" onclick="logSet(${bIdx},${eIdx})">Log</button>
-      </div>${ex.progressionSuggestion?`<div class="prog-hint">⬆ ${ex.progressionSuggestion}</div>`:''}`;
+      </div>${typeof Insights==='undefined'&&ex.progressionSuggestion?`<div class="prog-hint">⬆ ${escAttr(ex.progressionSuggestion)}</div>`:''}`;
   } else if (ex.logType==='hold') {
     // Every stopwatch stop logs a new set (see toggleStopwatch) — show all
     // of them, each deletable, instead of only ever displaying the first.
@@ -2239,12 +2417,12 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
       <div class="hold-manual-row"><span class="hold-manual-label">or log time directly:</span><input type="number" class="num-in sm" id="hd-m-${bIdx}-${eIdx}" placeholder="min" min="0"><span>:</span><input type="number" class="num-in sm" id="hd-s-${bIdx}-${eIdx}" placeholder="ss" min="0" max="59"><button class="log-btn" onclick="logManualHold(${bIdx},${eIdx})">Log</button></div>`;
   } else if (ex.logType==='reps') {
     logHtml=`<div class="sets-list">${(ex.sets||[]).map((s,si)=>setRow(s,si,bIdx,eIdx)).join('')}</div>
-      <div class="add-set-row"><input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" min="0"><button class="log-btn" onclick="logReps(${bIdx},${eIdx})">Log</button></div>`;
+      <div class="add-set-row"><input type="number" class="num-in sm" id="r-${bIdx}-${eIdx}" placeholder="${lastLog?.lastReps||'reps'}" value="${ex.target && typeof ex.target.reps === 'number' ? ex.target.reps : ''}" min="0"><button class="log-btn" onclick="logReps(${bIdx},${eIdx})">Log</button></div>`;
   } else if (ex.logType==='cardio') {
     const c=ex.cardioLog;
     logHtml=`<div class="cardio-row">${c
-      ?`<div class="cardio-result">${c.distanceKm?c.distanceKm+'km · ':''}${Utils.formatDuration(c.duration)}${c.appleFitnessLink?' · <a href="'+c.appleFitnessLink+'" target="_blank">Apple Fitness ↗</a>':''}</div>`
-      :`<div class="cardio-inputs"><input type="number" class="num-in sm" id="cd-m-${bIdx}-${eIdx}" placeholder="min"><span>:</span><input type="number" class="num-in sm" id="cd-s-${bIdx}-${eIdx}" placeholder="ss" max="59"><input type="number" class="num-in sm" id="cd-km-${bIdx}-${eIdx}" placeholder="km" step="0.01" min="0"><input type="text" class="text-in-sm" id="cd-link-${bIdx}-${eIdx}" placeholder="Apple Fitness link"><button class="log-btn" onclick="logCardio(${bIdx},${eIdx})">Log</button></div>`
+      ?`<div class="cardio-result">${c.distanceKm?c.distanceKm+'km · ':''}${Utils.formatDuration(c.duration)}${c.avgHr?' · avg '+c.avgHr+' bpm':''}${_safeUrl(c.appleFitnessLink)?' · <a href="'+escAttr(_safeUrl(c.appleFitnessLink))+'" target="_blank" rel="noopener">Apple Fitness ↗</a>':''}</div>`
+      :`<div class="cardio-inputs"><input type="number" class="num-in sm" id="cd-m-${bIdx}-${eIdx}" placeholder="min" value="${ex.target&&ex.target.durationSec?Math.round(ex.target.durationSec/60):''}"><span>:</span><input type="number" class="num-in sm" id="cd-s-${bIdx}-${eIdx}" placeholder="ss" max="59"><input type="number" class="num-in sm" id="cd-km-${bIdx}-${eIdx}" placeholder="km" step="0.01" min="0"><input type="number" class="num-in sm" id="cd-hr-${bIdx}-${eIdx}" placeholder="avg HR" min="60" max="220"><input type="text" class="text-in-sm" id="cd-link-${bIdx}-${eIdx}" placeholder="Apple Fitness link"><button class="log-btn" onclick="logCardio(${bIdx},${eIdx})">Log</button></div>`
     }</div>`;
   }
   // Overrides-merged, same reasoning as Generator._resolveExFactory — a
@@ -2255,7 +2433,9 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
   // No separate full-width banner image any more — the round photo circle
   // below covers that need, and showing both was redundant.
   let extraHtml = '';
-  if (libEx?.instructions)  extraHtml += `<div class="ex-instructions">${libEx.instructions}</div>`;
+  // Collapsed by default: data/media.js gives most exercises 4–5 steps, which
+  // would make every live card long. Tapping the card opens the full sheet too.
+  if (libEx?.instructions)  extraHtml += `<details class="ex-instructions"><summary style="cursor:pointer;color:var(--text3)">How</summary><div style="white-space:pre-line">${escAttr(libEx.instructions)}</div></details>`;
 
   // Small round thumbnail — same priority chain as the exercise view/edit
   // modals (custom image > built-in photo > auto YouTube thumb). `ex` here
@@ -2280,8 +2460,8 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
       <div class="ex-clickarea" onclick="openExSheetFromSession('${ex.id}',${bIdx})" title="View exercise details">
         ${photoHtml}
         <div class="ex-info">
-          <div class="ex-name">${ex.link?`<a href="${ex.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${ex.name} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:ex.name}${(ex.target&&ex.target.text&&ex.target.text.length<=32)?`<span class="ex-target">${ex.target.text}</span>`:(ex.allocatedMinutes?`<span class="ex-target">~${Utils.formatDuration(Math.round(ex.allocatedMinutes*60))}</span>`:'')}</div>
-          ${ex.notes?`<div class="ex-notes">${ex.notes}</div>`:''}
+          <div class="ex-name">${_safeUrl(ex.link)?`<a href="${escAttr(_safeUrl(ex.link))}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${escAttr(ex.name)} <svg width="10" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15,3 21,3 21,9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`:escAttr(ex.name)}${(ex.target&&ex.target.text&&ex.target.text.length<=32)?`<span class="ex-target">${escAttr(ex.target.text)}</span>`:(ex.allocatedMinutes?`<span class="ex-target">~${Utils.formatDuration(Math.round(ex.allocatedMinutes*60))}</span>`:'')}</div>
+          ${ex.notes?`<div class="ex-notes">${escAttr(ex.notes)}</div>`:''}
         </div>
       </div>
       <div class="ex-actions">
@@ -2290,8 +2470,9 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
       </div>
     </div>
     ${extraHtml?`<div class="ex-extra">${extraHtml}</div>`:''}
+    ${_quickRow(ex,bIdx,eIdx)}
     ${logHtml?`<div class="ex-log">${logHtml}</div>`:''}
-    <div class="ex-note-row"><input type="text" class="note-in" placeholder="note…" id="note-${bIdx}-${eIdx}" onblur="saveExNote(${bIdx},${eIdx},this.value)" value="${ex.sessionNote||''}"></div>`;
+    <div class="ex-note-row"><input type="text" class="note-in" placeholder="note…" id="note-${bIdx}-${eIdx}" onblur="saveExNote(${bIdx},${eIdx},this.value)" value="${escAttr(ex.sessionNote||'')}"></div>`;
   return wrap;
 }
 
@@ -2306,7 +2487,52 @@ function exPhotoFallback(img) {
   img.replaceWith(div);
 }
 
-function setRow(s,si,b,e){return`<div class="set-row"><span class="set-num">${si+1}</span>${s.weight?`<span class="set-weight">${s.weight}kg</span>`:''} ${s.reps?`<span class="set-reps">× ${s.reps}</span>`:''} ${s.duration?`<span class="set-reps">${Utils.formatMMSS(s.duration)}</span>`:''}<button class="set-del" onclick="removeSet(${b},${e},${si})" aria-label="Delete set">✕</button></div>`;}
+function setRow(s,si,b,e){return`<div class="set-row"><span class="set-num">${si+1}</span>${s.weight?`<span class="set-weight">${s.weight}kg</span>`:''} ${s.reps?`<span class="set-reps">× ${s.reps}</span>`:''} ${s.duration?`<span class="set-reps">${Utils.formatMMSS(s.duration)}</span>`:''}${s.rpe?`<span class="set-rpe">RPE ${s.rpe}</span>`:''}<button class="set-del" onclick="removeSet(${b},${e},${si})" aria-label="Delete set">✕</button></div>`;}
+
+// Only http(s) links become hrefs; anything else (javascript:, data:) is dropped.
+function _safeUrl(u){const v=String(u||'').trim();return /^https?:\/\//i.test(v)?v:'';}
+
+// ── One-tap logging ──
+// "✓ as prescribed" writes the target as logged sets; once something is
+// logged, RPE chips (6–10) stamp the effort on those sets. RPE is optional
+// and is what the progression suggestion reads.
+function _quickRow(ex,b,e){
+  const logged=(ex.sets||[]).length||ex.cardioLog;
+  const hasTarget=ex.target&&(ex.target.text||ex.target.sets);
+  const parts=[];
+  if(!logged&&!ex.completed&&!ex.skipped&&hasTarget){
+    const t=String(ex.target.text||'').length<=28?ex.target.text:'as prescribed';
+    parts.push(`<button type="button" class="ex-quick-btn" onclick="logAsPrescribed(${b},${e})">✓ ${escAttr(t||'as prescribed')}</button>`);
+  }
+  const rpeable=ex.logType==='weight+reps'||ex.logType==='reps'||ex.logType==='hold'||ex.logType==='cardio';
+  if(rpeable&&(logged||ex.completed)&&!ex.skipped){
+    const cur=ex.rpe||((ex.sets||[]).find(x=>x.rpe)||{}).rpe||(ex.cardioLog&&ex.cardioLog.rpe)||null;
+    parts.push(`<span class="rpe-chips"><span class="rpe-k">RPE</span>${[6,7,8,9,10].map(v=>`<button type="button" class="rpe-chip${cur===v?' on':''}" onclick="setRpe(${b},${e},${cur===v?0:v})">${v}</button>`).join('')}</span>`);
+  }
+  return parts.length?`<div class="ex-quick">${parts.join('')}</div>`:'';
+}
+function logAsPrescribed(b,e){if(!LiveSession.logAsPrescribed(b,e))LiveSession.markExerciseDone(b,e);refreshBlock(b);}
+function setRpe(b,e,v){
+  const ex=LiveSession.getSession()?.blocks[b]?.exercises[e];if(!ex)return;
+  if(ex.logType==='cardio'&&ex.cardioLog){ex.cardioLog.rpe=v||null;}
+  LiveSession.setRpe(b,e,v||null);refreshExercise(b,e);
+}
+function markBlockDone(b){LiveSession.markBlockDone(b);refreshBlock(b);const p=LiveSession.getProgress();const el=document.getElementById('sh-progress');if(el&&p)el.textContent=`${p.done}/${p.total}`;}
+
+// Next-time suggestion for a lift (suggest only — the plan's target stays;
+// "Use" changes today's target on this card and nothing else).
+function _progSuggestion(ex,b,e){
+  if(typeof Insights==='undefined'||!ex.target||(ex.sets||[]).length||ex.target.accepted)return '';
+  let r=null;
+  try{r=Insights.progression(ex.id,History.getExerciseHistory(ex.id,12).filter(h=>h.status!=='in-progress'&&h.date!==Day.key(new Date())),ex.target);}catch(err){return '';}
+  if(!r||(r.action!=='increase'&&r.action!=='decrease'))return '';
+  const same=r.loadKg===ex.target.loadKg&&r.reps===ex.target.reps&&r.sets===ex.target.sets&&r.durationSec===ex.target.durationSec;
+  if(same)return '';
+  const what=r.loadKg!=null?`${r.sets}×${r.reps||''} @ ${r.loadKg}kg`:r.durationSec?`${r.sets}×${r.durationSec}s`:`${r.sets}×${r.reps}`;
+  const patch=JSON.stringify({sets:r.sets,reps:r.reps,loadKg:r.loadKg,durationSec:r.durationSec||undefined});
+  return `<div class="prog-sugg"><span>${r.action==='increase'?'⬆':'⬇'} Suggested <b>${escAttr(what)}</b> — ${escAttr(r.reason)}</span><button type="button" class="rpe-chip" onclick="acceptSuggestion(${b},${e},${escAttr(patch)})">Use</button></div>`;
+}
+function acceptSuggestion(b,e,patch){Object.keys(patch).forEach(k=>patch[k]==null&&delete patch[k]);LiveSession.setTarget(b,e,patch);refreshExercise(b,e);}
 function removeSet(b,e,si){LiveSession.removeSet(b,e,si);refreshExercise(b,e);}
 
 const _sw={};let _swActive=null;
@@ -2342,9 +2568,10 @@ function logManualHold(b,e){
 }
 function logCardio(b,e){
   const m=parseInt(document.getElementById(`cd-m-${b}-${e}`)?.value)||0,s=parseInt(document.getElementById(`cd-s-${b}-${e}`)?.value)||0,km=parseFloat(document.getElementById(`cd-km-${b}-${e}`)?.value)||null,link=document.getElementById(`cd-link-${b}-${e}`)?.value||'';
-  LiveSession.logCardio(b,e,{durationMin:m,durationSec:s,distanceKm:km,appleFitnessLink:link});refreshExercise(b,e);
+  const hr=parseInt(document.getElementById(`cd-hr-${b}-${e}`)?.value)||null;
+  LiveSession.logCardio(b,e,{durationMin:m,durationSec:s,distanceKm:km,appleFitnessLink:link,avgHr:hr});refreshExercise(b,e);
 }
-function toggleExerciseDone(b,e){const ex=LiveSession.getSession()?.blocks[b]?.exercises[e];if(!ex)return;if(ex.completed)ex.completed=false;else LiveSession.markExerciseDone(b,e);refreshBlock(b);}
+function toggleExerciseDone(b,e){const ex=LiveSession.getSession()?.blocks[b]?.exercises[e];if(!ex)return;if(ex.completed)LiveSession.unmarkExerciseDone(b,e);else LiveSession.markExerciseDone(b,e);refreshBlock(b);}
 function skipExercise(b,e){LiveSession.skipExercise(b,e);refreshBlock(b);}
 
 // Fully removes an exercise from the session (distinct from skip, which
@@ -2449,12 +2676,16 @@ function adjustRest(d){Timer.adjustCountdown(d);}
 function finishSession(){
   LiveSession.setSessionNote(document.getElementById('session-note').value);
   if(!LiveSession.isFullyDone()){
-    // Something's still unchecked — log progress but keep the session live
-    // so it can be finished later instead of silently dropping it.
+    // Rows still open: finish anyway and mark them "not done", or keep the
+    // session open to come back to. Refusing to finish at all was one more
+    // reason not to log.
     const progress=LiveSession.getProgress();
-    LiveSession.logCheckpoint();
-    alert(`Logged (${progress.done}/${progress.total} done). Session stays open — check off the rest, then tap Complete session again to finish it.`);
-    return;
+    const left=progress.total-progress.done;
+    if(!confirm(`${left} exercise${left===1?'':'s'} not ticked. Finish now and mark ${left===1?'it':'them'} as not done?\n\nCancel keeps the session open.`)){
+      LiveSession.logCheckpoint();
+      return;
+    }
+    LiveSession.skipRemaining('not done');
   }
   const id=LiveSession.complete();if(id){document.querySelector('.session-nav').style.display='none';App.session=null;navTo('home');}
 }
@@ -3062,15 +3293,21 @@ function closeLiftHistory() {
 
 function openSessionModal(id) {
   const session=History.getSession(id); if(!session) return;
-  let html=`<div class="modal-theme" style="color:${Utils.getSessionColor(session)}">${Utils.getSessionLabel(session)}${session.source==='manual'?'<span class="sr-badge">Manual</span>':''}${session.status==='in-progress'?'<span class="sr-badge sr-badge-live">In progress</span>':''}</div><div class="modal-date">${Utils.formatDate(session.date)} · ${session.duration}m</div>${session.notes?`<div class="modal-note">${session.notes}</div>`:''}<div class="modal-blocks">`;
+  let html=`<div class="modal-theme" style="color:${Utils.getSessionColor(session)}">${Utils.getSessionLabel(session)}${session.source==='manual'?'<span class="sr-badge">Manual</span>':''}${session.status==='in-progress'?'<span class="sr-badge sr-badge-live">In progress</span>':''}</div><div class="modal-date">${Utils.formatDate(session.date)} · ${session.duration}m</div>${session.notes?`<div class="modal-note">${escAttr(session.notes)}</div>`:''}<div class="modal-blocks">`;
   session.blocks?.forEach(block=>{
     const logged=block.exercises?.filter(e=>e.sets?.length||e.completed||e.cardioLog);
     if(!logged?.length) return;
-    html+=`<div class="modal-block-label" style="color:${block.color}">${block.label}</div>`;
+    html+=`<div class="modal-block-label" style="color:${block.color}">${escAttr(block.label)}</div>`;
     logged.forEach(ex=>{
-      html+=`<div class="modal-ex"><div class="modal-ex-name">${ex.name}</div>`;
-      ex.sets?.forEach(s=>{html+=`<div class="modal-set">${s.weight?s.weight+'kg ':''} ${s.reps?'× '+s.reps:''} ${s.duration?Utils.formatMMSS(s.duration):''} ${s.distance?s.distance+'km':''}</div>`;});
-      if(ex.cardioLog) html+=`<div class="modal-set">${ex.cardioLog.distanceKm?ex.cardioLog.distanceKm+'km · ':''}${Utils.formatDuration(ex.cardioLog.duration)}</div>`;
+      html+=`<div class="modal-ex"><div class="modal-ex-name">${escAttr(ex.name)}</div>`;
+      ex.sets?.forEach(s=>{html+=`<div class="modal-set">${s.weight?s.weight+'kg ':''} ${s.reps?'× '+s.reps:''} ${s.duration?Utils.formatMMSS(s.duration):''} ${s.distance?s.distance+'km':''}${s.rpe?' · RPE '+s.rpe:''}</div>`;});
+      if(ex.cardioLog){
+        const c=ex.cardioLog;
+        html+=`<div class="modal-set">${c.distanceKm?c.distanceKm+'km · ':''}${Utils.formatDuration(c.duration)}${c.avgHr?' · avg '+c.avgHr:''}</div>`;
+        // Engine check on any run/ride with a heart-rate series (imported).
+        if(typeof Insights!=='undefined'&&c.series){try{const a=Insights.aerobic(c,{kind:/cycl|bike/.test(ex.id)?'bike':undefined});
+          if(a&&a.valid){html+=`<div class="modal-set" style="color:var(--text2)">${a.speedAtHr?`${a.speedAtHr.paceSecPerKm&&a.kind==='run'?Utils.formatMMSS(Math.round(a.speedAtHr.paceSecPerKm))+'/km':a.speedAtHr.kmh+' km/h'} at ${a.speedAtHr.hrLo}–${a.speedAtHr.hrHi} bpm · `:''}${a.decoupling!=null?'drift '+a.decoupling+'%':''}</div>`;}}catch(err){}}
+      }
       html+=`</div>`;
     });
   });
@@ -3493,9 +3730,12 @@ function importBackup(input) {
       const data = JSON.parse(e.target.result);
       // Write all keys via DB.set so Supabase sync fires
       Object.entries(data).forEach(([k, v]) => DB.set(k, v));
-      await DB._flush();
+      const r = await DB._flush();
       App.profile = Profile.load();
-      setDataStatus('Backup imported and synced ✓');
+      // _flush reports what is still waiting; only claim "synced" when nothing is.
+      setDataStatus(r && r.pending
+        ? `Backup imported ✓ — ${r.pending} change${r.pending === 1 ? '' : 's'} not yet synced (will retry)`
+        : 'Backup imported and synced ✓');
       renderSettings();
     } catch(err) {
       setDataStatus('Import failed — invalid file', true);
