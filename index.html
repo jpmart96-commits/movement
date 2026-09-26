@@ -370,8 +370,8 @@
           <div class="mv-eyebrow" style="margin-bottom:.35rem">Data</div>
           <div class="cfg-row"><div><div class="cfg-row-t">Export backup</div><div class="cfg-row-d">A full snapshot of everything, as JSON</div></div>
             <button type="button" class="set-act" onclick="exportBackup()">Export</button></div>
-          <div class="cfg-row"><div><div class="cfg-row-t">Import vitals</div><div class="cfg-row-d">Resting HR, HRV, VO2 max and sleep from Apple Health (<code>tools/health_vitals.py export.zip</code>). Merges by date.</div></div>
-            <label class="set-act">Import<input type="file" accept=".json" onchange="importVitals(this)"></label></div>
+          <div class="cfg-row"><div><div class="cfg-row-t">Import vitals</div><div class="cfg-row-d">Resting HR, HRV, VO2 max, sleep and weight. Pick the <code>export.zip</code> from Health → Export All Health Data (or a <code>vitals.json</code>). Merges by date.</div></div>
+            <label class="set-act">Import<input type="file" accept=".zip,.json,.xml,application/zip,application/x-zip-compressed,application/json,text/xml" onchange="importVitals(this)"></label></div>
           <div class="cfg-row"><div><div class="cfg-row-t">Import DLC</div><div class="cfg-row-d">Adds exercises, links and images. Never overwrites.</div></div>
             <label class="set-act">Import<input type="file" accept=".json" onchange="importDLC(this)"></label></div>
           <div class="cfg-row"><div><div class="cfg-row-t">Restore backup</div><div class="cfg-row-d">Overwrites everything. Disaster recovery only.</div></div>
@@ -489,6 +489,7 @@ function setTheme(t) {
 <script src="js/trainingload.js"></script>
 <script src="js/backup.js"></script>
 <script src="js/stats.js"></script>
+<script src="js/healthimport.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/overrides.js"></script>
 <script>
@@ -4984,6 +4985,19 @@ function importBackup(input) {
 // ── IMPORT VITALS — watch measurements, merged by date ────────
 function importVitals(input) {
   const f = input.files[0]; if (!f) return;
+  // Apple Health export.zip / export.xml: parsed here, no Python step.
+  if (!/\.json$/i.test(f.name) && (/\.(zip|xml)$/i.test(f.name) || /zip|xml/.test(f.type))) {
+    setDataStatus('Reading the Health export…');
+    AppleHealth.fromFile(f, p => setDataStatus(`Reading the Health export… ${Math.round(p * 100)}%`))
+      .then(async doc => {
+        const r = Vitals.merge(doc);
+        await DB._flush();
+        setDataStatus(`Vitals imported ✓ ${r.added} new day${r.added === 1 ? '' : 's'}, ${r.updated} refreshed · ${r.total} in total (${doc.range[0]} → ${doc.range[1]})`);
+      })
+      .catch(err => setDataStatus('Vitals import failed — ' + (err && err.message ? err.message : 'unreadable export'), true))
+      .finally(() => { input.value = ''; });
+    return;
+  }
   const reader = new FileReader();
   reader.onload = async e => {
     try {
