@@ -344,7 +344,9 @@ const Vitals = {
     vo2:   { label: 'VO2 max',    unit: 'ml/kg·min',    dec: 1, sparse: true },
     // Weigh-ins: from the Health export (smart scale / manual entries in
     // Health) and from Settings → Body. Sparse — a point per weigh-in.
-    weight: { label: 'Body weight', unit: 'kg', dec: 1, sparse: true },
+    // allTime: weigh-ins are a handful a year, so the card always shows
+    // every one of them rather than the 12-week/6-month window.
+    weight: { label: 'Body weight', unit: 'kg', dec: 1, sparse: true, allTime: true },
     sleep: { label: 'Sleep',      unit: '',    dec: 0, avg: 7, time: true },
   },
   ORDER: ['rhr', 'hrv', 'vo2', 'sleep', 'weight'],
@@ -417,6 +419,20 @@ const Vitals = {
     const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
     const sd = Math.sqrt(vals.reduce((a, b) => a + (b - mean) ** 2, 0) / vals.length);
     return { mean, sd, n: vals.length };
+  },
+
+  // Body weight to use everywhere: the latest weigh-in (Health import or
+  // typed in Settings → Body, which also logs one), else the Settings value.
+  // The newest reading wins, so a fresh export isn't masked by an old
+  // number typed weeks ago. { v, date, src } or null.
+  bodyweight() {
+    const l = this.latest('weight');
+    if (l) {
+      const d = this.load().days[l.date] || {};
+      return { v: l.v, date: l.date, src: d.weightSrc === 'app' ? 'app' : 'health' };
+    }
+    const s = (typeof Profile !== 'undefined') ? Profile.load()?.settings?.bodyweightKg : null;
+    return s ? { v: s, date: null, src: 'setting' } : null;
   },
 
   latest(metric) {
@@ -599,12 +615,16 @@ function _statsVitals(el, now) {
   const W = Math.max(240, (twoCol ? (colW - 20) / 2 : colW) - 34 - 34);   // card padding+border, y-label gutter
   Vitals.ORDER.forEach(m => { h += _vitalCard(m, from, to, W); });
   const upd = doc.range ? `Watch data ${Stats._short(doc.range[0])} – ${Stats._short(doc.range[1])}` : '';
-  h += `<div class="st-sub" style="margin:.2rem 0 1rem">${upd}. Nights under 3h are shown hollow and left out of the average.</div>`;
+  h += `<div class="st-sub" style="margin:.2rem 0 1rem">${upd}. Nights under 3h are shown hollow and left out of the average. Body weight shows every weigh-in.</div>`;
   return h;
 }
 
 function _vitalCard(metric, from, to, W) {
   const cfg = Vitals.METRICS[metric];
+  if (cfg.allTime) {
+    const all = Vitals.series(metric, '0000-01-01', to);
+    if (all.length && all[0].date < from) from = all[0].date;
+  }
   const pts = Vitals.series(metric, from, to);
   const H = 86, PAD = 6;
   const head = (big, sub) => `<div class="st-vhead">
@@ -665,7 +685,12 @@ function _vitalCard(metric, from, to, W) {
   }
   // the line: 7-day average, or the estimates themselves for VO2 max
   const line = cfg.sparse ? pts.map(p => ({ date: p.date, v: p.v })) : avg.filter(a => a.a).map(a => ({ date: a.date, v: a.a.mean }));
-  if (line.length > 1) marks += `<polyline points="${line.map(p => `${xOf(p.date).toFixed(1)},${yOf(p.v).toFixed(1)}`).join(' ')}" class="st-vline"/>`;
+  // A stretch of 90+ days with no reading is dashed: it's a gap, not a trend.
+  for (let i = 1; i < line.length; i++) {
+    const a = line[i - 1], b = line[i];
+    const gap = cfg.sparse && (Stats._date(b.date) - Stats._date(a.date)) / 86400000 > 90;
+    marks += `<line x1="${xOf(a.date).toFixed(1)}" y1="${yOf(a.v).toFixed(1)}" x2="${xOf(b.date).toFixed(1)}" y2="${yOf(b.v).toFixed(1)}" class="st-vline"${gap ? ' stroke-dasharray="3 4" opacity=".55"' : ''}/>`;
+  }
   // The most recent reading is drawn in the "now" colour (yellow), last so it sits on top.
   if (cfg.sparse) marks += line.slice(0, -1).map(p => `<circle cx="${xOf(p.date).toFixed(1)}" cy="${yOf(p.v).toFixed(1)}" r="4" class="st-vdot"/>`).join('');
   if (line.length) { const e = line[line.length - 1]; marks += `<circle cx="${xOf(e.date).toFixed(1)}" cy="${yOf(e.v).toFixed(1)}" r="4.5" class="st-vdot st-vnow"/>`; }
@@ -676,7 +701,14 @@ function _vitalCard(metric, from, to, W) {
   let sub;
   if (cfg.sparse) {
     const best = pts.reduce((a, p) => (p.v > a.v ? p : a), pts[0]);
-    sub = `latest ${Stats._short(last.date)} · high ${Vitals.fmt(metric, best.v)} (${Stats._short(best.date)})`;
+    if (cfg.allTime && pts.length > 1) {
+      const low = pts.reduce((a, p) => (p.v < a.v ? p : a), pts[0]);
+      const prev = pts[pts.length - 2], d = last.v - prev.v;
+      const sgn = d > 0 ? '+' : d < 0 ? '−' : '±';
+      sub = `latest ${Stats._short(last.date)} · ${sgn}${Vitals.fmt(metric, Math.abs(d))} vs ${Stats._short(prev.date)} · ${Vitals.fmt(metric, low.v)}–${Vitals.fmt(metric, best.v)}`;
+    } else {
+      sub = `latest ${Stats._short(last.date)} · high ${Vitals.fmt(metric, best.v)} (${Stats._short(best.date)})`;
+    }
   } else {
     const base = Vitals._trailing(metric, to, 60, 20);
     sub = `7-day avg${base ? ` · 60-day ${Vitals.fmt(metric, base.mean)}${cfg.unit ? ' ' + cfg.unit : ''}` : ''}`;
@@ -697,7 +729,7 @@ function _vitalCard(metric, from, to, W) {
       ${grid}${marks}
       <line id="vx-${metric}" x1="0" x2="0" y1="0" y2="${H}" class="st-vcross" style="display:none"/>
       <circle id="vd-${metric}" r="4" class="st-vdot" style="display:none"/>
-      ${xl.map((d, i) => `<text x="${[PAD, W / 2, W - PAD][i]}" y="${H + 13}" text-anchor="${['start', 'middle', 'end'][i]}" class="st-vtick">${Stats._short(d)}</text>`).join('')}
+      ${xl.map((d, i) => `<text x="${[PAD, W / 2, W - PAD][i]}" y="${H + 13}" text-anchor="${['start', 'middle', 'end'][i]}" class="st-vtick">${Stats._short(d)}${span > 250 && i < 2 ? ' ’' + d.slice(2, 4) : ''}</text>`).join('')}
     </svg>
   </div>`;
 }

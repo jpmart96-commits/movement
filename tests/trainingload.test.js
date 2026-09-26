@@ -56,3 +56,14 @@ test('a typed weigh-in survives a vitals file without weight that day; setLoad u
   assert.equal(app.Vitals.load().days['2026-10-19'].rhr, 55);
   assert.equal(app.History.setLoad('pull-up', { weight: 10, reps: 6 }), 83.4);
 });
+
+test('a newer Health weigh-in beats an older number typed in Settings (the 74 → 73.3 case)', () => {
+  app.storage.reset();
+  const p = app.Profile.load(); p.settings.bodyweightKg = 74; app.Profile.save(p);
+  assert.deepEqual({ ...app.Vitals.bodyweight() }, { v: 74, date: null, src: 'setting' });   // no weigh-ins yet
+  app.Vitals.merge({ kind: 'movement-vitals', days: { '2026-07-09': { weight: 73.6 }, '2026-09-23': { weight: 73.3, rhr: 57 } } });
+  assert.deepEqual({ ...app.Vitals.bodyweight() }, { v: 73.3, date: '2026-09-23', src: 'health' });
+  assert.equal(app.History.setLoad('pull-up', { weight: 10, reps: 6 }), 83.3);
+  app.Vitals.addWeight('2026-10-20', 72.9);                                                   // typed today
+  assert.deepEqual({ ...app.Vitals.bodyweight() }, { v: 72.9, date: '2026-10-20', src: 'app' });
+});
