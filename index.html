@@ -4263,48 +4263,95 @@ function openDaySheet(dateStr) {
   }
 
   const dd = new Date(dateStr + 'T12:00:00');
+  const blocks = (sess && sess.blocks) || [];
+  const isTest = !!day && (day.benchmark || day.load === 'test');
   let h = '<div class="modal-title">' + _DS_DOW[dd.getDay()] + ' ' + dd.getDate() + ' ' + _DS_MON[dd.getMonth()] + '</div>';
 
+  // 1. What the day is — theme, then one row of chips.
   if (day) {
-    h += '<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:-.2rem 0 .7rem">'
-       +   '<span style="width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;background:' + DAY_DOT[_dayKind(day)] + '"></span>'
-       +   '<strong style="font-size:1rem">' + (day.benchmark ? '\u2605 ' : '') + escAttr(day.theme) + '</strong>'
-       +   '<span style="font-size:.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">' + escAttr(day.load) + '</span>'
+    h += '<div class="ds-head">'
+       +   '<span class="ds-dot" style="background:' + DAY_DOT[_dayKind(day)] + '"></span>'
+       +   '<span class="ds-theme">' + escAttr(day.theme) + '</span>'
+       +   (isTest ? '<span class="ds-tag">Test</span>' : '')
        + '</div>';
-    if (wk) h += '<div style="font-size:.75rem;color:var(--text3);margin-bottom:.55rem">Week ' + wk.n + ' \u00b7 ' + escAttr(wk.label) + '</div>';
-    if (day.coordDomain) h += '<div style="font-size:.78rem;margin-bottom:.55rem">Complementary block: <strong>' + escAttr(day.coordDomain) + '</strong></div>';
-    if (day.focusNote)    h += '<div class="mv-card" style="margin-bottom:.8rem;font-size:.8rem;line-height:1.5">' + escAttr(day.focusNote) + '</div>';
-    if (day.intervalSpec) h += '<div class="mv-card mv-card--warm" style="margin-bottom:.8rem;font-size:.78rem;line-height:1.5">' + escAttr(day.intervalSpec) + '</div>';
+    const chips = [];
+    if (wk) chips.push('<span class="mv-chip">' + (wk.n > 0 ? 'Week ' + wk.n + ' · ' : '') + escAttr(wk.label) + '</span>');
+    if (sess && sess.duration) chips.push('<span class="mv-chip">' + sess.duration + ' min</span>');
+    if (day.coordDomain) chips.push('<span class="mv-chip mv-chip--accent">' + escAttr(DOMAIN_LABEL[day.coordDomain] || day.coordDomain) + '</span>');
+    if (day.load && !isTest) chips.push('<span class="mv-chip">' + escAttr(day.load) + '</span>');
+    if (chips.length) h += '<div class="mv-chips ds-chips">' + chips.join('') + '</div>';
+
+    // 2. The note — three lines, tap for the rest.
+    if (day.focusNote) {
+      const long = day.focusNote.length > 170;
+      h += '<div class="mv-note ds-note' + (long ? ' ds-note--long' : '') + '"' + (long ? ' role="button" tabindex="0" onclick="this.classList.toggle(\'open\')"' : '') + '>'
+         +   '<div class="ds-note-text">' + escAttr(day.focusNote) + '</div>'
+         +   (long ? '<div class="ds-note-more"><span class="ds-more">more</span><span class="ds-less">less</span></div>' : '')
+         + '</div>';
+    }
+    if (day.intervalSpec) h += '<div class="mv-card mv-card--warm ds-spec">' + escAttr(day.intervalSpec) + '</div>';
   } else {
     h += '<div class="empty-state">No plan for this date.</div>';
   }
 
-  if (sess && sess.blocks && sess.blocks.length) {
-    h += '<div style="font-size:.73rem;color:var(--text3);margin:.9rem 0 .55rem">'
-       + (sess.duration || 0) + ' min \u00b7 ' + sess.blocks.length + ' blocks</div>';
-    sess.blocks.forEach(function (b) {
-      h += '<div style="margin-bottom:.9rem">'
-         +   '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:.5rem">'
-         +     '<strong style="font-size:.86rem">' + escAttr(b.label) + '</strong>'
-         +     '<span style="font-size:.72rem;color:var(--text3);white-space:nowrap">' + (b.duration || 0) + ' min</span>'
-         +   '</div>';
-      if (b.note) h += '<div style="font-size:.74rem;color:var(--text3);line-height:1.45;margin:.2rem 0 .35rem">' + escAttr(b.note) + '</div>';
-      (b.exercises || []).forEach(function (e) {
-        h += '<div style="display:flex;justify-content:space-between;gap:.6rem;padding:.3rem 0;font-size:.79rem">'
-           +   '<span>' + escAttr(e.name)
-           +     (e.notes ? '<span style="display:block;font-size:.71rem;color:var(--text3);line-height:1.4;margin-top:.1rem">' + escAttr(e.notes) + '</span>' : '')
-           +   '</span>'
-           +   '<span style="color:var(--text3);white-space:nowrap">' + ((e.target && e.target.text && e.target.text.length <= 32) ? escAttr(e.target.text) : (e.allocatedMinutes ? e.allocatedMinutes + ' min' : '')) + '</span>'
+  // 3. The timeline — same shape as Today. Every block is one line with
+  // its exercises as a summary; tap to open it. Main Focus starts open.
+  if (blocks.length) {
+    const mainIdx = blocks.findIndex(b => (b.key || '').startsWith('main-focus'));
+    h += '<div class="ds-bar"><span>' + blocks.length + ' blocks</span>'
+       + '<button type="button" class="mv-linkbtn ds-all" onclick="dsToggleAll(this)">Open all</button></div>';
+    let clock = '09:00';
+    h += blocks.map((b, i) => {
+      const at = clock;
+      clock = _clockAdd(clock, b.duration || 0);
+      const exs = b.exercises || [];
+      // Main Focus often repeats the day's note, which is already shown above.
+      let bNote = b.note || '';
+      if (day && day.focusNote && bNote.includes(day.focusNote)) bNote = bNote.replace(day.focusNote, '').replace(/^\s*\|\s*|\s*\|\s*$/g, '').trim();
+      const rows = exs.map(e => {
+        const t = e.target && e.target.text;
+        const test = t && /^Test\b/.test(t);
+        const dose = test
+          ? '<span class="ds-test">' + escAttr(t.replace(/^Test\s*[—-]\s*/, '')) + '</span>'
+          : '<span class="mv-ex-dose">' + escAttr(_dose(e)) + '</span>';
+        const note = e.notes ? '<div class="ds-ex-note">' + escAttr(e.notes) + '</div>' : '';
+        return '<div class="mv-ex ds-ex' + (note ? ' has-note' : '') + '"' + (note ? ' role="button" tabindex="0" onclick="this.classList.toggle(\'open\')"' : '') + '>'
+             +   '<span class="mv-ex-bullet"></span>'
+             +   '<span class="mv-ex-name">' + escAttr(e.name) + '</span>'
+             +   dose
+             +   (note ? '<svg class="ds-ex-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' : '<span class="ds-ex-chev"></span>')
+             +   note
+             + '</div>';
+      }).join('');
+      return '<div class="mv-blk ds-blk' + (i === mainIdx ? ' open' : '') + '">'
+           +   '<button type="button" class="mv-blk-head" onclick="this.parentNode.classList.toggle(\'open\')">'
+           +     '<span class="mv-blk-time">' + at + '</span>'
+           +     '<span class="mv-blk-rail" style="background:' + (b.color || 'var(--text3)') + '"></span>'
+           +     '<span class="mv-blk-label">' + escAttr(b.label) + '</span>'
+           +     '<span class="mv-blk-meta">' + (b.duration || 0) + 'm · ' + exs.length + '</span>'
+           +     '<svg class="mv-blk-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>'
+           +   '</button>'
+           +   '<div class="mv-blk-summary"><span class="ds-sum">' + exs.map(e => escAttr(e.name)).join(' · ') + '</span></div>'
+           +   '<div class="mv-blk-body">'
+           +     (bNote ? '<div class="ds-blk-note">' + escAttr(bNote) + '</div>' : '')
+           +     rows
+           +   '</div>'
            + '</div>';
-      });
-      h += '</div>';
-    });
+    }).join('');
   }
 
-  h += '<div style="font-size:.72rem;color:var(--text3);margin-top:.9rem;font-style:italic">' + escAttr(source) + '</div>';
+  h += '<div class="ds-source">' + escAttr(source) + '</div>';
 
   document.getElementById('day-sheet-body').innerHTML = h;
   document.getElementById('day-sheet-backdrop').style.display = 'flex';
+}
+
+function dsToggleAll(btn) {
+  const body = document.getElementById('day-sheet-body');
+  const blks = [...body.querySelectorAll('.ds-blk')];
+  const openAll = blks.some(b => !b.classList.contains('open'));
+  blks.forEach(b => b.classList.toggle('open', openAll));
+  btn.textContent = openAll ? 'Close all' : 'Open all';
 }
 
 function closeDaySheet() {

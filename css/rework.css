@@ -516,3 +516,37 @@ input[type=number]:focus::-webkit-inner-spin-button { opacity: .9; }
 .srpe-chip span { font-size: .6rem; color: var(--text3); text-align: center; line-height: 1.15; }
 .srpe-chip:hover { border-color: var(--accent); }
 .mv-backup { display: flex; align-items: center; gap: .6rem; margin-bottom: .9rem; }
+
+/* ── day sheet (tap a day in the week) ───────────────────────────
+   Same timeline as Today: one line per block with its exercises as a
+   summary, tap to open. The note is clamped to three lines. */
+.ds-head { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin: -.2rem 0 .6rem; }
+.ds-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.ds-theme { font-size: 1.05rem; font-weight: 700; line-height: 1.25; }
+.ds-tag, .ds-test {
+  font-size: .6rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap;
+  color: var(--warm); background: color-mix(in srgb, var(--warm) 15%, var(--bg2));
+  padding: .14rem .42rem; border-radius: 4px; flex-shrink: 0;
+}
+.ds-chips { margin-bottom: .85rem; }
+.ds-note { margin-bottom: .9rem; }
+.ds-note--long { cursor: pointer; }
+.ds-note-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
+.ds-note.open .ds-note-text { display: block; -webkit-line-clamp: unset; line-clamp: unset; }
+.ds-note-more { font-size: .7rem; color: var(--text3); margin-top: .2rem; }
+.ds-note .ds-less, .ds-note.open .ds-more { display: none; }
+.ds-note.open .ds-less { display: inline; }
+.ds-spec { margin-bottom: .9rem; font-size: .78rem; line-height: 1.5; }
+.ds-bar { display: flex; justify-content: space-between; align-items: baseline; font-size: .72rem; color: var(--text3); margin: .1rem 0 .45rem; }
+.ds-bar .mv-linkbtn { font-size: .72rem; padding: 0; color: var(--text2); text-decoration: none; }
+.ds-sum { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.ds-blk:not(.open) .mv-blk-body,
+.ds-blk.open .mv-blk-summary { display: none; }
+.ds-blk-note { font-size: .74rem; line-height: 1.45; color: var(--text3); padding: .5rem 0 .15rem; }
+.ds-ex { flex-wrap: wrap; cursor: default; row-gap: 0; }
+.ds-ex.has-note { cursor: pointer; }
+.ds-ex-chev { width: 11px; flex-shrink: 0; color: var(--text3); transition: transform .15s; }
+.ds-ex.open .ds-ex-chev { transform: rotate(180deg); }
+.ds-ex-note { display: none; flex-basis: 100%; padding: .3rem 0 .1rem 1.1rem; font-size: .72rem; line-height: 1.45; color: var(--text3); }
+.ds-ex.open .ds-ex-note { display: block; }
+.ds-source { font-size: .7rem; color: var(--text3); margin-top: .8rem; font-style: italic; }
