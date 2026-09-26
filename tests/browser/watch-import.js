@@ -14,7 +14,7 @@ function ruttio({id,sport,start,minutes,hr}){const t0=Date.parse(start),n=minute
   await A.page.goto('http://app.local/index.html'); await A.page.clock.runFor(3000); await W(800);
   await A.page.evaluate(()=>{navTo('today');dayEdit({action:'swap_modality',modality:'bike'});dayEdit({action:'remove_block',blockKey:'accessory'});dayEdit({action:'remove_block',blockKey:'close'});});
   await A.page.click('text=Already done — log it'); await W(300);
-  await A.page.click('button:has-text("⌚ Import")'); 
+  await A.page.click('#session-blocks button:has-text("Import")'); await W(200);
   await A.page.setInputFiles('#watch-files',[
     {name:'workout_1_other.json',mimeType:'application/json',buffer:Buffer.from(ruttio({id:'W-OTHER',sport:'Other',start:'2026-09-26T09:12:00+01:00',minutes:21,hr:128}))},
     {name:'workout_2_ride.json',mimeType:'application/json',buffer:Buffer.from(ruttio({id:'W-RIDE',sport:'Cycling',start:'2026-09-26T09:55:00+01:00',minutes:45,hr:141}))},

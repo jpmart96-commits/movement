@@ -96,7 +96,9 @@ const MonthPlan = {
 
     const t0 = new Date(k + 'T12:00:00').getTime();
     const gap = x => Math.abs(new Date(x.date + 'T12:00:00').getTime() - t0);
-    const sameType = days.filter(x => this.typeOf(x) === dayType && x.date !== k);
+    // A test day's content belongs to that date (its tests, its framing),
+    // so it is never what another day borrows.
+    const sameType = days.filter(x => this.typeOf(x) === dayType && x.date !== k && !this._isTestDay(x));
     if (own) {
       const near = sameType
         .filter(x => (own.week != null && x.week === own.week) || gap(x) <= 3.5 * 864e5)

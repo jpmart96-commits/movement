@@ -1,7 +1,7 @@
 'use strict';
 // Golden snapshot of Generator.generateFromScaffold for every date from
-// 26 Sep to 30 Nov 2026 with an empty history. The plan's day-level
-// prescription ends 25 Oct; later days exercise the scaffold fallback.
+// 26 Sep to 31 Dec 2026 with an empty history. The plan's day-level
+// prescription ends 27 Dec; the last days exercise the carry-forward.
 //
 //   UPDATE_GOLDEN=1 node tests/run.js      # re-baseline after an intended change
 const test = require('node:test');
@@ -11,7 +11,7 @@ const path = require('path');
 const { dateRange } = require('./load');
 const { freshContext, generateDay, normDay, stringifyGolden, diffDay } = require('./helpers');
 
-const FROM = '2026-09-26', TO = '2026-11-30';
+const FROM = '2026-09-26', TO = '2026-12-31';
 const GOLDEN = path.join(__dirname, 'golden', 'days.json');
 const MAX_DATES_SHOWN = 15;
 

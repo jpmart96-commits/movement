@@ -1,5 +1,5 @@
 'use strict';
-// Structural invariants for every month-plan day (26 Sep – 25 Oct 2026),
+// Structural invariants for every month-plan day (26 Sep – 27 Dec 2026),
 // plus behavioural tests for known bugs, marked `todo` so they are reported
 // (run.js lists them under "expected failures") without failing the run.
 //
@@ -11,20 +11,19 @@ const assert = require('node:assert');
 const { dateRange } = require('./load');
 const { freshContext, generateDay, planDayFor } = require('./helpers');
 
-const PLAN_FROM = '2026-09-26', PLAN_TO = '2026-10-25';
+const PLAN_FROM = '2026-09-26', PLAN_TO = '2026-12-27';
 const TIME_TOLERANCE = 1.10;
 
 const KNOWN = [
-  { id: 'sunday-hang-project', check: 'time', block: 'accessory', dayType: 'light',
-    reason: 'Sunday hang-project skill line doses ~14–15 min into the 10-min light-day Accessory slot (known from review).' },
+  // Dose fitting: curated fixed doses don't scale down to the slot. All of
+  // these predate the goals revamp (27 Sep); the plan rewrite only moved
+  // which dates they land on, so they are keyed by block and day type now.
   { id: 'z2-bike-open', check: 'time', block: 'open', dayType: 'z2-bike',
-    reason: 'z2-bike Open variant doses ~11.4 min into 10 (found by this suite).' },
-  { id: 'handstand-accessory', check: 'time', block: 'accessory', dates: ['2026-09-26', '2026-10-06', '2026-10-15'],
-    reason: 'Handstand skill line draws ~16.9 min into 15 on some rotations (found by this suite).' },
-  { id: 'movement-day-mobility', check: 'time', block: 'mobility', dates: ['2026-10-01', '2026-10-13'],
-    reason: 'Mobility on movement-domain z2 days doses ~22.9 min into 20 (found by this suite).' },
-  { id: 'stick-complementary-23oct', check: 'time', block: 'complementary', dates: ['2026-10-23'],
-    reason: 'Complementary (stick) doses ~28 min into 25 on 23 Oct (found by this suite).' },
+    reason: 'z2-bike Open variant doses ~11.4 min into 10.' },
+  { id: 'complementary-fixed-doses', check: 'time', block: 'complementary',
+    reason: 'Stick, objects and balance days: four fixed-dose items reach ~28 min in the 25-min Complementary slot.' },
+  { id: 'develop-mobility', check: 'time', block: 'mobility',
+    reason: 'Range-day recipes (long holds) and the plyo prep recipe run ~22–23 min into 20.' },
 ];
 
 const app = freshContext({ quiet: true });
@@ -108,9 +107,22 @@ function checkDay(date) {
     if (rg === 'prehab') add('prehab', 'main-focus', `${e.id} (restGroup prehab) in Main Focus`);
   }
 
+  // Test blocks (plan day.tests): every scheduled test is there and carries
+  // its goal, so the session can record it.
+  if (p.tests) {
+    for (const [slot, goalIds] of Object.entries(p.tests)) {
+      const key = slot === 'main' ? 'main-focus:tests' : slot;
+      const tb = s.blocks.find(b => b.key === key);
+      if (!tb || !tb.tests) { add('tests', key, `no test block for ${slot}`); continue; }
+      const got = (tb.exercises || []).map(e => e.test && e.test.goalId);
+      goalIds.forEach(id => { if (!got.includes(id)) add('tests', key, `${id} missing from the ${slot} tests`); });
+    }
+  }
+
   // Complementary: 3–5 items, all in the day's one domain (the plan's)
   const comp = s.blocks.find(b => b.key === 'complementary');
   if (!comp) add('complementary', 'complementary', 'no Complementary block');
+  else if (comp.tests) { /* a test day: checked above */ }
   else {
     const n = (comp.exercises || []).length;
     if (n < 3 || n > 5) add('complementary', 'complementary', `${n} items (want 3–5)`);
@@ -155,9 +167,9 @@ test('invariants: KNOWN list is current', t => {
 
 // Days after the plan fall back to the bare scaffold. Only the checks that
 // don't depend on a plan day apply.
-test('fallback days 26 Oct..30 Nov: generate, no duplicates, every item dosed', () => {
+test('fallback days 28 Dec..31 Jan: generate, no duplicates, every item dosed', () => {
   const bad = [];
-  for (const date of dateRange('2026-10-26', '2026-11-30')) {
+  for (const date of dateRange('2026-12-28', '2027-01-31')) {
     const s = generateDay(app, date);
     if (!s) { bad.push(`${date}: null`); continue; }
     const ids = allEx(s).map(x => x.e.id);
@@ -206,10 +218,10 @@ test('adjust "lighter" keeps exercises that already have logged sets',
 test('adjust "shorter" (scale_session 0.65) keeps exercises that already have logged sets',
   () => keepsLoggedSets({ action: 'scale_session', factor: 0.65 }));
 
-test('after 25 Oct, Strength A days prescribe a numeric squat load (carry-forward)', () => {
+test('after 27 Dec, Strength A days prescribe a numeric squat load (carry-forward)', () => {
     const missing = [];
     let checked = 0;
-    for (const date of dateRange('2026-10-26', '2026-11-30')) {
+    for (const date of dateRange('2026-12-28', '2027-01-31')) {
       const s = generateDay(app, date);
       if (!s || s.dayKind !== 'strength-a') continue;
       checked++;
