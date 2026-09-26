@@ -471,7 +471,6 @@ function setTheme(t) {
 <script src="data/complementary.js"></script>
 <script src="data/scaffold.js"></script>
 <script src="data/monthplan.js"></script>
-<script src="data/media.js"></script>
 <script src="js/app.js"></script>
 <script src="js/custom.js"></script>
 <script src="js/import.js"></script>
@@ -1133,7 +1132,7 @@ function renderExSheet() {
 
   const sec = (label, cls, text) => text
     ? `<div class="mv-eyebrow ${cls}" style="margin-bottom:.4rem">${label}</div>
-       <div style="font-size:.84rem;line-height:1.6;color:var(--text2);margin-bottom:.9rem;white-space:pre-line">${text}</div>`
+       <div style="font-size:.84rem;line-height:1.6;color:var(--text2);margin-bottom:.9rem">${text}</div>`
     : '';
 
   const meta = [ex && ex.category, ex && ex.subcategory].filter(Boolean).join(' · ');
@@ -2256,9 +2255,7 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
   // No separate full-width banner image any more — the round photo circle
   // below covers that need, and showing both was redundant.
   let extraHtml = '';
-  // Collapsed by default: data/media.js gives most exercises 4–5 steps, which
-  // would make every live card long. Tapping the card opens the full sheet too.
-  if (libEx?.instructions)  extraHtml += `<details class="ex-instructions"><summary style="cursor:pointer;color:var(--text3)">How</summary>${libEx.instructions}</details>`;
+  if (libEx?.instructions)  extraHtml += `<div class="ex-instructions">${libEx.instructions}</div>`;
 
   // Small round thumbnail — same priority chain as the exercise view/edit
   // modals (custom image > built-in photo > auto YouTube thumb). `ex` here
