@@ -138,7 +138,7 @@ const MonthPlan = {
       const p = mfp.cardio.protocol || {};
       const name = (mfp.cardio.exercise && mfp.cardio.exercise.name) || 'Cardio';
       if (p.type === 'intervals' || p.type === 'tempo') return `${name} ${p.reps}x${p.workMin} min at ${p.workHr[0]}-${p.workHr[1]}`;
-      if (p.type === 'fixed-hr-test') return `${name}: ${p.testMin} min at avg ~${p.targetAvgHr} (nothing above ${p.hrCeiling})`;
+      if (p.type === 'fixed-hr-test') return `${name}: ${p.testMin} min at avg ~${p.targetAvgHr} (nothing above ${p.hrCeiling})${p.easyMin ? ', then ' + p.easyMin + ' min easy' : ''}`;
       if (p.mainMin) return `${name} ${p.mainMin} min${p.hrMax ? ' under ' + p.hrMax : ''}`;
       return name;
     }

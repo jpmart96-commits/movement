@@ -125,7 +125,8 @@ test('after the written plan: every day type carries forward its latest non-test
   const s = generateDay(app, '2026-10-29');
   assert.equal(s.planSource.kind, 'carry-forward');
   assert.equal(s.planSource.from, '2026-10-22');
-  assert.match(mf(s).exercises[0].target.text, /60 min under 153/);
+  // 22 Oct is the weekly aerobic check, so that is what carries forward.
+  assert.match(mf(s).exercises[0].target.text, /30 min at avg ~148.*20 min easy under 153/);
   const b = generateDay(app, '2026-10-30');
   assert.equal(mf(b).exercises.find(e => e.id === 'deadlift').target.loadKg, 85);
   assert.doesNotMatch(mf(b).note, /16 Oct numbers/);   // that morning's framing doesn't carry

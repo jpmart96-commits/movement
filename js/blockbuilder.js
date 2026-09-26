@@ -134,8 +134,22 @@ const BlockBuilder = {
       const c = this._clone(tpl.mainFocusPlan.cardio);
       const p = c.protocol || {};
       if (type === 'z2-run') {
-        p.mainMin = isTest ? 45 : Math.min(70, (p.mainMin || 60) + 5 * (wi + 1));
-        c.note = isTest ? 'Deload week: shorter, same cap.' : 'Continuous, strictly under 153. Walk the hills without negotiating.';
+        // The template long run may itself be a check (fixed-hr-test), so its
+        // length is warm-up + window + easy, not mainMin.
+        const base = p.type === 'fixed-hr-test' ? (p.warmupMin || 0) + (p.testMin || 0) + (p.easyMin || 0) : (p.mainMin || 60);
+        const mins = isTest ? 45 : Math.min(70, base + 5 * (wi + 1));
+        if (isTest) {
+          c.protocol = { type: 'steady', mainMin: mins, hrMax: 153, walkdownMin: 5 };
+          c.note = 'Deload week: shorter, same cap.';
+          return { cardio: c };
+        } else {
+          // Weekly aerobic check: the fixed-HR window rides inside the long
+          // run, so every week has a running data point, not one per block.
+          c.protocol = { type: 'fixed-hr-test', warmupMin: 10, testMin: 30, targetAvgHr: 148, hrCeiling: 156,
+            easyMin: Math.max(0, mins - 40), walkdownMin: p.walkdownMin || 5 };
+          c.note = `Aerobic check: minutes 10-40 as the test, avg ~148, nothing above 156, record the distance for that window. Then ${Math.max(0, mins - 40)} min easy under 153. Home loop, 08:00. Follows the sprint day, so it is a trend point; the retest is the clean comparison.`;
+          return { cardio: c };
+        }
       } else if (type === 'z2-bike') {
         p.mainMin = isTest ? 40 : Math.min(65, (p.mainMin || 60) + 5 * wi);
         c.note = isTest ? 'Kept short: tomorrow is the aerobic retest.' : 'Nose breathing throughout. If it breaks, slow down.';
@@ -173,7 +187,7 @@ const BlockBuilder = {
       weeksOut.push({ n, label: isTest ? 'Deload + retest' : (wi === 0 ? 'Block 2 build' : 'Block 2 peak'),
         start, end: this._add(start, 6), load: isTest ? 'test' : (wi === 0 ? 'build' : 'peak'), qualitySessions: isTest ? 0 : 1,
         intent: isTest ? 'Retests Monday and Friday, aerobic test Wednesday. Tempo, not intervals, on Saturday.'
-          : 'Drafted from block 1: one small strength step, easy volume +5 min, one quality run.' });
+          : 'Drafted from block 1: one small strength step, easy volume +5 min, one quality run, aerobic check in Thursday\'s long run.' });
       for (let k = 0; k < 7; k++) {
         const date = this._add(start, k);
         const dow = this._dow(date);
@@ -188,12 +202,13 @@ const BlockBuilder = {
         const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[type] : null;
         const day = {
           date, weekday: dow, week: n,
-          theme: type === 'aerobic-test' ? 'Aerobic retest' : (tplDay.theme || (slot && slot.theme) || type),
+          theme: type === 'aerobic-test' ? 'Aerobic retest' : type === 'z2-run' ? (isTest ? 'Zone 2 long run' : 'Zone 2 long run + aerobic check') : (tplDay.theme || (slot && slot.theme) || type),
           variant: type === 'light' ? 'light' : 'standard',
           coordDomain: (typeof Generator !== 'undefined' && Generator.coordDomainFor) ? Generator.coordDomainFor(new Date(date + 'T12:00:00')) : tplDay.coordDomain,
           load: isTest ? 'test' : (wi === 0 ? 'build' : 'peak'),
           dayType: type, skillLine: tplDay.skillLine,
-          benchmark: isTest && (type === 'aerobic-test' || type === 'strength-a' || type === 'strength-b'),
+          // Benchmarks are running only: the retest, and the weekly check.
+          benchmark: isTest ? type === 'aerobic-test' : type === 'z2-run',
           source: 'draft',
         };
         if (mfp) day.mainFocusPlan = mfp;

@@ -1754,7 +1754,7 @@ const Generator = {
     if (!p) return 0;
     if (p.type === 'intervals' || p.type === 'tempo')
       return (p.warmupMin || 10) + p.reps * p.workMin + Math.max(0, p.reps - 1) * (p.recoveryMin || 0) + (p.cooldownMin || 5);
-    if (p.type === 'fixed-hr-test') return (p.warmupMin || 0) + (p.testMin || 0) + (p.walkdownMin || 0);
+    if (p.type === 'fixed-hr-test') return (p.warmupMin || 0) + (p.testMin || 0) + (p.easyMin || 0) + (p.walkdownMin || 0);
     if (p.type === 'steady') return (p.warmupMin || 0) + (p.mainMin || 0) + (p.cooldownMin || 0) + (p.walkdownMin || 0);
     return 0;
   },
@@ -1778,7 +1778,7 @@ const Generator = {
     }
     if (p.type === 'intervals') return `${p.name ? p.name + ' \u00b7 ' : ''}${p.warmupMin || 10} min warm-up \u00b7 ${p.reps} \u00d7 ${p.workMin} min at ${p.workHr[0]}\u2013${p.workHr[1]} \u00b7 ${p.recoveryMin} min easy between \u00b7 ${p.cooldownMin || 5} min cool-down`;
     if (p.type === 'tempo') return `${p.warmupMin || 10} min easy \u00b7 ${p.reps} \u00d7 ${p.workMin} min at ${p.workHr[0]}\u2013${p.workHr[1]} \u00b7 ${p.recoveryMin} min easy between \u00b7 ${p.cooldownMin || 5} min easy`;
-    if (p.type === 'fixed-hr-test') return `${p.warmupMin} min build \u00b7 ${p.testMin} min at avg ~${p.targetAvgHr} (nothing above ${p.hrCeiling}) \u00b7 ${p.walkdownMin} min walk`;
+    if (p.type === 'fixed-hr-test') return `${p.warmupMin} min build \u00b7 ${p.testMin} min at avg ~${p.targetAvgHr} (nothing above ${p.hrCeiling})${p.easyMin ? ' \u00b7 ' + p.easyMin + ' min easy under 153' : ''} \u00b7 ${p.walkdownMin} min walk`;
     if (p.type === 'steady') return `${p.mainMin} min${p.hrMin ? ' at ' + p.hrMin + '\u2013' + p.hrMax : ' under ' + p.hrMax}${p.warmupMin ? ' \u00b7 ' + p.warmupMin + ' min spin-up' : ''}${p.walkdownMin ? ' \u00b7 ' + p.walkdownMin + ' min walk' : ''}`;
     return '';
   },

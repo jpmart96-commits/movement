@@ -69,12 +69,21 @@
 //     donkey kicks replace kick-ups until the cartwheel bail is in (block 2).
 //   - Movement-domain days that land on a handstand day cap wrist work.
 
+// Revision 26 Sep (seedVersion 6) — benchmarks are running only:
+//   - Strength days are no longer benchmarks. Their progress shows in every
+//     logged session; the retests still exist (load: 'test') and still feed
+//     BlockBuilder, they just aren't flagged.
+//   - A weekly aerobic check: Thursday's long run carries the 30-min
+//     fixed-HR window in weeks 2, 3 and 5 (1, 8, 22 Oct), so there is a
+//     running data point every week, not one per block.
+//   - 24 Sep renamed to what it was: Strength B, done early.
+
 const MONTH_PLAN_SEED = {
   // Bumped whenever this file's plan changes. ensureSeeded() supersedes a
   // stored plan with a lower version, and a pull refuses to downgrade past
   // it — without that, the seed reaches storage exactly once and every
   // later revision is silently ignored on the one device that matters.
-  "seedVersion": 5,
+  "seedVersion": 6,
 
   "title": "Block 1 — Aerobic engine + strength",
   "blockStart": "2026-09-20",
@@ -304,13 +313,13 @@ const MONTH_PLAN_SEED = {
         "date": "2026-09-24",
         "weekday": "thursday",
         "week": 1,
-        "theme": "Zone 2 bike + Yoga",
+        "theme": "Strength B (done early)",
         "variant": "standard",
         "coordDomain": "stick",
         "load": "baseline",
         "focusNote": "DONE AS STRENGTH B, a day early. OHP 35x5 @9 twice, deadlift 84x5 @9.5, dips +10kg x6 @8, cable row 52x8 @9. These set the Strength B numbers for the rest of the block.",
         "dayType": "strength-b",
-        "benchmark": true
+        "benchmark": false
       },
       {
         "date": "2026-09-25",
@@ -397,7 +406,7 @@ const MONTH_PLAN_SEED = {
           "note": "Also the Strength A baseline (21 Sep was never logged). Log every set with RPE."
         },
         "focusNote": "Squat 3x5 @57.5, Incline bench press 3x5 @54, Pull-up 4x4, Toes to bar 3x8. Also the Strength A baseline (21 Sep was never logged). Log every set with RPE.",
-        "benchmark": true
+        "benchmark": false
       },
       {
         "date": "2026-09-29",
@@ -495,7 +504,7 @@ const MONTH_PLAN_SEED = {
         "date": "2026-10-01",
         "weekday": "thursday",
         "week": 2,
-        "theme": "Zone 2 long run",
+        "theme": "Zone 2 long run + aerobic check",
         "variant": "standard",
         "coordDomain": "movement",
         "load": "build",
@@ -508,16 +517,19 @@ const MONTH_PLAN_SEED = {
               "name": "Easy run"
             },
             "protocol": {
-              "type": "steady",
-              "mainMin": 50,
-              "hrMax": 153,
+              "type": "fixed-hr-test",
+              "warmupMin": 10,
+              "testMin": 30,
+              "targetAvgHr": 148,
+              "hrCeiling": 156,
+              "easyMin": 10,
               "walkdownMin": 5
             },
-            "note": "Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov."
+            "note": "Aerobic check, week 2: minutes 10-40 as the test — avg ~148, nothing above 156, record the distance for that window. Then 10 min easy under 153. Home loop, 08:00. It follows Wednesday's sprints rather than a bike day, so read it as a trend point; the 14 Oct retest is the clean comparison with 23 Sep."
           }
         },
-        "focusNote": "50min under 153. Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov.",
-        "benchmark": false
+        "focusNote": "50min long run with the aerobic check inside it. Aerobic check, week 2: minutes 10-40 as the test — avg ~148, nothing above 156, record the distance for that window. Then 10 min easy under 153. Home loop, 08:00. It follows Wednesday's sprints rather than a bike day, so read it as a trend point; the 14 Oct retest is the clean comparison with 23 Sep.",
+        "benchmark": true
       },
       {
         "date": "2026-10-02",
@@ -780,7 +792,7 @@ const MONTH_PLAN_SEED = {
         "date": "2026-10-08",
         "weekday": "thursday",
         "week": 3,
-        "theme": "Zone 2 long run",
+        "theme": "Zone 2 long run + aerobic check",
         "variant": "standard",
         "coordDomain": "vision",
         "load": "peak",
@@ -793,16 +805,19 @@ const MONTH_PLAN_SEED = {
               "name": "Easy run"
             },
             "protocol": {
-              "type": "steady",
-              "mainMin": 55,
-              "hrMax": 153,
+              "type": "fixed-hr-test",
+              "warmupMin": 10,
+              "testMin": 30,
+              "targetAvgHr": 148,
+              "hrCeiling": 156,
+              "easyMin": 15,
               "walkdownMin": 5
             },
-            "note": "Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov."
+            "note": "Aerobic check, week 3: minutes 10-40 as the test — avg ~148, nothing above 156, record the distance for that window. Then 15 min easy under 153. Home loop, 08:00. It follows Wednesday's sprints rather than a bike day, so read it as a trend point; the 14 Oct retest is the clean comparison with 23 Sep."
           }
         },
-        "focusNote": "55min under 153. Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov.",
-        "benchmark": false
+        "focusNote": "55min long run with the aerobic check inside it. Aerobic check, week 3: minutes 10-40 as the test — avg ~148, nothing above 156, record the distance for that window. Then 15 min easy under 153. Home loop, 08:00. It follows Wednesday's sprints rather than a bike day, so read it as a trend point; the 14 Oct retest is the clean comparison with 23 Sep.",
+        "benchmark": true
       },
       {
         "date": "2026-10-09",
@@ -966,7 +981,7 @@ const MONTH_PLAN_SEED = {
           "note": "RETEST A. Take what moves cleanly, leave what doesn't. Nothing else heavy today."
         },
         "focusNote": "Squat 3x5 @60, Incline bench press 3x5 @55, Pull-up 3x6, Plank 3x45s. RETEST A. Take what moves cleanly, leave what doesn't. Nothing else heavy today.",
-        "benchmark": true
+        "benchmark": false
       },
       {
         "date": "2026-10-13",
@@ -1097,7 +1112,7 @@ const MONTH_PLAN_SEED = {
           "note": "RETEST B. Two lifts only. Ramp properly, then test."
         },
         "focusNote": "Deadlift 3x5 @85, Overhead press 3x5 @35. RETEST B. Two lifts only. Ramp properly, then test.",
-        "benchmark": true
+        "benchmark": false
       },
       {
         "date": "2026-10-17",
@@ -1194,7 +1209,7 @@ const MONTH_PLAN_SEED = {
           "note": "Block 2 opens. Squat and incline at what 12 Oct gave you (+2.5kg on any lift that moved cleanly). Pancake is measured today in Accessory."
         },
         "focusNote": "Squat 3x5 @60, Incline bench press 3x5 @55, Pull-up 3x6, Hollow body hold 3x30s. Block 2 opens. Squat and incline at what 12 Oct gave you (+2.5kg on any lift that moved cleanly). Pancake is measured today in Accessory.",
-        "benchmark": true
+        "benchmark": false
       },
       {
         "date": "2026-10-20",
@@ -1292,7 +1307,7 @@ const MONTH_PLAN_SEED = {
         "date": "2026-10-22",
         "weekday": "thursday",
         "week": 5,
-        "theme": "Zone 2 long run",
+        "theme": "Zone 2 long run + aerobic check",
         "variant": "standard",
         "coordDomain": "balance",
         "load": "baseline",
@@ -1305,16 +1320,19 @@ const MONTH_PLAN_SEED = {
               "name": "Easy run"
             },
             "protocol": {
-              "type": "steady",
-              "mainMin": 60,
-              "hrMax": 153,
+              "type": "fixed-hr-test",
+              "warmupMin": 10,
+              "testMin": 30,
+              "targetAvgHr": 148,
+              "hrCeiling": 156,
+              "easyMin": 20,
               "walkdownMin": 5
             },
-            "note": "Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov."
+            "note": "Aerobic check, week 5: minutes 10-40 as the test — avg ~148, nothing above 156, record the distance for that window. Then 20 min easy under 153. Home loop, 08:00. It follows Wednesday's sprints rather than a bike day, so read it as a trend point; the retests are the clean comparison."
           }
         },
-        "focusNote": "60min under 153. Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov.",
-        "benchmark": false
+        "focusNote": "60min long run with the aerobic check inside it. Aerobic check, week 5: minutes 10-40 as the test — avg ~148, nothing above 156, record the distance for that window. Then 20 min easy under 153. Home loop, 08:00. It follows Wednesday's sprints rather than a bike day, so read it as a trend point; the retests are the clean comparison.",
+        "benchmark": true
       },
       {
         "date": "2026-10-23",
