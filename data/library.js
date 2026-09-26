@@ -487,6 +487,62 @@ const LIBRARY = [
     defaultState: 'active',
   },
 
+  // Overcoming isometrics, one per main-lift pattern (added 26 Sep).
+  // Pull-up already has one: 90-90-iso-pullup-hang. Use as a swap for
+  // accessory volume or a 2–3 rep opener, not stacked on the full lift.
+  {
+    id: 'iso-squat-pins',
+    modality: ['strength-a'],
+    name: 'Isometric squat (against pins)',
+    category: 'Gym', subcategory: 'Strength A',
+    modalityTags: ['weights'],
+    difficulty: 3, energy: 'High', segment: 'main',
+    goals: [], equipment: ['Barbell', 'Rack'], frequency: '',
+    restGroup: 'strength-heavy', intensityTier: 'heavy', logType: 'hold',
+    notes: 'Bar under the safety pins at your sticking point (usually just above parallel). Push up into the pins as hard as possible. 3–5 × 3–6s, 2 min rest.',
+    link: 'https://www.youtube.com/results?search_query=isometric+squat+against+pins',
+    defaultState: 'active',
+  },
+  {
+    id: 'iso-bench-pins',
+    modality: ['strength-a'],
+    name: 'Isometric bench press (against pins)',
+    category: 'Gym', subcategory: 'Strength A',
+    modalityTags: ['weights'],
+    difficulty: 3, energy: 'High', segment: 'main',
+    goals: [], equipment: ['Barbell', 'Bench', 'Rack'], frequency: '',
+    restGroup: 'strength-heavy', intensityTier: 'heavy', logType: 'hold',
+    notes: 'Incline bench inside the rack, bar under pins 2–5 cm off the chest. Press into the pins at full intent. 3–5 × 3–6s, 2 min rest.',
+    link: 'https://www.youtube.com/results?search_query=isometric+bench+press+pins',
+    defaultState: 'active',
+  },
+  {
+    id: 'iso-pull-pins',
+    modality: ['strength-b'],
+    name: 'Isometric mid-thigh pull (against pins)',
+    category: 'Gym', subcategory: 'Strength B',
+    modalityTags: ['weights'],
+    difficulty: 3, energy: 'High', segment: 'main',
+    goals: [], equipment: ['Barbell', 'Rack'], frequency: '',
+    restGroup: 'strength-heavy', intensityTier: 'heavy', logType: 'hold',
+    notes: 'Bar under the pins at mid-thigh. Shins near vertical, hips slightly back, torso upright. Pull as hard as possible. 3–5 × 3–5s, 2 min rest. Wed opener: 2–3 pulls before jumps.',
+    link: 'https://www.youtube.com/results?search_query=isometric+mid+thigh+pull',
+    defaultState: 'active',
+  },
+  {
+    id: 'iso-press-pins',
+    modality: ['strength-b'],
+    name: 'Isometric overhead press (against pins)',
+    category: 'Gym', subcategory: 'Strength B',
+    modalityTags: ['weights'],
+    difficulty: 3, energy: 'High', segment: 'main',
+    goals: [], equipment: ['Barbell', 'Rack'], frequency: '',
+    restGroup: 'strength-heavy', intensityTier: 'heavy', logType: 'hold',
+    notes: 'Pins at forehead height, bar pressed up into them, ribs down. 3–5 × 3–6s, 2 min rest.',
+    link: 'https://www.youtube.com/results?search_query=isometric+overhead+press+pins',
+    defaultState: 'active',
+  },
+
   // ── GYM — ACCESSORY ────────────────────────────────────────
   {
     id: 'hip-thrust',
@@ -4839,4 +4895,9 @@ const EXERCISE_TAGS = {
   'l-sit-floor':                         { joints: ['shoulder','back'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
   'v-sit':                               { joints: ['shoulder','back'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'core' },
   'mechanical-advantage-planche-pushup': { joints: ['shoulder','elbow','wrist'], impact: 'low', pattern: 'push', raisesHR: false, muscle: 'chest' },
+  // Overcoming isometrics (26 Sep)
+  'iso-squat-pins':                      { joints: ['knee','hip','back'], impact: 'low', pattern: 'squat', raisesHR: false, muscle: 'quads' },
+  'iso-bench-pins':                      { joints: ['shoulder','elbow','wrist'], impact: 'low', pattern: 'push', raisesHR: false, muscle: 'chest' },
+  'iso-pull-pins':                       { joints: ['back','hip','forearm'], impact: 'low', pattern: 'hinge', raisesHR: false, muscle: 'back' },
+  'iso-press-pins':                      { joints: ['shoulder','elbow','wrist'], impact: 'low', pattern: 'push', raisesHR: false, muscle: 'shoulders' },
 };
