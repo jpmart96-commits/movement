@@ -152,14 +152,15 @@ TrainingLoad.card = function () {
     return `<div title="${w.start} · ${w.load} (${w.minutes} min)${w.estimated ? ' · partly estimated' : ''}" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:64px">
       <div style="height:${h}%;border-radius:3px 3px 0 0;background:${hot ? 'var(--warm)' : 'var(--accent)'};opacity:${w.current ? .55 : (w.estimated ? .7 : 1)}"></div></div>`;
   }).join('');
-  const usual = s.chronicWeek ? `<div style="position:relative;margin-top:-${Math.round(s.chronicWeek / max * 64) + 1}px;border-top:1px dashed var(--text3);height:0" title="usual week"></div>` : '';
+  // Usual-week line sits absolutely inside the chart box, so it never shifts the labels below.
+  const usual = s.chronicWeek ? `<div style="position:absolute;left:0;right:0;bottom:${Math.round(s.chronicWeek / max * 64)}px;border-top:1px dashed var(--text3);height:0;pointer-events:none" title="usual week"></div>` : '';
   const head = !s.enough
     ? `Building a baseline — needs about three weeks of sessions.`
     : `This week <b>${s.acute}</b> · usual <b>${s.chronicWeek}</b> · <b>${s.ratio}×</b>`;
   return `<div class="mv-card"><div class="mv-eyebrow" style="margin-bottom:.4rem">Training load</div>
     <div style="font-size:.8rem;color:var(--text2);margin-bottom:.6rem">${head}</div>
     ${s.flag ? `<div class="mv-note" style="margin-bottom:.6rem">${s.reason}</div>` : ''}
-    <div style="display:flex;align-items:flex-end;gap:5px">${bars}</div>${usual}
+    <div style="position:relative;display:flex;align-items:flex-end;gap:5px;height:64px">${bars}${usual}</div>
     <div style="display:flex;justify-content:space-between;margin-top:.35rem;font-size:.64rem;color:var(--text3)"><span>8 weeks ago</span><span>this week</span></div>
     <div style="font-size:.68rem;color:var(--text3);margin-top:.5rem;line-height:1.4">Session RPE × minutes. ${s.estimatedShare > 0 ? `${Math.round(s.estimatedShare * 100)}% of days are estimated (no session RPE logged) — faded bars.` : ''}</div></div>`;
 };
