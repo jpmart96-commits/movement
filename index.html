@@ -670,30 +670,8 @@ function renderHome() {
         <button class="mv-ghost" onclick="openManualLogModal()">Log a past session</button>
   </div><div class="dk-side">`;
 
-  // week strip
-  if (plan) {
-    const wkNum = (prog && prog.week != null ? prog.week : null) ?? ((plan.weeks || [])[0] || {}).n;
-    const wk = (plan.weeks || []).find(w => w.n === wkNum);
-    const wdays = wk ? (plan.days || []).filter(d => d.date >= wk.start && d.date <= wk.end) : [];
-    const tk = MonthPlan._key(now);
-    if (wdays.length) {
-      h += `<div class="mv-eyebrow" style="margin:1.2rem 0 .5rem">${wk.n > 0 ? `Week ${wk.n} &middot; ` : ''}${wk.label}${preBlock ? ' &middot; starts ' + Utils.formatDate(plan.blockStart) : ''}</div>
-      <div class="mv-week">${wdays.map(d => {
-        const dd = new Date(d.date + 'T12:00:00');
-        return `<div class="mv-day ${d.date===tk?'today':''}" title="${escAttr(d.theme)}" role="button" tabindex="0" style="cursor:pointer" onclick="openDaySheet('${d.date}')">
-          <div class="mv-day-dow">${['S','M','T','W','T','F','S'][dd.getDay()]}</div>
-          <div class="mv-day-num">${dd.getDate()}</div>
-          <div class="mv-day-dot" style="background:${DAY_DOT[_dayKind(d)]}"></div>
-        </div>`;
-      }).join('')}</div>
-      <div class="mv-legend">
-        <span><i style="background:var(--accent)"></i>strength</span>
-        <span><i style="background:var(--accent2)"></i>aerobic</span>
-        <span><i style="background:var(--warm)"></i>test</span>
-        <span><i style="background:var(--text3)"></i>light</span>
-      </div>`;
-    }
-  }
+  // week slider — last week, this week, next week
+  if (plan) h += _weekSlider(plan, now, idx);
 
   // next benchmark
   if (plan) {
@@ -718,6 +696,128 @@ function renderHome() {
   </div></div>`;
 
   el.innerHTML = h;
+  _initWeekSlider(el);
+}
+
+// ── WEEK SLIDER (home) ───────────────────────────────────────
+// Three calendar weeks side by side — previous, current, next — in a
+// scroll-snap track that opens on the current one. Swipe, or use the
+// arrows / dots. Weeks run Monday–Sunday: from week 3 on that is exactly
+// the shape of the block's own weeks, so a page is one plan week; the
+// short weeks around the start (Pre, Measure, Start) share a page and
+// the label names each of them.
+const WEEK_SLIDER_START = 1; // 0 = Sunday, 1 = Monday
+const _WKS_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function _weekSlider(plan, now, idx) {
+  const tk = Day.key(now);
+  const cur0 = Day.addDays(tk, -((now.getDay() - WEEK_SLIDER_START + 7) % 7));
+  const byDate = new Map((plan.days || []).map(d => [d.date, d]));
+  const weeks = plan.weeks || [];
+  // Sessions logged on days the plan doesn't cover (before the block,
+  // after it) still show, as a hollow dot.
+  const logged = new Set((idx || []).map(r => Day.key(r.date)));
+  const DOW = ['S','M','T','W','T','F','S'];
+  let anyLogged = false;
+
+  const range = (a, b) => {
+    const da = Day.parse(a), db = Day.parse(b);
+    return da.getMonth() === db.getMonth()
+      ? `${da.getDate()}&ndash;${db.getDate()} ${_WKS_MON[db.getMonth()]}`
+      : `${da.getDate()} ${_WKS_MON[da.getMonth()]} &ndash; ${db.getDate()} ${_WKS_MON[db.getMonth()]}`;
+  };
+
+  const pages = [-1, 0, 1].map(off => {
+    const start = Day.addDays(cur0, off * 7);
+    const keys = Array.from({ length: 7 }, (_, i) => Day.addDays(start, i));
+    const wks = [...new Set(keys.map(k => byDate.get(k)).filter(Boolean).map(d => d.week))]
+      .map(n => weeks.find(w => w.n === n)).filter(Boolean);
+    let label;
+    if (wks.length === 1) label = `${wks[0].n > 0 ? `Week ${wks[0].n} &middot; ` : ''}${wks[0].label}`;
+    else if (wks.length) label = wks.map(w => w.n > 0 ? `W${w.n} ${w.label}` : w.label).join(' &middot; ');
+    else if (plan.blockStart && keys[6] < plan.blockStart) label = 'Before the block';
+    else if (plan.blockEnd && keys[0] > plan.blockEnd) label = 'After the block';
+    else label = off < 0 ? 'Last week' : off > 0 ? 'Next week' : 'This week';
+
+    const chips = keys.map(k => {
+      const d = byDate.get(k), dd = Day.parse(k);
+      let dot;
+      if (d) dot = `<div class="mv-day-dot" style="background:${DAY_DOT[_dayKind(d)]}"></div>`;
+      else if (logged.has(k)) { anyLogged = true; dot = `<div class="mv-day-dot mv-day-dot--logged"></div>`; }
+      else dot = `<div class="mv-day-dot" style="visibility:hidden"></div>`;
+      const title = d ? d.theme : (logged.has(k) ? 'Logged session' : '');
+      return `<div class="mv-day ${k === tk ? 'today' : ''}" title="${escAttr(title)}" role="button" tabindex="0" style="cursor:pointer" onclick="openDaySheet('${k}')">
+          <div class="mv-day-dow">${DOW[dd.getDay()]}</div>
+          <div class="mv-day-num">${dd.getDate()}</div>
+          ${dot}
+        </div>`;
+    }).join('');
+
+    return `<div class="mv-wks-page" data-off="${off}">
+        <div class="mv-wks-head"><span class="mv-eyebrow">${label}</span><span class="mv-wks-range">${range(keys[0], keys[6])}</span></div>
+        <div class="mv-week">${chips}</div>
+      </div>`;
+  });
+
+  return `<div class="mv-wks">
+    <div class="mv-wks-track" data-wks-track>${pages.join('')}</div>
+    <div class="mv-wks-foot">
+      <div class="mv-legend">
+        <span><i style="background:var(--accent)"></i>strength</span>
+        <span><i style="background:var(--accent2)"></i>aerobic</span>
+        <span><i style="background:var(--warm)"></i>test</span>
+        <span><i style="background:var(--text3)"></i>light</span>
+        ${anyLogged ? '<span><i class="mv-legend-logged"></i>logged</span>' : ''}
+      </div>
+      <div class="mv-wks-nav">
+        <button type="button" data-wks-go="-1" aria-label="Previous week">&lsaquo;</button>
+        <span class="mv-wks-dots"><i data-wks-to="0"></i><i data-wks-to="1" class="on"></i><i data-wks-to="2"></i></span>
+        <button type="button" data-wks-go="1" aria-label="Next week">&rsaquo;</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function _initWeekSlider(root) {
+  if (root._wksRO) { root._wksRO.disconnect(); root._wksRO = null; }
+  const track = root.querySelector('[data-wks-track]');
+  if (!track) return;
+  const dots = [...root.querySelectorAll('.mv-wks-dots i')];
+  const prev = root.querySelector('[data-wks-go="-1"]');
+  const next = root.querySelector('[data-wks-go="1"]');
+  const last = dots.length - 1;
+  let page = 1; // open on the current week
+
+  const paint = () => {
+    dots.forEach((d, j) => d.classList.toggle('on', j === page));
+    if (prev) prev.disabled = page === 0;
+    if (next) next.disabled = page === last;
+  };
+  const go = (i, smooth) => {
+    page = Math.max(0, Math.min(last, i));
+    if (track.clientWidth) track.scrollTo({ left: page * track.clientWidth, behavior: smooth ? 'smooth' : 'auto' });
+    paint();
+  };
+  // Home can be rendered while hidden (width 0). Snap to the remembered
+  // page whenever the track gets a real width — first show, rotation,
+  // window resize — instead of trusting a scroll position set at 0 px.
+  const snap = () => { if (track.clientWidth) track.scrollLeft = page * track.clientWidth; };
+
+  track.addEventListener('scroll', () => {
+    if (!track.clientWidth) return;
+    const i = Math.round(track.scrollLeft / track.clientWidth);
+    if (i !== page) { page = i; paint(); }
+  }, { passive: true });
+  if (prev) prev.onclick = () => go(page - 1, true);
+  if (next) next.onclick = () => go(page + 1, true);
+  dots.forEach((d, j) => { d.onclick = () => go(j, true); });
+
+  snap();
+  paint();
+  if (typeof ResizeObserver !== 'undefined') {
+    root._wksRO = new ResizeObserver(snap);
+    root._wksRO.observe(track);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────

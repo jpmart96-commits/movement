@@ -72,6 +72,32 @@
 .mv-legend { display: flex; gap: .7rem; margin-top: .5rem; font-size: .64rem; color: var(--text3); flex-wrap: wrap; }
 .mv-legend i { display: inline-block; width: 6px; height: 6px; border-radius: 3px; margin-right: .3rem; }
 
+/* block — week slider: previous · current · next, swipe or arrows */
+.mv-wks { margin-top: 1.2rem; }
+.mv-wks-track {
+  display: flex; overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.mv-wks-track::-webkit-scrollbar { display: none; }
+.mv-wks-page { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+.mv-wks-head { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; margin-bottom: .5rem; }
+.mv-wks-head .mv-eyebrow { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mv-wks-range { font-size: .66rem; color: var(--text3); white-space: nowrap; flex-shrink: 0; }
+.mv-wks-foot { display: flex; justify-content: space-between; align-items: center; gap: .6rem; margin-top: .5rem; }
+.mv-wks-foot .mv-legend { margin-top: 0; }
+.mv-wks-nav { display: flex; align-items: center; gap: .1rem; flex-shrink: 0; }
+.mv-wks-nav button {
+  background: none; border: none; color: var(--text2); cursor: pointer;
+  font-family: var(--font-body); font-size: 1.1rem; line-height: 1; padding: .1rem .45rem;
+}
+.mv-wks-nav button:disabled { opacity: .25; cursor: default; }
+.mv-wks-dots { display: flex; align-items: center; gap: .3rem; }
+.mv-wks-dots i { display: block; width: 5px; height: 5px; border-radius: 3px; background: var(--border); cursor: pointer; transition: width .15s, background .15s; }
+.mv-wks-dots i.on { width: 12px; background: var(--text2); }
+.mv-day-dot--logged,
+.mv-legend i.mv-legend-logged { background: transparent; box-shadow: inset 0 0 0 1.5px var(--text2); }
+
 /* today — timeline */
 .mv-blk { border: 1px solid var(--border); background: var(--bg2); border-radius: 12px; margin-bottom: .4rem; overflow: hidden; }
 .mv-blk.open { border-color: color-mix(in srgb, var(--text3) 45%, var(--border)); background: var(--bg3); }
