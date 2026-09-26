@@ -170,3 +170,55 @@ do $$ begin
     create policy "plan_notes: own data" on plan_notes for all using (auth.uid() = user_id);
   end if;
 end $$;
+
+-- Nightly backups (26 Sep 2026). On 20 Sep a recreated auth user
+-- cascade-deleted every row, and the free plan keeps no restorable history.
+-- `backups` has NO foreign key to auth.users, so a snapshot outlives the
+-- user row it was taken for. One row per user per night, last 21 kept.
+-- Read-only to the owner through RLS; only the scheduled function writes.
+create extension if not exists pg_cron;
+
+create table if not exists public.backups (
+  id bigserial primary key,
+  user_id uuid not null,
+  taken_at timestamptz not null default now(),
+  rows int not null default 0,
+  data jsonb not null
+);
+create index if not exists backups_user_time on public.backups (user_id, taken_at desc);
+alter table public.backups enable row level security;
+do $$ begin
+  if not exists (select 1 from pg_policies where tablename = 'backups' and policyname = 'backups: own read') then
+    create policy "backups: own read" on public.backups for select using (auth.uid() = user_id);
+  end if;
+end $$;
+
+-- Every public table with a user_id column, except secrets and itself.
+create or replace function public.take_backups(keep int default 21) returns int
+language plpgsql security definer set search_path = public as $$
+declare t text; u uuid; snap jsonb; part jsonb; cnt int; n int; users int := 0;
+begin
+  for u in select distinct user_id from public.profile loop
+    snap := '{}'::jsonb; n := 0;
+    for t in
+      select c.table_name from information_schema.columns c
+      join information_schema.tables tb on tb.table_name = c.table_name and tb.table_schema = c.table_schema
+      where c.table_schema = 'public' and c.column_name = 'user_id' and tb.table_type = 'BASE TABLE'
+        and c.table_name not in ('backups', 'calendar_tokens')
+    loop
+      execute format('select coalesce(jsonb_agg(to_jsonb(x) - ''user_id''), ''[]''::jsonb), count(*) from public.%I x where x.user_id = $1', t)
+        into part, cnt using u;
+      snap := snap || jsonb_build_object(t, part);
+      n := n + cnt;
+    end loop;
+    insert into public.backups (user_id, rows, data) values (u, n, snap);
+    delete from public.backups b where b.user_id = u
+      and b.id not in (select id from public.backups where user_id = u order by taken_at desc limit keep);
+    users := users + 1;
+  end loop;
+  return users;
+end $$;
+revoke execute on function public.take_backups(int) from public, anon, authenticated;
+
+select cron.unschedule(jobid) from cron.job where jobname = 'movement-nightly-backup';
+select cron.schedule('movement-nightly-backup', '17 3 * * *', $$select public.take_backups(21)$$);

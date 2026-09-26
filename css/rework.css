@@ -476,3 +476,12 @@ input[type=number]:focus::-webkit-inner-spin-button { opacity: .9; }
 }
 /* fields that hide the spinner on purpose keep it hidden */
 .compose-dur-input::-webkit-inner-spin-button { display: none; }
+
+/* session RPE sheet + backup nudge (26 Sep) */
+.srpe-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: .35rem; }
+.srpe-chip { display: flex; flex-direction: column; align-items: center; gap: .1rem; padding: .5rem .2rem; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--bg3); color: var(--text); font-family: var(--font-body); cursor: pointer; }
+.srpe-chip b { font-size: 1rem; }
+.srpe-chip span { font-size: .6rem; color: var(--text3); text-align: center; line-height: 1.15; }
+.srpe-chip:hover { border-color: var(--accent); }
+.mv-backup { display: flex; align-items: center; gap: .6rem; margin-bottom: .9rem; }

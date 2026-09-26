@@ -20,6 +20,11 @@ Day attribution (local time, as the export records it):
   vo2    last estimate that day (Apple only estimates after outdoor walks/runs)
   sleep  minutes asleep (core+deep+REM+unspecified, overlaps merged), filed
          on the WAKE date; deep/rem kept alongside
+  weight last body-mass reading that day, kg (lb converted); fat = body-fat %
+         when a scale records it
+
+  --since YYYY-MM-DD   only write days from that date on (smaller file; the
+                       app merges by date either way)
 Standard library only.
 """
 import argparse, json, os, statistics, sys, zipfile
@@ -33,6 +38,7 @@ FMT = '%Y-%m-%d %H:%M:%S %z'
 
 def parse(stream):
     rhr, hrv, vo2 = defaultdict(list), defaultdict(list), {}
+    weight, fat = {}, {}               # date -> (time, value): last reading wins
     sleep = defaultdict(list)          # wake date -> [(start, end, stage)]
     for _, el in ET.iterparse(stream, events=('end',)):
         if el.tag != 'Record':
@@ -49,6 +55,23 @@ def parse(stream):
         elif t == T + 'VO2Max':
             d = datetime.strptime(el.get('startDate'), FMT)
             vo2[d.strftime('%Y-%m-%d')] = float(el.get('value'))
+        elif t == T + 'BodyMass':
+            d = datetime.strptime(el.get('startDate'), FMT)
+            v = float(el.get('value'))
+            unit = (el.get('unit') or 'kg').lower()
+            if unit in ('lb', 'lbs'):
+                v *= 0.45359237
+            elif unit == 'g':
+                v /= 1000
+            k = d.strftime('%Y-%m-%d')
+            if k not in weight or d >= weight[k][0]:
+                weight[k] = (d, v)
+        elif t == T + 'BodyFatPercentage':
+            d = datetime.strptime(el.get('startDate'), FMT)
+            v = float(el.get('value'))
+            k = d.strftime('%Y-%m-%d')
+            if k not in fat or d >= fat[k][0]:
+                fat[k] = (d, v * 100 if v <= 1 else v)
         elif t == 'HKCategoryTypeIdentifierSleepAnalysis':
             stage = el.get('value', '').replace('HKCategoryValueSleepAnalysis', '')
             if stage.startswith('Asleep'):
@@ -66,6 +89,10 @@ def parse(stream):
         days[d]['hrvN'] = len(v)
     for d, v in vo2.items():
         days[d]['vo2'] = round(v, 1)
+    for d, (_, v) in weight.items():
+        days[d]['weight'] = round(v, 1)
+    for d, (_, v) in fat.items():
+        days[d]['fat'] = round(v, 1)
     for d, segs in sleep.items():
         segs.sort()
         total, cur_s, cur_e = 0.0, None, None
@@ -91,6 +118,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('src', help='export.zip or export.xml')
     ap.add_argument('-o', '--out', help='output path (default: vitals.json beside src)')
+    ap.add_argument('--since', help='only days on or after YYYY-MM-DD')
     a = ap.parse_args()
     if a.src.lower().endswith('.zip'):
         z = zipfile.ZipFile(a.src)
@@ -99,6 +127,8 @@ def main():
     else:
         stream = open(a.src, 'rb')
     days = parse(stream)
+    if a.since:
+        days = {k: v for k, v in days.items() if k >= a.since}
     out = a.out or os.path.join(os.path.dirname(os.path.abspath(a.src)), 'vitals.json')
     doc = {
         'kind': 'movement-vitals', 'version': 1, 'source': 'apple-health',
@@ -108,7 +138,7 @@ def main():
     }
     with open(out, 'w') as f:
         json.dump(doc, f, separators=(',', ':'))
-    n = {k: sum(1 for v in days.values() if k in v) for k in ('rhr', 'hrv', 'vo2', 'sleep')}
+    n = {k: sum(1 for v in days.values() if k in v) for k in ('rhr', 'hrv', 'vo2', 'sleep', 'weight')}
     print(f'{out}: {len(days)} days {doc["range"]} — ' + ', '.join(f'{k} {v}' for k, v in n.items()))
 
 

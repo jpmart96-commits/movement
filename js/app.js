@@ -396,7 +396,9 @@ const History = {
   // behaviour rather than a guess.
   setLoad(exerciseId, set) {
     const lib = (typeof LIBRARY !== 'undefined') ? LIBRARY.find(l => l.id === exerciseId) : null;
-    const bw = (typeof Profile !== 'undefined') ? Profile.load()?.settings?.bodyweightKg : null;
+    // Settings → Body first, else the latest weigh-in from the vitals.
+    const bw = ((typeof Profile !== 'undefined') ? Profile.load()?.settings?.bodyweightKg : null)
+      || ((typeof Vitals !== 'undefined' && Vitals.latest) ? (Vitals.latest('weight') || {}).v : null) || null;
     // Pull-ups and dips: a logged weight is ADDED load (Hevy's "Weighted"
     // variants log +10kg as 10), so the lift is bodyweight plus it. Without
     // this a +10kg dip read as a 10kg lift and its e1RM collapsed to ~12.

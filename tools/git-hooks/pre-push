@@ -1,0 +1,27 @@
+#!/bin/sh
+# M0vement pre-push check: the test suite runs before anything reaches
+# GitHub (and so GitHub Pages, which publishes whatever is pushed).
+#
+# Installed at .git/hooks/pre-push. GitHub Desktop runs it on Push. If it
+# fails, the push stops and Desktop shows this output. To push anyway (an
+# emergency), use a terminal: git push --no-verify
+#
+# It tests the working folder as it is on disk, which is what was just
+# committed when you commit everything before pushing.
+cd "$(git rev-parse --show-toplevel)" || exit 0
+
+NODE=$(command -v node || command -v node.exe)
+if [ -z "$NODE" ] && [ -x "/c/Program Files/nodejs/node.exe" ]; then NODE="/c/Program Files/nodejs/node.exe"; fi
+if [ -z "$NODE" ]; then
+  echo "pre-push: Node.js not found, tests skipped. Install Node (nodejs.org, LTS) to turn the check on." >&2
+  exit 0
+fi
+
+echo "pre-push: running tests…"
+if "$NODE" tests/run.js; then
+  exit 0
+fi
+echo "" >&2
+echo "pre-push: tests FAILED, push stopped. Nothing was published." >&2
+echo "Fix the failure (or ask Claude), commit, push again." >&2
+exit 1
