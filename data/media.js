@@ -16,6 +16,7 @@
 //
 // Batch 1 (26 Sep 2026): Tier 1 — exercises in the month plan or logged.
 // Batch 2 (26 Sep 2026): Tier 2 — the complementary rotation (129).
+// Batch 3 (26 Sep 2026): Tier 3 — the rest of the active library (166).
 // ─────────────────────────────────────────────────────────────
 
 const EXERCISE_MEDIA = {
@@ -1002,6 +1003,819 @@ const EXERCISE_MEDIA = {
   },
   'low-bridge-rotations': {
     instructions: "1. Set up in a low bridge with hands or forearms close to the feet, hips lifted.\n2. Shift weight into one arm and leg, then rotate the body to face away from the floor.\n3. Reach the free arm up and open the chest toward the ceiling as you rotate through.\n4. Continue the rotation until you face the floor again on the same side.\n5. Reverse the rotation back to the starting bridge, then repeat to the other side.",
+  },
+
+  // ── Batch 3: Tier 3 (rest of the active library) ────────────
+  'iso-squat-pins': {
+    link: "https://www.youtube.com/watch?v=SckBZz_-Yzs",
+    videoBy: "Will Ratelle",
+    instructions: "1. Set the safety pins in the rack at your sticking-point height, usually just above parallel.\n2. Get under the bar with normal squat setup and brace hard before pushing into the pins.\n3. Drive up into the pins as hard as possible without moving the bar.\n4. Hold maximal effort for 3–6 seconds, then rack and rest fully.\n5. Do 3–5 reps with 2 minutes rest between efforts.",
+  },
+  'iso-bench-pins': {
+    link: "https://www.youtube.com/watch?v=ORsH3R_Nd7Q",
+    videoBy: "Tony Bonvechio",
+    instructions: "1. Set the pins on an incline bench inside the rack so the bar sits 2–5 cm off your chest.\n2. Lie back, grip the bar as in a normal press, and set your shoulder blades.\n3. Press up into the pins with full intent without the bar actually moving.\n4. Hold maximal tension for 3–6 seconds, then lower and rest.\n5. Perform 3–5 reps with 2 minutes rest between efforts.",
+  },
+  'iso-pull-pins': {
+    link: "https://www.youtube.com/watch?v=FLL8JNH7kQw",
+    videoBy: "Peak Force",
+    instructions: "1. Set the pins so the bar sits at mid-thigh height in the rack.\n2. Stand tall with shins near vertical, hips slightly back, and grip the bar.\n3. Pull up into the pins as hard as possible without letting the bar move.\n4. Hold maximal effort for 3–5 seconds, then release and rest.\n5. Do 3–5 reps with 2 minutes rest; on opener days, 2–3 easier pulls before jumps is enough.",
+  },
+  'iso-press-pins': {
+    link: "https://www.youtube.com/watch?v=8_14qNVwAws",
+    videoBy: "Dr. Joel Seedman",
+    instructions: "1. Set the pins at forehead height with the bar resting just under them.\n2. Grip the bar at shoulder width and brace the ribs down before pressing.\n3. Press up into the pins as hard as possible without the bar moving.\n4. Hold maximal tension for 3–6 seconds, then lower and rest.\n5. Perform 3–5 reps with 2 minutes rest between efforts.",
+  },
+  'kb-swing': {
+    link: "https://www.youtube.com/watch?v=bDCeXbMJVNs",
+    videoBy: "Zack Henderson",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/One-Arm_Kettlebell_Swings/1.jpg",
+    instructions: "1. Stand with feet shoulder-width apart, kettlebell a foot or so in front of you.\n2. Hinge at the hips to grip the bell, then hike it back between your legs.\n3. Snap the hips forward explosively to drive the bell to chest height, arms just along for the ride.\n4. Let the bell float weightless at the top, then let it fall back into the next hinge.\n5. Keep a flat back throughout; work 10–20 reps per set.",
+  },
+  'ring-push-up': {
+    link: "https://www.youtube.com/watch?v=dSRY2IHqOsI",
+    videoBy: "Tykato Fitness",
+    instructions: "1. Set the rings at roughly hip height and grip them with straight arms in a plank.\n2. Turn the rings out slightly and stack shoulders over wrists.\n3. Lower under control keeping the rings close to the body, elbows tracking back not flared.\n4. Press back up, turning the rings in slightly as you lock out.\n5. If the rings drift, regress to a lower ring height or an incline until stable.",
+  },
+  'walking-lunge': {
+    link: "https://www.youtube.com/watch?v=vYfp2t4XgqQ",
+    videoBy: "Runna",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bodyweight_Walking_Lunge/1.jpg",
+    instructions: "1. Stand tall, hands on hips or holding dumbbells at your sides.\n2. Step forward into a long stride and drop the back knee toward the floor.\n3. Keep the front shin close to vertical and the torso upright.\n4. Drive through the front heel to step the back leg forward into the next lunge.\n5. Continue alternating legs for the prescribed distance or rep count.",
+  },
+  'weighted-crunch': {
+    link: "https://www.youtube.com/watch?v=1YSxi0qv3wg",
+    videoBy: "Live Lean TV Daily Exercises",
+    instructions: "1. Lie on your back with knees bent and feet flat, holding a plate against your chest.\n2. Brace the core and exhale as you curl the shoulder blades off the floor.\n3. Keep the plate close to the chest so the load doesn't pull on the neck.\n4. Lower back down under control without fully relaxing between reps.\n5. Work a controlled 8–15 reps rather than rushing the range of motion.",
+  },
+  'cable-twist': {
+    link: "https://www.youtube.com/watch?v=-i4qxlV_SWc",
+    videoBy: "SET FOR SET",
+    instructions: "1. Set the cable low and stand side-on to the machine, feet shoulder-width apart.\n2. Grip the handle with both hands, arms extended near the low pulley.\n3. Rotate the torso and pull the handle up and across the body to shoulder height, pivoting the back foot.\n4. Keep the arms relatively fixed so the rotation comes from the hips and core, not just the shoulders.\n5. Return under control and complete reps on one side before switching.",
+  },
+  'cossack-squat': {
+    link: "https://www.youtube.com/watch?v=JaCbmoDqUc4",
+    videoBy: "Flexibility Maestro",
+    instructions: "1. Stand in a wide stance, toes turned slightly out.\n2. Shift your weight over one bent leg, sinking the hips down and back while keeping that heel down.\n3. Straighten the opposite leg out to the side with the foot flat or toes pulled up.\n4. Keep the chest up and torso as upright as mobility allows.\n5. Push back through the bent leg to shift to the other side, or regress to a shallower range if the ankle or hip pinches.",
+  },
+  'jefferson-curl': {
+    link: "https://www.youtube.com/watch?v=y_APeWo643w",
+    videoBy: "Tom Merrick",
+    instructions: "1. Stand on a raised platform holding a very light bar or plate, feet hip-width apart.\n2. Start rounding from the neck, then the upper back, rib by rib, letting the weight pull you into flexion.\n3. Keep knees soft and let the bar travel straight down past the shins toward the floor.\n4. Reverse the movement by stacking the spine back up from the pelvis to the head.\n5. Use minimal load and stop the descent short of any sharp or pinching sensation.",
+  },
+  'bulgarian-split-squat': {
+    link: "https://www.youtube.com/watch?v=VPhhE6bBzZE",
+    videoBy: "Jack Hanrahan Fitness",
+    instructions: "1. Rest the top of your back foot on a bench, front foot far enough forward for a vertical shin.\n2. Keep most of your weight through the front leg and torso upright.\n3. Bend the front knee to lower until the back knee nearly touches the floor, feeling a stretch through the hip flexor.\n4. Drive through the front foot to stand back up.\n5. Complete all reps on one side before switching legs.",
+  },
+  'single-leg-rdl': {
+    link: "https://www.youtube.com/watch?v=k83AIfjDbnI",
+    videoBy: "Caroline Drury Fitness",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kettlebell_One-Legged_Deadlift/1.jpg",
+    instructions: "1. Stand on one leg holding a dumbbell in the opposite hand, soft bend in the standing knee.\n2. Hinge at the hips, letting the free leg extend straight back as the torso tips forward.\n3. Keep the hips square and the dumbbell close to the standing leg as it lowers toward the shin.\n4. Reverse the hinge, squeezing the glute to return to standing.\n5. Keep a slight knee bend throughout and touch the free foot down between reps if balance is limited.",
+  },
+  'half-kneeling-press': {
+    link: "https://www.youtube.com/watch?v=8ffgDvOzxZA",
+    videoBy: "APEC - Athletic Performance Education Company",
+    instructions: "1. Kneel with the same-side knee down as the pressing arm, front knee and hip at 90°.\n2. Brace the core and squeeze the glute of the down leg to keep the hips square.\n3. Press the dumbbell straight overhead without leaning back or flaring the ribs.\n4. Lower under control to shoulder height.\n5. Complete all reps then switch the kneeling leg and pressing arm.",
+  },
+  'pallof-press': {
+    link: "https://www.youtube.com/watch?v=LA6Uc5yIV1c",
+    videoBy: "FITBODY with Julie Lohre",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pallof_Press/1.jpg",
+    instructions: "1. Stand side-on to the cable or band anchor at chest height, feet shoulder-width apart.\n2. Hold the handle at your sternum with both hands, arms bent.\n3. Press the handle straight out in front of you, resisting the pull rotating your torso toward the anchor.\n4. Hold briefly at full extension, keeping hips and shoulders square.\n5. Return under control and complete reps before turning to face the other direction.",
+  },
+  'long-run': {
+    link: "https://www.youtube.com/watch?v=KIpuHebfjY0",
+    videoBy: "Lee Grantham",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Trail_Running_Walking/0.jpg",
+    instructions: "1. Start at an easy, conversational pace where you could hold a conversation.\n2. Keep effort steady rather than chasing a fixed pace, especially over hills.\n3. Relax the shoulders and let the arms swing naturally front to back, not across the body.\n4. Land with your foot roughly under your hips rather than reaching far in front.\n5. Build duration gradually week to week rather than adding pace and distance at the same time.",
+  },
+  'interval-cycling': {
+    link: "https://www.youtube.com/watch?v=VLVHweeG1TU",
+    videoBy: "Le Col",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bicycling_Stationary/1.jpg",
+    instructions: "1. Warm up with 10–15 minutes of easy spinning before any hard efforts.\n2. Set resistance or gearing so you can hit a hard, sustainable effort for the work interval without bouncing in the saddle.\n3. Keep the hips stable and cadence high rather than mashing a heavy gear.\n4. Ease off to an easy spin for the full rest interval to let heart rate come down before the next effort.\n5. Match the work/rest ratio and total interval count to the run protocol it replaces.",
+  },
+  'vertical-jump': {
+    link: "https://www.youtube.com/watch?v=GozaG81Fquk",
+    videoBy: "Garage Strength",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Freehand_Jump_Squat/1.jpg",
+    instructions: "1. Stand tall, feet shoulder-width apart.\n2. Swing the arms back and bend the knees and hips into a quick countermovement dip.\n3. Reverse explosively, swinging the arms up hard as you drive through the legs.\n4. Extend the ankles, knees, and hips fully at takeoff and reach at the top.\n5. Land softly with bent knees and reset fully before the next rep.",
+  },
+  'stair-jump': {
+    link: "https://www.youtube.com/watch?v=aDv5CI88UKg",
+    videoBy: "SSA Athletics",
+    instructions: "1. Find a stairwell or steps and start at an easy jogging pace.\n2. Bound up two steps at a time, driving the knee up and swinging the arms for height and distance.\n3. Land on the ball of the foot with a bent knee to absorb impact before the next push.\n4. Keep the torso tall and drive forward and upward rather than just up.\n5. Stop the set and reset if your foot placement or rhythm starts to break down.",
+  },
+  'med-ball-rotational': {
+    link: "https://www.youtube.com/watch?v=DttZ5JU-b_U",
+    videoBy: "CORE Strong Fitness",
+    instructions: "1. Stand side-on to a wall or partner, feet slightly wider than shoulder width, holding the ball at your hip.\n2. Rotate away from the target to load through the hips and trunk.\n3. Drive through the back hip and rotate explosively, releasing the ball at hip height.\n4. Let the throwing arm follow through across the body naturally.\n5. Reset fully between reps and complete a set before switching sides.",
+  },
+  'depth-jump': {
+    link: "https://www.youtube.com/watch?v=bMHL5xqKn3E",
+    videoBy: "National Academy of Sports Medicine (NASM)",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Linear_Depth_Jump/1.jpg",
+    instructions: "1. Stand on a low box, roughly knee height for a beginner.\n2. Step off (don't jump off) and land on both feet at the same time.\n3. The instant you touch the ground, absorb briefly then explode straight up into a maximal jump.\n4. Keep ground contact as short as possible and land the jump softly with bent knees.\n5. Start with a lower box and fewer reps, only progressing height once landings stay quiet and controlled.",
+  },
+  'neck-glide-isolation': {
+    link: "https://www.youtube.com/watch?v=qMBTxcTqLIE",
+    videoBy: "Brian Shuffle",
+    instructions: "1. Sit or stand tall with the spine long and the shoulders relaxed.\n2. Keep the chin level and the face pointed forward the entire time.\n3. Move the head as a single block, leading with a pure sideways shift rather than a turn.\n4. Start with tiny ranges and only expand once the movement stays isolated from the rest of the spine.\n5. Work slowly for 5–8 reps per direction before adding any speed.",
+  },
+  'sternum-glide-isolation': {
+    link: "https://www.youtube.com/watch?v=mexgd5PsgQI",
+    videoBy: "BollyOn Studios",
+    instructions: "1. Stand tall with feet hip-width apart and arms extended straight out to the sides.\n2. Keep the hips, lower ribs, and head still throughout the movement.\n3. Shift the breastbone directly sideways rather than twisting the shoulders to get there.\n4. Move in small, controlled inches rather than one big swing.\n5. Practice 5–8 slow reps per side before increasing the range.",
+  },
+  'pancake-good-morning': {
+    link: "https://www.youtube.com/watch?v=pCryw3GCaeE",
+    videoBy: "The Flexibility Guy - Coach Elia",
+    instructions: "1. Sit in a wide straddle with the legs extended and toes pointed up.\n2. Rest a light barbell across the upper back the way you would for a back squat.\n3. Keep the chest open and hinge forward from the hips rather than rounding the lower back.\n4. Lower only as far as the spine stays neutral, then rise back to tall.\n5. Start with an empty bar or light plates for 2–3 sets of 5–8 slow reps.",
+  },
+  'couch-stretch-weighted': {
+    link: "https://www.youtube.com/watch?v=PWyjTV29q48",
+    videoBy: "Rory Boyden",
+    instructions: "1. Kneel facing away from a wall with the back shin resting up against it.\n2. Square the hips forward and squeeze the glute on the back leg.\n3. Rise the torso tall until a stretch is felt through the front of the hip and thigh.\n4. Add load by holding a plate or dumbbell against the chest once the bodyweight version feels easy.\n5. Hold 30–60 seconds per side, easing off if the front knee complains.",
+  },
+  'neck-cars': {
+    link: "https://www.youtube.com/watch?v=2Ot6wm12xvI",
+    videoBy: "Khalil Hussein",
+    instructions: "1. Start standing tall with the spine stacked and shoulders down.\n2. Brace the torso so only the neck moves through the circle.\n3. Trace the largest smooth circle the neck can control, pausing at any tight spot rather than pushing through it.\n4. Move slowly enough to stay pain-free and stop well short of any pinch.\n5. Do 3–5 slow circles each direction, working both clockwise and counterclockwise.",
+  },
+  'foam-roll-adductors': {
+    link: "https://www.youtube.com/watch?v=hSxQuAYlPrE",
+    videoBy: "Upright Health",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Adductor/0.jpg",
+    instructions: "1. Lie face down and place the foam roller under one inner thigh, with that leg turned out to the side.\n2. Support the weight on the forearms and the other leg.\n3. Roll slowly from just above the knee up toward the groin.\n4. Pause on tender spots for 20–30 seconds and keep breathing.\n5. Work 1–2 minutes per side, keeping the pressure tolerable.",
+  },
+  'dynamic-arm-circles': {
+    link: "https://www.youtube.com/watch?v=Po82AIsBFCM",
+    videoBy: "Pacers Running",
+    instructions: "1. Stand tall with the arms extended straight out to the sides.\n2. Begin with small, fast circles and gradually widen them.\n3. Keep the shoulder blades down and the movement smooth, not jerky.\n4. Reverse direction halfway through the set.\n5. Do 15–20 seconds per direction as part of a warm-up.",
+  },
+  'wrist-flexor-stretch': {
+    link: "https://www.youtube.com/watch?v=cOYA0cTIwzM",
+    videoBy: "Rehab My Patient",
+    instructions: "1. Extend one arm straight out in front with the palm facing up.\n2. Use the other hand to gently draw the fingers and palm back toward the body.\n3. Keep the elbow straight to deepen the stretch through the forearm.\n4. Ease off right away if there's joint pain rather than a muscle stretch.\n5. Hold 20–30 seconds per side.",
+  },
+  'wrist-extensor-stretch': {
+    link: "https://www.youtube.com/watch?v=gMl9dFSOehs",
+    videoBy: "Rehab My Patient",
+    instructions: "1. Extend one arm straight out in front with the palm facing down.\n2. Make a loose fist, then use the other hand to press the wrist into flexion.\n3. Keep the elbow straight and the shoulder relaxed.\n4. Stop at a gentle stretch and back off if the wrist pinches.\n5. Hold 20–30 seconds per side.",
+  },
+  'supinator-stretch': {
+    link: "https://www.youtube.com/watch?v=t92fbpW3BN0",
+    videoBy: "Jamie S. Dreyer",
+    instructions: "1. Extend one arm out with the elbow straight and the palm facing up.\n2. Grip just above the wrist with the other hand.\n3. Slowly rotate the forearm so the palm turns down while the gripping hand resists slightly.\n4. Keep the upper arm still so the rotation happens only at the forearm.\n5. Hold 20–30 seconds per side, breathing normally.",
+  },
+  'finger-extension-stretch': {
+    link: "https://www.youtube.com/watch?v=kF85ZJfo6Qs",
+    videoBy: "Rehab My Patient",
+    instructions: "1. Hold one hand out in front with the fingers relaxed.\n2. Use the other hand to gently press the fingers back and spread them open.\n3. Keep the wrist neutral so the stretch stays in the fingers rather than the wrist.\n4. Work one finger at a time for a more targeted stretch if needed.\n5. Hold 15–20 seconds per hand.",
+  },
+  'wall-accel-drill': {
+    link: "https://www.youtube.com/watch?v=4UFpSMFrT8E",
+    videoBy: "Simple Speed Coach",
+    instructions: "1. Set the hands on the wall and walk the feet back until the body forms one straight line from ankle to head.\n2. Drive one knee up to hip height while pushing hard through the grounded foot.\n3. Keep the ankle stiff and strike with the ball of the foot on each switch.\n4. Progress from slow marches to quick single-leg switches, then triple switches.\n5. Work 3–4 sets of 4–6 seconds, resetting the wall angle each set.",
+  },
+  'mini-hurdle-hops': {
+    link: "https://www.youtube.com/watch?v=k9KR1FN9_nc",
+    videoBy: "King Sports",
+    instructions: "1. Set up 6–8 low hurdles or floor lines in a row, spaced for quick steps.\n2. Hop through on two feet, keeping ground contacts short and springy.\n3. Drive the knees up and keep the ankles stiff rather than sinking into each hop.\n4. Progress to single-leg hops once the two-foot version feels crisp and controlled.\n5. Take full rest between passes so speed and quality stay high.",
+  },
+  'snap-down-stick': {
+    link: "https://www.youtube.com/watch?v=6HFB64kFeNk",
+    videoBy: "Chris Pearson",
+    instructions: "1. Rise up onto the toes with the arms reaching overhead.\n2. Snap down fast into an athletic position, sitting the hips back with the knees tracking over the toes.\n3. Land quietly and stick the position without extra hops or wobble.\n4. Hold the landing for a full 2 seconds before resetting.\n5. Once that's solid, progress to stepping off a low box and sticking the same landing.",
+  },
+  'split-squat-iso': {
+    link: "https://www.youtube.com/watch?v=OM6mDU0cQ-k",
+    videoBy: "Unified Fitness Systems",
+    instructions: "1. Set the top of the back foot on a bench behind you, with the front foot far enough forward for a 90° front knee.\n2. Lower until the back knee hovers just off the floor and keep the torso upright.\n3. Press the front heel down and hold the position without shifting weight around.\n4. Keep the front knee tracking over the foot rather than caving inward.\n5. Hold for 30–45 seconds per side for 3 sets.",
+  },
+  'spanish-squat': {
+    link: "https://www.youtube.com/watch?v=hgFxm5KIF7M",
+    videoBy: "E3 Rehab",
+    instructions: "1. Loop a heavy band around the back of both knees and anchor it low in front, or set up with the back against a wall instead.\n2. Lean back into the band tension and keep the shins vertical throughout.\n3. Sit down and back until the knees reach roughly 70–90° of bend.\n4. Keep the chest up and drive through the band tension to stand back up.\n5. Regress to a shallower knee bend or shorter hold if the knee tendon feels sharp rather than a working ache.",
+  },
+  'nordic-curl': {
+    link: "https://www.youtube.com/watch?v=_e9vFU9-tkc",
+    videoBy: "E3 Rehab",
+    instructions: "1. Anchor the heels firmly under a bar, partner, or sturdy pad and kneel tall.\n2. Brace the core and hips into a straight line from knees to head.\n3. Lower the torso forward as slowly as control allows, resisting with the hamstrings the whole way.\n4. Catch the fall with the hands on the floor and push back to the start, or use a resistance band for assistance if full range isn't controlled yet.\n5. Start with 2–3 sets of 3–5 reps and avoid this the day before a sprint session.",
+  },
+  'tennis-ball-punch': {
+    link: "https://www.youtube.com/watch?v=fnekOPtF8UQ",
+    videoBy: "fightTIPS",
+    instructions: "1. Stand arm's length from a wall holding a tennis ball in one hand.\n2. Toss the ball against the wall at a random angle and punch it back with a quick jab as it rebounds.\n3. Keep the guard hand up and eyes on the ball the whole time.\n4. Alternate hands or stay on one hand for a set, staying light on your feet.\n5. Work in 20–30 second bursts, resting about the same between rounds.",
+  },
+  'tennis-ball-floor': {
+    link: "https://www.youtube.com/watch?v=mtuJKyJDH_k",
+    videoBy: "Adam Klecheski",
+    instructions: "1. Stand with feet shoulder-width apart and a tennis ball on the floor in front of you.\n2. Tap the ball lightly side to side, or in a small circle, using your fingertips with soft knees.\n3. Keep the wrist relaxed and let the fingers do the work, not the whole arm.\n4. Switch hands every 15–20 seconds to work both sides evenly.\n5. Progress by tapping faster or glancing away from the ball for a few taps at a time.",
+  },
+  'tennis-ball-dribble': {
+    link: "https://www.youtube.com/watch?v=wkusPZJKkis",
+    videoBy: "Teach Hoops",
+    instructions: "1. Stand a step from a wall holding a tennis ball in one hand.\n2. Bounce the ball off the wall at waist height and dribble it back with the same hand.\n3. Keep a steady rhythm, using the fingertips rather than slapping with the palm.\n4. Switch hands after 20–30 reps to build the non-dominant side.\n5. Progress by increasing speed or alternating hands every bounce.",
+  },
+  'balance-board': {
+    link: "https://www.youtube.com/watch?v=ObtgTAIsUMc",
+    videoBy: "Swifty Scooters",
+    instructions: "1. Set the board on a firm, non-slip floor and stand with feet hip-width apart over the center.\n2. Keep the knees soft and brace the core to find a stable neutral position.\n3. Hold static balance for a set time, then progress to small controlled tips side to side and front to back.\n4. Keep the eyes on a fixed point ahead rather than looking down at your feet.\n5. Start near a wall or support and work up to 30–60 second holds unassisted.",
+  },
+  'keepie-uppies': {
+    link: "https://www.youtube.com/watch?v=4dhteAi5AWo",
+    videoBy: "fanofootball",
+  },
+  'reaction-ball-wall': {
+    link: "https://www.youtube.com/watch?v=HZhYCNq7OOI",
+    videoBy: "Hockey Training Exercise Demonstrations",
+  },
+  'two-ball-wall-alternating': {
+    link: "https://www.youtube.com/watch?v=s4xk7ojJTCk",
+    videoBy: "Coach Trent Mongero",
+  },
+  'drop-catch-reaction': {
+    link: "https://www.youtube.com/watch?v=-pudLqL4GdA",
+    videoBy: "Be Gr8 at Tennis - Rob Cherry",
+  },
+  'single-leg-eyes-closed': {
+    link: "https://www.youtube.com/watch?v=cDnTke5lZPA",
+    videoBy: "Travis Tarrant",
+  },
+  'heel-toe-line-walk': {
+    link: "https://www.youtube.com/watch?v=mtPeslIoU4w",
+    videoBy: "Therapeutic EDGE",
+  },
+  'single-leg-head-turns': {
+    link: "https://www.youtube.com/watch?v=XIzzy_BTkVE",
+    videoBy: "Travis Tarrant",
+  },
+  'single-leg-ball-pass': {
+    link: "https://www.youtube.com/watch?v=Wqwk-kyH0po",
+    videoBy: "Athletic Performance Academy",
+  },
+  'balance-board-single-leg': {
+    link: "https://www.youtube.com/watch?v=qjV_UTtCJkE",
+    videoBy: "GIBBON SlackBoards and SlackLines",
+  },
+  'balance-board-squat-hold': {
+    link: "https://www.youtube.com/watch?v=gN61oWCTLw4",
+    videoBy: "INDOBOARD",
+  },
+  'edge-walk-head-tilt': {
+    link: "https://www.youtube.com/watch?v=ioEFZGSmvKE",
+    videoBy: "Balance 180 Gymnastics",
+    instructions: "1. Find a straight floor line, low curb, or a 2×4 and stand at one end with arms out to the sides.\n2. Walk heel-to-toe along the edge at a slow, controlled pace.\n3. With each step, tilt the head to bring one ear toward the same-side shoulder, then return to neutral before the next step.\n4. Alternate the tilt side with each step and keep the gaze forward.\n5. Walk 8–10 steps, turn around, and repeat, staying near a wall for support if you're new to it.",
+  },
+  'edge-walk-turning': {
+    link: "https://www.youtube.com/watch?v=YbzegrkdGh0",
+    videoBy: "Gymnastics Tips",
+    instructions: "1. Find a straight floor line, low curb, or a 2×4 and stand at one end with arms out to the sides.\n2. Walk heel-to-toe along the edge at a controlled pace.\n3. Stop mid-walk and rotate a slow 180° without stepping off the edge, then continue walking.\n4. Once that feels stable, progress the turn to a full 360°.\n5. Keep the arms out for balance and stay near a wall until the turns feel steady.",
+  },
+  'edge-sl-eyes-closed-taps': {
+    link: "https://www.youtube.com/watch?v=bz7L3GVQGBM",
+    videoBy: "Garrett McLaughlin",
+    instructions: "1. Stand on one leg on a floor line, low curb, or a 2×4 with arms out to the sides.\n2. Close your eyes once you feel stable.\n3. Tap the free foot forward to the floor, then out to the side, without fully weighting it.\n4. Keep the standing hips level and the core braced throughout.\n5. Hold 20–30 seconds per side, opening the eyes immediately if you feel unsteady.",
+  },
+  'edge-squat-eyes-closed': {
+    link: "https://www.youtube.com/watch?v=UR-WO0DEqGY",
+    videoBy: "Garrett McLaughlin",
+    instructions: "1. Stand with both feet on a floor line, low curb, or a 2×4, arms out to the sides.\n2. Close your eyes once balanced.\n3. Lower slowly into a full squat, keeping both feet on the edge the whole way down.\n4. Pause briefly at the bottom, then stand back up at the same slow pace.\n5. Do 5–8 slow reps, opening the eyes any time you lose the edge.",
+  },
+  'edge-sl-gaze-shifts': {
+    link: "https://www.youtube.com/watch?v=C3ceotefqL4",
+    videoBy: "Cara Giusti, PT, DPT",
+    instructions: "1. Stand on one leg on a floor line, low curb, or a 2×4 with arms out to the sides and the head still.\n2. Keep the head fixed and shift only the eyes up, then down, several times.\n3. Then shift the eyes left, then right, keeping the head still throughout.\n4. Keep the standing knee soft and the core braced.\n5. Hold 20–30 seconds, then switch legs.",
+  },
+  'edge-walk-ball-bounce': {
+    link: "https://www.youtube.com/watch?v=dfTvrMQ6mdg",
+    videoBy: "Pediatric Physical Therapy Exercises",
+    instructions: "1. Find a floor line, low curb, or a 2×4 and hold a tennis ball, arms out to the sides.\n2. Walk the edge heel-to-toe while bouncing the ball on the floor with one hand.\n3. Every few steps, drop into a low lunge to bounce the ball near the floor, then continue walking.\n4. Keep the eyes up rather than watching your feet or the ball.\n5. Walk 8–10 steps, turn around, and repeat, switching the bouncing hand each pass.",
+  },
+  'stick-grip-types': {
+    link: "https://www.youtube.com/watch?v=Vogg-iN3Y_8",
+    videoBy: "Michelle Drielsma",
+    instructions: "1. Hold the stick with both hands about shoulder width apart to start.\n2. Pronated grip: both palms face down and knuckles up, as if gripping a bar overhead.\n3. Supinated grip: rotate both palms to face up, like the bottom of a bicep curl.\n4. Eagle grip: from supinated, rotate the elbows up and out until the palms face away from you, an extreme internal shoulder rotation.\n5. Cycle through all three grips slowly, pausing a few seconds in each to feel the shoulder position before moving on.",
+  },
+  'stick-hip-pike-slide': {
+    link: "https://www.youtube.com/watch?v=Z2N-S7wbglo",
+    videoBy: "Ido Portal",
+    instructions: "1. Hold the stick against your hips with a wide double-overhand grip.\n2. Hinge forward into a pike, letting the stick roll down so your hands end up hanging from it while your hips stay back.\n3. Keep the legs as straight as comfortable and the stick in light contact with the body the whole way down.\n4. Reverse the motion to re-stand, rolling the stick back up to your hips.\n5. Once smooth, add a full squat at the bottom of the pike before standing back up.",
+  },
+  'stick-overhead-behind-back': {
+    link: "https://www.youtube.com/watch?v=Z2N-S7wbglo",
+    videoBy: "Ido Portal",
+    instructions: "1. Start with a wide double supinated (palms up) grip on the stick.\n2. Slide both hands toward one end, then twist one hand into an eagle grip and back to explore the range.\n3. Repeat the slide-and-twist sequence with the stick held at eye level, then overhead, then behind the back.\n4. Add a small forward hip flex as the stick passes overhead or behind the back to free up shoulder range.\n5. Work both directions evenly and stop short of any pinching shoulder pain.",
+  },
+  'stick-fingertip-stepover': {
+    link: "https://www.youtube.com/watch?v=Z2N-S7wbglo",
+    videoBy: "Ido Portal",
+    instructions: "1. Hold the stick horizontally at hip height using only the fingertips of both hands.\n2. Lift one foot and step over the stick without letting go of it or touching it with the leg.\n3. Bring the second foot over so you end up standing on the far side of the stick.\n4. Reverse the sequence to step back over, one foot at a time.\n5. Keep the fingertip grip light and the stick still; only regrip between reps, not mid-step.",
+  },
+  'stick-hop-jump-over': {
+    link: "https://www.youtube.com/watch?v=Z2N-S7wbglo",
+    videoBy: "Ido Portal",
+    instructions: "1. Hold the stick horizontally at shin-to-knee height in front of you.\n2. Hop over it with both feet together, then hop back to the start position.\n3. Progress to a two-footed jump over and back, pausing briefly on each landing.\n4. Once consistent, jump over and immediately rebound straight back without pausing, using the landing to spring the return.\n5. Land soft with bent knees on every rep.",
+  },
+  'stick-seated-hip-to-butt': {
+    link: "https://www.youtube.com/watch?v=Z2N-S7wbglo",
+    videoBy: "Ido Portal",
+    instructions: "1. Sit balanced on the sit bones with the feet off the floor, holding the stick in front of the hips.\n2. Pass the stick under the lifted feet and around behind you until it touches the butt, without the stick touching the feet.\n3. Bring it back the same way to the front of the hips.\n4. Progress with straighter legs, then straight and pointed legs.\n5. Set the feet down and reset whenever balance breaks.",
+  },
+  'stick-360-rotation': {
+    link: "https://www.youtube.com/watch?v=Z2N-S7wbglo",
+    videoBy: "Ido Portal",
+    instructions: "1. Plant one end of the stick on the floor and hold the top with one hand.\n2. Rotate your whole body 360° around the planted stick while staying on the same side of it.\n3. Let your gripping arm twist and lower down the stick as you turn, then untwist the arm once the rotation is complete.\n4. Keep the base of the stick fixed on the same spot on the floor throughout.\n5. Practice an equal number of reps rotating in each direction.",
+  },
+  'stick-two-stick-tangle': {
+    link: "https://www.youtube.com/watch?v=Z2N-S7wbglo",
+    videoBy: "Ido Portal",
+    instructions: "1. Take one stick in each hand and plant both ends on the floor about shoulder-width apart.\n2. Begin the same whole-body rotation used in the single-stick 360°, one arm circling around each planted stick.\n3. Continue rotating until your arms cross and tangle in front of or behind you.\n4. Step out on the side of the higher arm to unwind and complete the rotation.\n5. Practice both directions, keeping both stick bases planted throughout.",
+  },
+  'stick-feet-balance-transition': {
+    link: "https://www.youtube.com/watch?v=Z2N-S7wbglo",
+    videoBy: "Ido Portal",
+    instructions: "1. Lie on your back with legs raised and balance the stick horizontally on the soles of your feet.\n2. Make small ankle and hip adjustments to keep it balanced before starting the transition.\n3. Rotate your hips and legs to one side, rolling from your back toward your stomach while keeping the stick on your feet.\n4. Finish lying prone with knees bent and the stick still balanced on the feet, hands off the ground throughout.\n5. If the twisting transition is too hard, regress to a backward roll over one shoulder instead, continuing through to land prone with the stick still on the feet.",
+  },
+  'juggling-shower': {
+    link: "https://www.youtube.com/watch?v=Uk7-iW_Tz5k",
+    videoBy: "Taylor Tries",
+    instructions: "1. Start in a normal 3-ball cascade to get the rhythm going.\n2. Pick one hand to be the fast, throwing hand and the other to be the catching hand.\n3. Throw every ball in a high arc across from the fast hand to the catch hand.\n4. Pass the ball straight back to the fast hand with a quick, low, flat throw underneath.\n5. Keep the circular direction constant; if throws collide, slow down and isolate the fast hand's rhythm first.",
+  },
+  'juggling-tennis': {
+    link: "https://www.youtube.com/watch?v=kEH2iIF1msQ",
+    videoBy: "JugglerJTW",
+    instructions: "1. Begin juggling a normal 3-ball cascade.\n2. On one hand's next throw, send the ball up and over the top of the pattern instead of the usual crossing throw.\n3. Let it land in the opposite hand while the other two balls keep following their normal cascade throws underneath.\n4. Alternate which hand throws over the top each cycle, or keep it on one side while learning.\n5. Practice slowly until the over-the-top arc no longer disrupts the two cascading balls.",
+  },
+  'juggling-mills-mess': {
+    link: "https://www.youtube.com/watch?v=GkleBZy7Kcg",
+    videoBy: "Circus-expert EU",
+    instructions: "1. Start in a 3-ball cascade with a relaxed rhythm.\n2. On the first throw, cross one arm over the other as you release, turning your body slightly toward that side.\n3. Catch and throw the next ball with the arms uncrossing back to a normal position.\n4. Continue alternating crossed and uncrossed arm positions on each throw, letting your torso rotate with the pattern.\n5. Drill the arm-crossing footwork empty-handed first if the timing feels rushed.",
+  },
+  'juggling-box': {
+    link: "https://www.youtube.com/watch?v=Vscg6h1Vi38",
+    videoBy: "Taylor Tries",
+    instructions: "1. Start with two balls in one hand and one in the other.\n2. Throw one ball straight up on the outside of one hand and, at the same moment, pass a ball flat to the other hand.\n3. Mirror it on the other side: a straight-up throw on the outside of the other hand plus a quick flat pass.\n4. Keep the vertical throws on the outer edges and the passes low through the middle, so the balls trace a box.\n5. Learn the rhythm with two balls before adding the third.",
+  },
+  'juggling-windmill': {
+    link: "https://www.youtube.com/watch?v=grJ0YqMVIC4",
+    videoBy: "Shared Hobbies",
+    instructions: "1. Start from a steady 3-ball cascade.\n2. Begin circling both hands in the same direction, one following the other, so the pattern rotates like a windmill.\n3. Carry each ball across in the palm before releasing it, rather than throwing it straight across.\n4. Keep the throws low and let the arm circles set the rhythm.\n5. Rehearse the arm motion without balls first, then with one and two balls.",
+  },
+  'juggling-factory': {
+    link: "https://www.youtube.com/watch?v=O6XJGjJH3_Q",
+    videoBy: "FlyJuggler",
+    instructions: "1. Start juggling two balls as vertical columns in one hand.\n2. Weave the third ball from the other hand under and around the columns.\n3. Keep the column hand's rhythm steady while the weaving hand adjusts its path around it.\n4. Reverse which hand holds the columns once the first side feels consistent.\n5. Slow the columns down while you're still learning the weave's timing.",
+  },
+  'juggling-441-siteswap': {
+    link: "https://www.youtube.com/watch?v=6arRk632OuI",
+    videoBy: "Aidan Alper",
+    instructions: "1. Warm up with a normal 3-ball cascade.\n2. Throw a higher 4 straight up from one hand so it lands back in the same hand.\n3. Throw a 4 from the other hand the same way.\n4. Then pass a 1 from the first hand: a quick, flat hand-to-hand handoff with no arc.\n5. Repeat the four-four-one rhythm; it switches sides each cycle. Count it out loud.",
+  },
+  'juggling-under-leg': {
+    link: "https://www.youtube.com/watch?v=v_iyu71nrG8",
+    videoBy: "mikecorrcircus",
+    instructions: "1. Juggle a steady 3-ball cascade and pick which hand will throw under the leg.\n2. Lift that leg and time a normal cascade throw to pass underneath it.\n3. Catch the ball in the opposite hand and continue the cascade without pausing.\n4. Keep the throw low and controlled rather than high and rushed.\n5. Practice the leg lift and throw slowly on their own before adding it into a continuous cascade.",
+  },
+  'indian-clubs-basic': {
+    link: "https://www.youtube.com/watch?v=xZSjTx0M_jE",
+    videoBy: "Critical Bench Compound",
+    instructions: "1. Hold one light club in each hand with a relaxed grip, arm hanging at your side.\n2. Swing the club down and around in a small circle, letting the wrist and forearm guide the motion.\n3. Keep the shoulder relaxed and let momentum carry the club rather than muscling it around.\n4. Practice the same circle on both sides, then alternate arms.\n5. Start with small, slow circles before increasing the size or speed.",
+  },
+  'indian-clubs-flows': {
+    link: "https://www.youtube.com/watch?v=S2jya26nLng",
+    videoBy: "Lea_Shiny Mace and Flow",
+    instructions: "1. Warm up with basic single-arm circles on both sides until they feel smooth.\n2. Link two different swing directions together, transitioning at the top or bottom of each circle.\n3. Add the second club, mirroring or alternating the pattern between both arms.\n4. Keep the movement continuous rather than pausing between individual swings.\n5. Slow down any transition that feels rushed until it's controlled at that speed.",
+  },
+  'contact-juggling': {
+    link: "https://www.youtube.com/watch?v=Wl06iQcL9Sg",
+    videoBy: "Bayside Hooping",
+    instructions: "1. Hold the ball in one open palm, fingers relaxed and slightly spread.\n2. Tilt the hand so the ball rolls smoothly across the palm toward the fingertips.\n3. Let the ball roll off the fingertips into a loose cradle at the base of the fingers.\n4. Keep the hand moving with the ball rather than letting the ball simply fall.\n5. Practice slow, controlled rolls before linking rolls between both hands.",
+  },
+  'ring-pull-up': {
+    link: "https://www.youtube.com/watch?v=Qsg6EP4Va4I",
+    videoBy: "Tom Morrison",
+    instructions: "1. Hang from the rings with straight arms and the rings turned out at the bottom.\n2. Pull your chest up to the rings, keeping them close to your body.\n3. Drive the elbows back and down rather than flaring them out to the sides.\n4. Lower back to a straight-arm hang under control before the next rep.\n5. Build toward 3–4 sets of 5–8 reps as strength improves.",
+  },
+  'skin-the-cat': {
+    link: "https://www.youtube.com/watch?v=44vYDHorwkM",
+    videoBy: "Paul Twyman",
+    instructions: "1. Hang from the rings with straight arms.\n2. Tuck the knees to the chest and roll the hips back and up between the rings.\n3. Keep rotating until the body hangs upside down behind the rings with straight arms.\n4. Pause briefly, then reverse the roll back to the start.\n5. Regress by stopping the rotation partway (German hang) until the shoulders tolerate full range.",
+  },
+  'l-sit-rings': {
+    link: "https://www.youtube.com/watch?v=urF3ueca3IU",
+    videoBy: "The Sustainable Training Method",
+    instructions: "1. Support yourself on the rings with straight arms and the rings turned out.\n2. Depress the shoulders and press the rings down into your sides.\n3. Lift both legs to horizontal with the knees locked and toes pointed.\n4. Keep the ribs pulled down instead of shrugging into the shoulders.\n5. Hold 10–20 seconds, or regress to a tuck or single-leg version first.",
+  },
+  'one-arm-hang': {
+    link: "https://www.youtube.com/watch?v=jjyLApgv_5c",
+    videoBy: "Calixpert",
+    instructions: "1. Hang from the bar with both hands, then shift most of your weight onto the working arm.\n2. Let the free hand rest lightly on the wrist or a strap for support only.\n3. Keep the working shoulder packed down and away from the ear.\n4. Hold for time, then switch sides and compare left versus right.\n5. Progress by reducing how much the assisting hand helps, set by set.",
+  },
+  'switch-grip-hang-advanced': {
+    instructions: "1. Start in a strong active hang with the shoulders packed down and away from the ears.\n2. Shift most of your weight briefly onto one hand to free the other.\n3. Rotate the free hand into the new grip without letting go or dropping down.\n4. Reset both hands into the active hang before switching again.\n5. Work sets of 4–6 switches per side, resting fully between sets.",
+  },
+  '90-90-iso-pullup-hang': {
+    instructions: "1. Jump or step up to the bar so both elbows sit bent at roughly 90°.\n2. Keep the chest lifted and the shoulder blades pulled down and together.\n3. Hold the position still, resisting any drift up or down.\n4. Breathe steadily instead of holding your breath through the hold.\n5. Build toward 3–4 sets of 10–20 seconds, then lower with control.",
+  },
+  '0-90-hanging-leg-raise': {
+    link: "https://www.youtube.com/watch?v=RAt5-4oJbk4",
+    videoBy: "Ido Portal",
+    instructions: "1. Hang from the bar with a full grip, straight arms, and legs together.\n2. Brace the core and set a slight posterior pelvic tilt before moving.\n3. Raise both straight legs to parallel with the floor without swinging.\n4. Pause briefly at the top, then lower with control back to the start.\n5. Work 3 sets of 6–10 reps, regressing to bent-knee raises if form breaks down.",
+  },
+  'one-arm-hanging-leg-raise': {
+    link: "https://www.youtube.com/watch?v=xEJRoO7nMYg",
+    videoBy: "Bosnian Muscle",
+    instructions: "1. Hang from the bar on one arm with the shoulder packed and the body still.\n2. Brace the core fully before starting any leg movement.\n3. Raise both straight legs to parallel with the floor without twisting the torso.\n4. Lower slowly back to the start, resisting any swing.\n5. Only add this once the one-arm hang and two-arm 0–90 raise are both solid.",
+  },
+  'hs-pike-entry': {
+    link: "https://www.youtube.com/watch?v=z4gmz4cF474",
+    videoBy: "Coach Bachmann",
+    instructions: "1. Start in a pike position with hands on the floor and hips stacked high.\n2. Walk the feet in as close to the hands as flexibility allows.\n3. Press through the shoulders and lift the hips overhead, straightening the legs last.\n4. Keep the gaze down at the floor to stay balanced.\n5. Practice against a wall first and step out of the pike the moment control is lost.",
+  },
+  'hs-tuck': {
+    link: "https://www.youtube.com/watch?v=LRvrlecJahg",
+    videoBy: "Paul Twyman",
+    instructions: "1. Kick or press up to a handstand with the knees tucked tightly to the chest.\n2. Stack the shoulders directly over the wrists and squeeze the glutes.\n3. Find the balance point by shifting weight from fingertips to heel of the hand.\n4. Hold the tuck for a few seconds before extending toward straddle or full handstand.\n5. Practice near a wall or with a spotter until falling out of the tuck is controlled.",
+  },
+  'handstand-blocks-climbs': {
+    instructions: "1. Kick up to a handstand on a low block or parallette with a wall for support.\n2. Shift weight into one hand and step it up onto the next block.\n3. Follow with the other hand once balance resets.\n4. Keep the ribs pulled in and press firmly through the fingers on each new block.\n5. Climb only as high as control allows, and step down rather than fall if balance goes.",
+  },
+  '10min-handstand-taps': {
+    instructions: "1. Kick up to a handstand against the wall with hands set shoulder-width apart.\n2. Lift one hand a couple of inches and tap it back down without losing the line.\n3. Alternate hands at a steady, controlled pace rather than rushing the taps.\n4. Break the work into short sets across the 10 minutes rather than one continuous hold.\n5. Rest as needed between sets, prioritizing clean taps over total time.",
+  },
+  'frog-stand': {
+    instructions: "1. Find your balance point by rocking your weight slightly forward over the hands.\n2. Keep the head up and the gaze forward rather than down at the floor.\n3. Round the upper back slightly to help the knees grip the arms.\n4. Hold for a few seconds, then rock back down to the feet with control.\n5. Practice on a soft mat with bent elbows so a forward tip is easy to catch.",
+  },
+  'forearm-stand': {
+    link: "https://www.youtube.com/watch?v=HTJ0z-E11CM",
+    videoBy: "YOGABODY",
+    instructions: "1. Set the forearms shoulder-width apart on the floor with a wall a leg's length away.\n2. Walk the feet up the wall until the hips stack over the shoulders.\n3. Press the forearms down and squeeze the shoulders to lift out of the wrists.\n4. Point the toes and keep the ribs pulled in to avoid over-arching.\n5. Practice small kick-ups away from the wall once the wall hold feels stable.",
+  },
+  'headstand': {
+    link: "https://www.youtube.com/watch?v=aKfFupH5GSY",
+    videoBy: "Noelle Roberts Studio",
+    instructions: "1. Place the hands shoulder-width on the floor and set the crown of the head in front of them to form a tripod.\n2. Walk the feet in and lift the hips over the shoulders before tucking the knees.\n3. Extend one leg, then the other, up toward the ceiling.\n4. Keep most of the weight in the hands, not the head and neck.\n5. Come down the moment the neck feels loaded, and practise near a wall or on a soft mat first.",
+  },
+  'tuck-sit': {
+    link: "https://www.youtube.com/watch?v=9x8fnQ8uLaU",
+    videoBy: "PowerMonkeyFitness",
+    instructions: "1. Sit tall with the hands on the floor beside the hips, fingers pointing forward.\n2. Bend the knees into the chest and press down through the hands.\n3. Lift the feet off the floor, balancing your weight on the hands.\n4. Keep the chest lifted and the shoulders away from the ears.\n5. Hold 10–20 seconds, building toward straddle or single-leg L-sit variations.",
+  },
+  'pike-sit-free': {
+    link: "https://www.youtube.com/watch?v=yQXnOuQqKYc",
+    videoBy: "Antranik Kizirian",
+    instructions: "1. Sit with the legs straight and together, hands beside the hips.\n2. Press down through the hands and actively pull the legs up toward the chest.\n3. Keep the knees locked and toes pointed throughout the lift.\n4. Squeeze the legs together instead of letting them drift apart.\n5. Hold for a few seconds at a time, resting the hips down between attempts.",
+  },
+  'straddle-leg-circles': {
+    link: "https://www.youtube.com/watch?v=X9ZLcGNIzoQ",
+    videoBy: "Kerri Kresinski",
+    instructions: "1. Sit tall with the legs open wide to the sides and hands lightly on the floor or hips.\n2. Lift both legs slightly off the ground, keeping the knees locked.\n3. Trace slow, controlled circles with straight legs, leading with the heels.\n4. Keep the torso upright and still as the legs move.\n5. Do 5–8 circles each direction, resting the legs down between sets.",
+  },
+  'straddle-leg-raises': {
+    link: "https://www.youtube.com/watch?v=j6goS7QWTuE",
+    videoBy: "Simms Fitness",
+    instructions: "1. Sit with the legs open wide to the sides, hands on the floor or hips for support.\n2. Keep the knees locked and toes pointed throughout.\n3. Lift both legs together a few inches off the floor.\n4. Hold briefly at the top, then lower without letting the feet touch down.\n5. Work 3 sets of 8–12 controlled reps.",
+  },
+  'l-sit-floor': {
+    link: "https://www.youtube.com/watch?v=IUZJoSP66HI",
+    videoBy: "Antranik Kizirian",
+    instructions: "1. Sit with the legs straight in front and palms flat on the floor beside the hips.\n2. Press down through the hands and straighten the arms to lift the hips.\n3. Start by tucking one or both knees to the chest to unload the hip flexors.\n4. Progress to lifting one leg straight, then both legs, toward a full L.\n5. Hold each stage 10–15 seconds before moving to the next progression.",
+  },
+  'low-bar-drill': {
+    link: "https://www.youtube.com/watch?v=pz9rbmTvpaE",
+    videoBy: "CrossFit",
+    instructions: "1. Set a bar at chest-to-hip height with the feet flat on the floor underneath.\n2. Grip the bar and lean back slightly to load the hips.\n3. Drive the hips forward and up into the bar, keeping the arms relatively passive.\n4. Finish by pressing the chest over the bar into a support position.\n5. Repeat for reps, focusing on hip drive rather than pulling with the arms.",
+  },
+  'turtle-hold': {
+    link: "https://www.youtube.com/watch?v=u1WRd19ynJc",
+    videoBy: "pigmie",
+    instructions: "1. Squat down and place both hands flat on the floor, shoulder-width apart.\n2. Bend the elbows and set them into the front of the hips, just inside the hip bones.\n3. Lean forward and lift the feet off the floor, keeping the body low and horizontal.\n4. Keep the head up with the gaze slightly forward to help balance.\n5. Hold for a few seconds at a time, building toward longer holds or moving in and out of the shape.",
+  },
+  'slingshot-rebound-plank': {
+    link: "https://www.youtube.com/watch?v=-h5vmPru8hw",
+    videoBy: "Get Fit Done (formerly This is Fit Workouts)",
+    instructions: "1. Start in child's pose with the arms extended and palms on the floor.\n2. Shoot the hips forward low to the ground, sliding through to a straight-arm plank.\n3. Catch the plank position briefly, keeping the core braced and the body in a straight line.\n4. Reverse the motion back to child's pose with control.\n5. Repeat for smooth, reactive reps, keeping the shoulders stable throughout.",
+  },
+  'rolling-forward': {
+    link: "https://www.youtube.com/watch?v=sMlxHIC3yLQ",
+    videoBy: "MihranTV",
+    instructions: "1. Squat down and place both hands flat on the mat shoulder-width apart.\n2. Tuck the chin to the chest and push gently through the legs, lifting the hips.\n3. Round the back and roll over the shoulders onto the upper back, never the head or neck.\n4. Stay curled in a ball through the roll, knees toward the chest.\n5. Use the momentum to rock forward onto the feet and stand up.",
+  },
+  'rolling-backward': {
+    link: "https://www.youtube.com/watch?v=WSicmtKjOUE",
+    videoBy: "Simple Gymnastics",
+    instructions: "1. Start in a squat with the chin tucked to the chest.\n2. Sit back and roll onto the back, keeping the body curled tight.\n3. As the hips pass overhead, place both hands flat beside the ears, fingers pointing toward the shoulders.\n4. Push through the hands and arms to lift the head clear of the mat as the legs roll over.\n5. Land on the feet in a squat and stand up; regress to a gentle rock on a soft mat if the neck feels loaded.",
+  },
+  'rolling-side': {
+    link: "https://www.youtube.com/watch?v=YHnyDPeF108",
+    videoBy: "Lloyd Byrne",
+    instructions: "1. Lie flat on the mat with arms extended overhead and legs straight together.\n2. Keep the body in one long line from fingertips to toes.\n3. Roll sideways along the length of the mat by rotating the whole body as one unit.\n4. Keep the core braced so the hips don't lead or lag behind the shoulders.\n5. Roll for a set distance or count, then reverse direction.",
+  },
+  'cartwheel': {
+    link: "https://www.youtube.com/watch?v=t6hfpz15R9Y",
+    videoBy: "Chace Dance Company",
+    instructions: "1. Stand tall and reach the arms overhead, then step into a lunge toward the direction of travel.\n2. Bend at the hip and place the lead hand on the floor followed by the second hand, in one line.\n3. Kick the legs up and over in sequence so the body passes through a brief handstand-like straddle.\n4. Land the first foot then the second, finishing facing the start with arms up.\n5. Practice both left- and right-leading cartwheels to build both sides evenly.",
+  },
+  'ground-get-ups': {
+    link: "https://www.youtube.com/watch?v=6z1bPbLyr8I",
+    videoBy: "Ben Medder",
+    instructions: "1. Start lying on your back, front or side and pick one route to standing: roll to kneel, sit to squat, or turn to a lunge.\n2. Get one foot flat on the floor early to create a base.\n3. Drive through that foot and extend the hips to rise in one continuous movement.\n4. Reverse the route back to the floor with the same control.\n5. Rotate starting positions and sides so getting up never depends on one pattern.",
+  },
+  'ground-flow': {
+    link: "https://www.youtube.com/watch?v=rWdPTDz9eyI",
+    videoBy: "Strength + Flow Fitness",
+    instructions: "1. Pick two or three floor positions (quadruped, seated, prone, side-sit) to link together.\n2. Move slowly at first and let one position flow into the next without pausing or resetting the hands.\n3. Keep the core engaged and breathe continuously through the transitions.\n4. Explore both directions through the sequence and both sides of the body.\n5. Once comfortable, add speed or close the eyes briefly to build proprioception.",
+  },
+  'get-up-kick-through': {
+    link: "https://www.youtube.com/watch?v=kPHVAKZ0x90",
+    videoBy: "Animal Flow",
+    instructions: "1. Start in a quadruped (beast) position with hips lifted slightly above the knees.\n2. Reach one hand forward and rotate the hips, kicking the opposite leg through underneath the body.\n3. Extend the kicking leg out to the side as the hips open, finishing in a low seated or standing pivot.\n4. Keep the supporting arm strong and the shoulder stable as the leg passes underneath.\n5. Reverse the motion to return to quadruped, then repeat on the other side.",
+  },
+  'get-up-backward-roll': {
+    link: "https://www.youtube.com/watch?v=aRT3Tc0RhWo",
+    videoBy: "CVL BJJ",
+    instructions: "1. Start in a low squat with the arms swinging back to build momentum.\n2. Roll backward smoothly along the spine, keeping the chin tucked.\n3. As the hips reach their highest point, snap the legs forward and down toward the floor.\n4. Swing the arms forward hard to help drive the body upright onto the feet.\n5. Land in a stable squat and stand tall; keep hands ready to catch the roll until the timing feels reliable.",
+  },
+  'ground-flow-sit-through': {
+    link: "https://www.youtube.com/watch?v=DTnLJO4jq_A",
+    videoBy: "Julia Ladewski",
+    instructions: "1. Start in a quadruped position with hands under the shoulders and knees under the hips.\n2. Thread one leg underneath the body toward the opposite side while rotating the hips.\n3. Lift the hips clear of the floor so only the threaded foot and the opposite hand stay grounded.\n4. Finish seated with the legs extended in opposite directions, chest open.\n5. Reverse back to quadruped and repeat leading with the other leg.",
+  },
+  'ground-flow-shoulder-roll': {
+    link: "https://www.youtube.com/watch?v=ikyHPZQJJS0",
+    videoBy: "Fit And Fun With Coach Meggin",
+    instructions: "1. From a low squat or seated position, tuck the chin and turn the head slightly away from the rolling shoulder.\n2. Guide the body diagonally across the back of one shoulder, never the top of the head or neck.\n3. Keep the movement continuous from hip to opposite shoulder along the back.\n4. Use the momentum to come back up onto the feet or into the next transition.\n5. Practice slowly on a soft surface first and roll to both sides.",
+  },
+  'ground-flow-scorpion-reach': {
+    link: "https://www.youtube.com/watch?v=HL6vmjgK_1o",
+    videoBy: "MarkBroadbentPT",
+    instructions: "1. Lie face down with arms out to the sides at shoulder height.\n2. Bend one knee and reach that foot up and across toward the opposite hand.\n3. Rotate through the hip and lower spine while keeping the chest and shoulders as flat as comfortable.\n4. Let the reach flow into the next ground position rather than stopping and resetting.\n5. Return to center and repeat on the other side.",
+  },
+  'lizard-crawl': {
+    link: "https://www.youtube.com/watch?v=uknpT9f0lGo",
+    videoBy: "Owen Jackson",
+    instructions: "1. Start low in a wide push-up position, hands and feet spread wide.\n2. Move the opposite hand and foot forward together, keeping the hips low and close to the floor.\n3. Let the chest sweep close to the ground with each step for a long stride.\n4. Keep the movement slow and controlled rather than rushed.\n5. Cover distance forward and backward, keeping both sides even.",
+  },
+  'frog-hop': {
+    link: "https://www.youtube.com/watch?v=_FCb6drXqr0",
+    videoBy: "Bobby Maximus",
+    instructions: "1. Squat down low with the hands planted on the floor between the feet.\n2. Load through the hips and legs, then jump both feet forward past the hands explosively.\n3. Drive the knees up toward the chest at the top of the hop.\n4. Land softly back in the low squat with hands ready to plant again.\n5. Chain hops together for distance or reps, resting as needed.",
+  },
+  'scorpion-walk': {
+    link: "https://www.youtube.com/watch?v=NiRMsMKjaGU",
+    videoBy: "kaizenoutdoorfitness",
+    instructions: "1. Start in a plank or quadruped position with hands planted firmly.\n2. Step one foot across and behind the opposite leg, rotating the hips and lower back.\n3. Let the rotation carry through to the upper back while keeping the hands grounded.\n4. Return the foot to the start position and step forward with the other foot.\n5. Move slowly, prioritizing range of rotation over speed.",
+  },
+  'seal-drag': {
+    link: "https://www.youtube.com/watch?v=LHXdyXMmEEI",
+    videoBy: "Dominic Munnelly",
+    instructions: "1. Lie face down with the legs straight and relaxed, and the hands planted just outside the shoulders.\n2. Press through the hands and arms to drag the whole body forward, letting the legs trail passively.\n3. Keep the chest slightly lifted and the core braced through the drag.\n4. Move in short controlled pulls rather than one long lunge.\n5. Cover a set distance then rest; regress to shorter distances if the shoulders or low back fatigue quickly.",
+  },
+  'sprawl': {
+    link: "https://www.youtube.com/watch?v=z4ZoTmn1Gvs",
+    videoBy: "Grappling SMARTY",
+    instructions: "1. Start in a balanced athletic stance with knees bent and hands up.\n2. Drive the hands to the floor as the legs kick straight back and wide, dropping the hips to the mat.\n3. Keep the head and chest up and the hips heavy, as if pressing down on an opponent's shoulders.\n4. Snap the knees back underneath the hips to return to stance.\n5. Repeat for sharp, controlled reps.",
+  },
+  'level-change-step': {
+    link: "https://www.youtube.com/watch?v=lTgXIM0fO9g",
+    videoBy: "Grappling SMARTY",
+    instructions: "1. Start in a balanced stance with weight on the balls of the feet.\n2. Bend the knees and drop the hips straight down while keeping the chest up and spine neutral.\n3. Step the lead foot deep past the midline, staying low through the transition.\n4. Drive off the back foot to close the distance forward and up.\n5. Return to stance and repeat leading with the other leg.",
+  },
+  'donkey-kicks': {
+    link: "https://www.youtube.com/watch?v=cWMVznFxRPM",
+    videoBy: "Flying Frog Academy",
+    instructions: "1. Squat down and plant both hands firmly on the floor shoulder-width apart, arms straight.\n2. Shift the weight into the hands and hop the feet off the ground behind the hips.\n3. Keep the arms locked and the shoulders stacked over the wrists as the hips rise.\n4. Control the height of the kick rather than trying to reach a handstand right away.\n5. Land both feet softly together and reset before the next rep.",
+  },
+  'breakfalls': {
+    link: "https://www.youtube.com/watch?v=5n_Qjeia2n8",
+    videoBy: "BeyondGrappling",
+    instructions: "1. Begin practicing from a seated position before progressing to squatting and then standing falls.\n2. As the body drops, keep the legs together and slightly bent to absorb impact.\n3. Time the arm slap to land just before or as the body touches down, not after.\n4. Keep the head lifted off the mat throughout the fall to protect the neck.\n5. Only advance to the next height once the lower one feels automatic and controlled.",
+  },
+  'back-arch-to-bridge': {
+    link: "https://www.youtube.com/watch?v=jcRykrCXWJY",
+    videoBy: "Fit And Fun With Coach Meggin",
+    instructions: "1. Stand tall with feet hip-width apart and hands raised overhead.\n2. Squeeze the glutes and push the hips forward as the chest and head lead backward.\n3. Reach back and down with the hands, looking for the floor rather than looking up.\n4. Land both palms flat at the same time, arms and legs sharing the load evenly.\n5. Practice a wall walk-down or use a spotter until the reach and landing feel confident.",
+  },
+  'corta-capim': {
+    instructions: "1. Start in a low squat with both feet flat and hands ready near the floor.\n2. Shift your weight onto the ball of one foot and rise slightly onto it.\n3. Open the opposite knee out to the side as you pivot.\n4. Return to the squat on the new side and repeat, alternating sides.\n5. Keep the rhythm smooth and low; this feeds directly into the Au Cortado entry.",
+  },
+  'au-cortado': {
+    instructions: "1. Begin spinning on one planted leg with the other leg extended for momentum.\n2. As you complete the turn, rise up through the standing leg instead of settling down.\n3. Keep the spinning leg lifted and use its swing to load the cartwheel-style Au.\n4. Drive the hands to the floor and kick through into the Au without ever placing the spinning leg down.\n5. Drill the rise and the Au entry separately before linking them at speed.",
+  },
+  'role-into-au-cortado': {
+    instructions: "1. Start a floor roll from a tucked shoulder, moving smoothly across the back.\n2. Come out of the roll already rotating toward the Au Cortado entry, not stopping to reset.\n3. Rise onto the trailing leg and extend the other for momentum, as in the standalone Au Cortado.\n4. Drive the hands down and kick through into the Au in one continuous motion.\n5. Drill the roll and the Au separately first, then chain them slowly before adding speed.",
+  },
+  'half-au-cortado': {
+    instructions: "1. Set up the same rising spin and leg extension used in the full Au Cortado.\n2. Rotate only partway through the turn instead of completing the full spin.\n3. Control the stop with the standing leg and lower back down under control.\n4. Keep the extended leg active throughout rather than letting it drop early.\n5. Build reps here before adding the full rotation of the complete Au Cortado.",
+  },
+  'reverse-corta-capim-au-cortado': {
+    instructions: "1. Perform Corta Capim in the reverse direction, shifting weight and opening the knee as usual.\n2. Flow directly from the Corta Capim into the Au Cortado spin without pausing between them.\n3. Rise through the standing leg and let the extended leg carry momentum into the Au.\n4. Complete the sequence and reset facing the new direction.\n5. Program as 10 reps x 3 sets with 60 seconds rest between sets.",
+  },
+  'qdr-circles': {
+    instructions: "1. Place your hands on the floor between your legs and load weight into them.\n2. Push through the floor and rotate your body around the planted foot until you complete a full turn.\n3. Shift back into a squat at the end of the turn and repeat on the other side.\n4. Progress by initiating the rotation from the hands rather than the legs, then by removing the hands entirely.\n5. Keep the movement low and controlled rather than rushing the rotation.",
+  },
+  'role-into-qdr': {
+    instructions: "1. Start a floor roll from a tucked shoulder, keeping the motion low and controlled.\n2. Come out of the roll already turning into the QDR setup, hands finding the floor between the legs.\n3. Push through the floor and rotate around the planted foot to complete the turn.\n4. Finish in a squat, linking the transition rather than resetting between reps.\n5. Drill the roll and the QDR separately before chaining them together.",
+  },
+  'the-centaur': {
+    instructions: "1. Stand tall with a relaxed, upright upper body and loose arms.\n2. Drive the legs in a powerful, galloping rhythm, like a horse's gait.\n3. Let the upper body drape and stay passive while the legs generate the power.\n4. Keep the core engaged just enough to support posture without stiffening the torso.\n5. Move continuously for a set duration or distance, contrasting driving legs against a relaxed upper body.",
+  },
+  'yoga-mountain-pose': {
+    link: "https://www.youtube.com/watch?v=NYhH8Gr35cI",
+    videoBy: "Yoga With Adriene",
+    instructions: "1. Stand with feet together or hip-width, weight even across both feet.\n2. Engage the thighs and lift through the kneecaps without locking the knees.\n3. Lengthen the spine and stack the shoulders over the hips.\n4. Relax the shoulders down and let the arms hang by your sides.\n5. Hold for several breaths as a grounding reset before or between poses.",
+  },
+  'yoga-downward-dog': {
+    link: "https://www.youtube.com/watch?v=Y0GDgQqt-bA",
+    videoBy: "SarahBethYoga",
+    instructions: "1. From hands and knees, tuck the toes and lift the hips up and back.\n2. Press the hands into the floor and spread the fingers wide.\n3. Draw the hips up and back toward an inverted V shape.\n4. Let the knees stay soft and work the heels toward the floor without forcing them down.\n5. Hold for several breaths, keeping the neck relaxed and the gaze toward the feet.",
+  },
+  'yoga-upward-dog': {
+    link: "https://www.youtube.com/watch?v=Iepuc7z3rWU",
+    videoBy: "YYOGA at Home — yoga classes + tutorials",
+    instructions: "1. Lie face down and place the hands beside the ribs.\n2. Press into the hands and straighten the arms, lifting the chest and thighs off the floor.\n3. Stack the shoulders directly over the wrists.\n4. Draw the shoulders back and down away from the ears, opening the chest.\n5. Keep the legs active with the tops of the feet pressing down; ease the depth if the lower back complains.",
+  },
+  'yoga-low-lunge': {
+    link: "https://www.youtube.com/watch?v=MjiC4mGTnTw",
+    videoBy: "YogaDownload",
+    instructions: "1. Step one foot forward into a lunge and lower the back knee to the floor.\n2. Stack the front knee over the front ankle.\n3. Untuck the back toes and let the top of the back foot rest on the floor.\n4. Sink the hips forward and down to open the front of the back hip.\n5. Hold 30–60 seconds, then switch sides.",
+  },
+  'yoga-warrior-1': {
+    link: "https://www.youtube.com/watch?v=TBu5bsWrnTw",
+    videoBy: "YouAligned",
+    instructions: "1. Step one foot back into a long stance, back foot turned in slightly.\n2. Bend the front knee toward 90 degrees, keeping it tracking over the ankle.\n3. Square the hips and chest toward the front of the mat.\n4. Reach the arms overhead, shoulders relaxed away from the ears.\n5. Hold for several breaths, then switch sides.",
+  },
+  'yoga-warrior-2': {
+    link: "https://www.youtube.com/watch?v=T8b28IuOl_E",
+    videoBy: "Heather Kitchen Yoga",
+    instructions: "1. Step the feet wide, front foot pointing forward and back foot turned out to the side.\n2. Bend the front knee toward 90 degrees, keeping it over the ankle.\n3. Open the hips and torso to the side, in line with the back foot.\n4. Extend the arms parallel to the floor and gaze over the front hand.\n5. Hold for several breaths, then switch sides.",
+  },
+  'yoga-extended-side-angle': {
+    link: "https://www.youtube.com/watch?v=qXlFNjzLIWA",
+    videoBy: "Heather Kitchen Yoga",
+    instructions: "1. From Warrior II, hinge the torso over the bent front leg.\n2. Rest the front forearm on the thigh, or bring the front hand to the floor inside or outside the foot.\n3. Reach the top arm overhead to form one long line from the back heel to the fingertips.\n4. Keep the chest open rather than rolling forward toward the floor.\n5. Hold for several breaths, then switch sides.",
+  },
+  'yoga-triangle': {
+    link: "https://www.youtube.com/watch?v=Op72srvfIXM",
+    videoBy: "Heather Kitchen Yoga",
+    instructions: "1. Step the feet wide, front foot pointing forward and back foot turned in slightly.\n2. Straighten the front leg and hinge at the hip, not the waist, reaching the front hand toward the shin, ankle, or floor.\n3. Stack the top shoulder over the bottom shoulder and extend the top arm toward the ceiling.\n4. Keep both sides of the torso long rather than collapsing into the front leg.\n5. Hold for several breaths, then switch sides.",
+  },
+  'yoga-standing-forward-fold': {
+    link: "https://www.youtube.com/watch?v=g7Uhp5tphAs",
+    videoBy: "Yoga With Adriene",
+    instructions: "1. Stand with feet hip-width apart.\n2. Hinge at the hips and fold the torso over the legs, keeping the spine long on the way down.\n3. Let the knees bend as much as needed to release the lower back.\n4. Let the head and neck hang heavy, arms dangling or holding opposite elbows.\n5. Hold for several breaths, then rise slowly to avoid dizziness.",
+  },
+  'two-limbs-negativa': {
+    link: "https://www.youtube.com/watch?v=iRb8inBYpf0",
+    videoBy: "Howcast",
+    instructions: "1. Lower into the negativa base, with one hand and one foot supporting your weight.\n2. Lift the hips so the body forms a low diagonal line rather than a collapsed sit.\n3. Extend the free leg out, keeping it active rather than resting it on the floor.\n4. Keep the supporting arm slightly bent to absorb load rather than locking the elbow.\n5. Hold briefly or move slowly through the position, then switch sides.",
+  },
+  'wheel-whip': {
+    link: "https://www.youtube.com/watch?v=vFPoaTlCMec",
+    videoBy: "Mastering Bodyweight Exercise",
+    instructions: "1. Build a confident, controlled cartwheel before attempting this.\n2. Drive into the cartwheel with speed, committing the hands to the floor one after the other.\n3. As the hips pass over the hands, whip the legs through toward a handstand line instead of continuing the cartwheel straight through.\n4. Keep the arms strong and the core braced to catch the handstand position momentarily.\n5. Regress by practicing cartwheel-to-handstand bails onto a soft surface until the whip feels controlled.",
+  },
+  'front-splits': {
+    link: "https://www.youtube.com/watch?v=kecvu0aC4m8",
+    videoBy: "Shona Vertue",
+    instructions: "1. Warm up the hips and hamstrings with a few dynamic leg swings first.\n2. Slide the front leg forward and the back leg behind, hips squared to the front.\n3. Lower only as deep as the hips allow without pain, hands on the floor or blocks for support.\n4. Hold 20–40 seconds, breathing steadily, then ease deeper if it feels right.\n5. Come out slowly and switch sides.",
+  },
+  'bridge-pushup-basic': {
+    link: "https://www.youtube.com/watch?v=m--BWyDAM_4",
+    videoBy: "Andrew's Fitness Training",
+    instructions: "1. Build a solid full bridge first, hands and feet planted, hips lifted high.\n2. Keep the elbows tracking over the wrists rather than flaring wide.\n3. Move slowly and only as deep as shoulder mobility allows.\n4. Regress to a wall-supported bridge or elevated hands if the wrists or shoulders complain.\n5. Start with 3–5 controlled reps and build from there.",
+  },
+  'neck-flexion-stretch': {
+    link: "https://www.youtube.com/watch?v=uoMmeRubxwk",
+    videoBy: "Intermountain Health",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Chin_To_Chest_Stretch/0.jpg",
+    instructions: "1. Sit or stand tall with the shoulders relaxed away from the ears.\n2. Drop the chin slowly toward the chest until a stretch is felt at the back of the neck.\n3. Keep the movement slow and avoid pulling hard with the hands.\n4. Hold 20–30 seconds and breathe steadily.\n5. Ease off if it triggers arm tingling or numbness.",
+  },
+  'neck-extension-stretch': {
+    link: "https://www.youtube.com/watch?v=eV897kJTmbw",
+    videoBy: "Intermountain Health",
+    instructions: "1. Sit or stand tall with a long spine.\n2. Tilt the head back slowly, leading with the chin.\n3. Stop well short of any pinching or sharp pain.\n4. Hold 10–20 seconds and return to neutral with control.\n5. Stop immediately if dizziness or nerve symptoms appear.",
+  },
+  'neck-lateral-stretch': {
+    link: "https://www.youtube.com/watch?v=cu1d-DH4s2U",
+    videoBy: "Psoas Massage + Bodywork",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side_Neck_Stretch/1.jpg",
+    instructions: "1. Sit or stand tall, shoulders relaxed and level.\n2. Tilt the ear toward one shoulder without rotating the chin forward.\n3. Let the opposite shoulder stay down and relaxed.\n4. Hold 20–30 seconds, then repeat on the other side.",
+  },
+  'neck-rotation-stretch': {
+    link: "https://www.youtube.com/watch?v=VJ6qUElGcbc",
+    videoBy: "mahalodotcom",
+    instructions: "1. Sit or stand tall with the spine long.\n2. Keep the chin level and rotate the head slowly to one side.\n3. Stop at the first sense of tightness, not pain.\n4. Hold 15–20 seconds, then rotate to the other side.",
+  },
+  'cross-body-shoulder-stretch': {
+    link: "https://www.youtube.com/watch?v=uNmWSg705JA",
+    videoBy: "BluePhoenix Fitness",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Shoulder_Stretch/1.jpg",
+    instructions: "1. Stand or sit tall with the shoulder relaxed away from the ear.\n2. Keep the pulling elbow low, around chest height, rather than jamming into the joint.\n3. Ease the arm across the body until a stretch is felt in the back of the shoulder.\n4. Hold 20–30 seconds, then switch arms.",
+  },
+  'overhead-triceps-stretch': {
+    link: "https://www.youtube.com/watch?v=cPTrm13hSSo",
+    videoBy: "PureGym",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Stretch/1.jpg",
+    instructions: "1. Raise one arm overhead and bend the elbow so the hand drops behind the head.\n2. Use the opposite hand to gently press the elbow further back.\n3. Keep the ribs down rather than arching the lower back to reach further.\n4. Hold 20–30 seconds, then switch sides.",
+  },
+  'shoulder-internal-rotation-stretch': {
+    link: "https://www.youtube.com/watch?v=RNaMFoh1k64",
+    videoBy: "TSAOG Orthopaedics & Spine",
+    instructions: "1. Reach one arm behind the back and walk the fingers up the spine.\n2. If the hands don't meet, hold a towel from above with the other hand and walk up it.\n3. Keep the chest open rather than rounding forward to reach higher.\n4. Hold 20–30 seconds, then switch sides.",
+  },
+  'shoulder-external-rotation-stretch': {
+    link: "https://www.youtube.com/watch?v=HzI-XCLNuLU",
+    videoBy: "Baptist Health",
+    instructions: "1. Stand side-on to a wall or doorframe with the elbow bent to 90° and tucked at the side.\n2. Press the forearm gently back against the frame while keeping the elbow pinned to the ribs.\n3. Keep the shoulder down away from the ear throughout.\n4. Hold 20–30 seconds, then switch sides.",
+  },
+  'chest-opener-supine': {
+    link: "https://www.youtube.com/watch?v=9RCQDYbkPkM",
+    videoBy: "Medbridge",
+    instructions: "1. Lie on your back along the length of the roller, head and hips supported.\n2. Let both arms fall open to the sides, palms up.\n3. Relax the shoulders down and let gravity open the chest.\n4. Hold 1–2 minutes, breathing slowly and deeply.",
+  },
+  'hands-clasped-behind-back-stretch': {
+    link: "https://www.youtube.com/watch?v=EswbusODZ7o",
+    videoBy: "LIVESTRONG",
+    instructions: "1. Stand tall and clasp the hands behind the back with straight arms.\n2. Roll the shoulders back and down before lifting the arms.\n3. Lift only as high as feels comfortable in the front shoulders.\n4. Hold 20–30 seconds, breathing steadily.",
+  },
+  'standing-back-extension': {
+    link: "https://www.youtube.com/watch?v=SVhwe-N3VX8",
+    videoBy: "Fit Father Project - Fitness For Busy Fathers",
+    instructions: "1. Stand with the feet hip-width and hands supporting the low back.\n2. Gently arch backward, leading with the chest, knees soft.\n3. Keep the movement small and pain-free.\n4. Hold 5–10 seconds, or pulse gently a few times.\n5. Avoid if it produces sharp or radiating back pain.",
+  },
+  'seated-glute-stretch': {
+    link: "https://www.youtube.com/watch?v=2E8WWX4cOc4",
+    videoBy: "LSM Chiropractic and Forward Natural Medicine",
+    instructions: "1. Sit tall and cross one ankle over the opposite knee.\n2. Flex the crossed foot to protect the knee.\n3. Hinge forward from the hips, keeping the back flat.\n4. Hold 20–30 seconds, then switch sides.",
+  },
+  'knee-to-opposite-shoulder-stretch': {
+    link: "https://www.youtube.com/watch?v=pNLqyWe9p2Y",
+    videoBy: "Stack 52",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Knee_Across_The_Body/1.jpg",
+    instructions: "1. Lie on your back with legs extended.\n2. Draw one knee up and guide it across the body toward the opposite shoulder with both hands.\n3. Keep the opposite leg relaxed on the floor and shoulders flat.\n4. Hold 20–30 seconds, then switch sides.",
+  },
+  'side-lying-quad-stretch': {
+    link: "https://www.youtube.com/watch?v=C2IuPAdGzjI",
+    videoBy: "Strength Society App",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/On_Your_Side_Quad_Stretch/1.jpg",
+    instructions: "1. Lie on your side with legs stacked.\n2. Bend the top knee and grab the ankle or shin.\n3. Draw the heel toward the glutes while keeping the knees together.\n4. Hold 20–30 seconds, then switch sides.",
+  },
+  'yoga-hero-pose': {
+    link: "https://www.youtube.com/watch?v=ZUfDcmSe2Wg",
+    videoBy: "Di Hickman",
+    instructions: "1. Kneel with the knees together and feet slightly wider than the hips, tops of the feet flat.\n2. Sit back between the heels, using a block or cushion under the seat if it doesn't reach the floor.\n3. Keep the spine tall rather than leaning back.\n4. Hold 30–60 seconds, breathing steadily.\n5. Come out immediately if there's knee pain, and skip the pose if the knees are sensitive.",
+  },
+  'horse-stance-hold': {
+    link: "https://www.youtube.com/watch?v=op4aI1-NVQE",
+    videoBy: "The Barefoot Sprinter",
+    instructions: "1. Stand with the feet wider than shoulder-width, toes turned slightly out.\n2. Sink the hips down and back into a low squat, keeping the chest lifted.\n3. Track the knees over the toes and keep the weight through the whole foot.\n4. Hold 20–45 seconds, breathing steadily throughout.",
+  },
+  'side-lying-hip-stretch': {
+    link: "https://www.youtube.com/watch?v=dJvw6reGKKk",
+    videoBy: "Cleveland Clinic",
+    instructions: "1. Lie on your side with the bottom leg bent for stability.\n2. Cross the top leg over and let the knee drop toward the floor in front.\n3. Keep the top shoulder from rolling forward.\n4. Hold 20–30 seconds, then switch sides.",
+  },
+  'cross-leg-side-bend': {
+    link: "https://www.youtube.com/watch?v=iKMcxB_XVU0",
+    videoBy: "Leap Fitness",
+    instructions: "1. Stand tall and cross one leg behind the other for a wide, stable base.\n2. Reach the same-side arm overhead and lean gently to the opposite side.\n3. Keep the hips facing forward rather than twisting.\n4. Hold 15–20 seconds, then switch sides.",
+  },
+  'standing-calf-stretch': {
+    link: "https://www.youtube.com/watch?v=YTYQo4WvJHA",
+    videoBy: "Travis Tarrant",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Calf_Stretch_Hands_Against_Wall/0.jpg",
+    instructions: "1. Face a wall with hands supporting your weight.\n2. Step one leg back, keeping it straight and the heel pressed down.\n3. Lean the hips forward toward the wall until a stretch is felt in the upper calf.\n4. Hold 20–30 seconds, then switch sides.",
+  },
+  'seated-calf-stretch': {
+    link: "https://www.youtube.com/watch?v=uKePAWa2e6c",
+    videoBy: "Baptist Health",
+    instructions: "1. Sit with the leg extended and the knee bent slightly.\n2. Loop a strap or towel around the forefoot.\n3. Pull the foot gently toward the shin, keeping the knee bend fixed.\n4. Hold 20–30 seconds, then switch sides.",
+  },
+  'ankle-plantarflexion-stretch': {
+    link: "https://www.youtube.com/watch?v=52DxJN9na9U",
+    videoBy: "Merck Manuals",
+    instructions: "1. Sit with the leg extended in front of you.\n2. Point the toes away from the shin as far as comfortable.\n3. Add gentle overpressure with the hand across the top of the foot.\n4. Hold 15–20 seconds, then release slowly.",
+  },
+  'toe-extension-stretch': {
+    link: "https://www.youtube.com/watch?v=YV9U7PtUsrY",
+    videoBy: "The Foot Collective",
+    instructions: "1. Sit or stand with the foot in a comfortable position.\n2. Use the hand to gently pull the toes back toward the shin.\n3. Keep the arch long rather than letting the foot roll inward.\n4. Hold 15–20 seconds, then switch feet.",
+  },
+  'toe-sit-stretch': {
+    link: "https://www.youtube.com/watch?v=Dsth46zJJnI",
+    videoBy: "Elite Chiropractic and Performance",
+    instructions: "1. Kneel on a soft surface with the toes tucked under.\n2. Sit back slowly toward the heels, taking weight through the hands if needed.\n3. Keep the stretch light at first and build depth over sessions.\n4. Hold 15–30 seconds, then come forward off the toes to release.",
+  },
+  'arch-stretch': {
+    link: "https://www.youtube.com/watch?v=uMc-W9XuEaA",
+    videoBy: "Travis Tarrant",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Foot-SMR/1.jpg",
+    instructions: "1. Place a ball or bottle under the arch of the foot while seated or standing.\n2. Roll slowly along the arch, pausing on tender spots.\n3. Adjust pressure with how much weight you put through the foot.\n4. Work each foot for 30–60 seconds.",
   },
 };
 
