@@ -310,6 +310,11 @@
 .st-vdot.st-vnow { fill: var(--now); }
 .st-vpartial { fill: var(--bg2); stroke: var(--text3); stroke-width: 1.5; }
 .st-vcross { stroke: var(--text2); stroke-width: 1; }
+.st-vbar { fill: var(--accent); opacity: .85; }
+.st-vbar--now { fill: var(--now); }
+.st-vbarv { fill: var(--text2); font-weight: 600; }
+.st-seg--mini { display: inline-flex; margin: 0 0 .5rem; border-radius: 9px; padding: 2px; }
+.st-seg--mini button { flex: none; padding: .22rem .6rem; font-size: .72rem; border-radius: 7px; }
 
 /* "now" — the most recent reading, wherever it is marked (Body charts,
    Strength card). Yellow; darker in light mode so text stays readable. */
