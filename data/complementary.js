@@ -12,6 +12,7 @@
 //      tagged, none unsorted; the other 37 are main-block content.
 //   2. Adds 30 exercises the plan needed and the library didn't have: run &
 //      sprint drills, activation, muscle-up prep, handstand prep, breath.
+//      Batch 2 (26 Sep) adds 22 more from the Instagram intake.
 //   3. Holds the recipes the Generator fills the non-main blocks from:
 //      OPEN_VARIANTS, MOBILITY_RECIPES, SKILL_LINES, CLOSE_RECIPES, and
 //      the coordination rotation's DOMAIN_FAMILIES.
@@ -28,7 +29,7 @@ const FAMILIES = {
   A1: 'Breath & attention',            A2: 'Somatic reset',
   B1: 'Joint prep',                    B2: 'Squat & ankle mobility',
   B3: 'Wrist & hand',                  B4: 'Shoulder & neck prehab',
-  B5: 'Run & sprint drills',           B6: 'Activation',
+  B5: 'Run & sprint drills',           B6: 'Activation & prehab',
   C1: 'Vision',  C2: 'Ball & reaction',  C3: 'Balance',
   C4a: 'Stick balancing',  C4b: 'Stick manipulation',  C5: 'Objects',
   D1: 'Hanging — decompression & scapular',  D2: 'Hanging — swings',
@@ -384,14 +385,14 @@ const NEW_COMPLEMENTARY_EXERCISES = [
 
 const NEW_COMPLEMENTARY_TAGS = {
   'a-march':             { joints: ['hip', 'ankle'], impact: 'low',    pattern: 'locomotion', raisesHR: true,  muscle: null },
-  'a-skip':              { joints: ['hip', 'ankle'], impact: 'medium', pattern: 'locomotion', raisesHR: true,  muscle: null },
-  'b-skip':              { joints: ['hip', 'ankle'], impact: 'medium', pattern: 'locomotion', raisesHR: true,  muscle: null },
-  'high-knees':          { joints: ['hip', 'ankle'], impact: 'medium', pattern: 'locomotion', raisesHR: true,  muscle: null },
+  'a-skip':              { joints: ['hip', 'ankle'], impact: 'moderate', pattern: 'locomotion', raisesHR: true,  muscle: null },
+  'b-skip':              { joints: ['hip', 'ankle'], impact: 'moderate', pattern: 'locomotion', raisesHR: true,  muscle: null },
+  'high-knees':          { joints: ['hip', 'ankle'], impact: 'moderate', pattern: 'locomotion', raisesHR: true,  muscle: null },
   'butt-kicks':          { joints: ['knee', 'ankle'], impact: 'low',   pattern: 'locomotion', raisesHR: true,  muscle: null },
   'carioca':             { joints: ['hip', 'ankle'], impact: 'low',    pattern: 'locomotion', raisesHR: true,  muscle: null },
-  'pogo-hops':           { joints: ['ankle'],        impact: 'medium', pattern: 'other',      raisesHR: true,  muscle: 'calves' },
-  'straight-leg-bound':  { joints: ['hip', 'ankle'], impact: 'medium', pattern: 'locomotion', raisesHR: true,  muscle: 'hamstrings' },
-  'strides':             { joints: ['hip', 'knee', 'ankle'], impact: 'medium', pattern: 'locomotion', raisesHR: true, muscle: null },
+  'pogo-hops':           { joints: ['ankle'],        impact: 'moderate', pattern: 'other',      raisesHR: true,  muscle: 'calves' },
+  'straight-leg-bound':  { joints: ['hip', 'ankle'], impact: 'moderate', pattern: 'locomotion', raisesHR: true,  muscle: 'hamstrings' },
+  'strides':             { joints: ['hip', 'knee', 'ankle'], impact: 'moderate', pattern: 'locomotion', raisesHR: true, muscle: null },
   'glute-bridge-bw':     { joints: ['hip'],          impact: 'low',    pattern: 'hinge',      raisesHR: false, muscle: 'glutes' },
   'banded-lateral-walk': { joints: ['hip'],          impact: 'low',    pattern: 'other',      raisesHR: false, muscle: 'glutes' },
   'dead-bug':            { joints: [],               impact: 'low',    pattern: 'isometric',  raisesHR: false, muscle: 'core' },
@@ -403,7 +404,7 @@ const NEW_COMPLEMENTARY_TAGS = {
   'scap-pullups':        { joints: ['shoulder'],     impact: 'low',    pattern: 'pull',       raisesHR: false, muscle: 'back' },
   'false-grip-hang':     { joints: ['wrist', 'elbow', 'shoulder'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'forearms' },
   'false-grip-ring-row': { joints: ['wrist', 'elbow', 'shoulder'], impact: 'low', pattern: 'pull',      raisesHR: false, muscle: 'back' },
-  'explosive-pullup':    { joints: ['elbow', 'shoulder'], impact: 'medium', pattern: 'pull',  raisesHR: true,  muscle: 'back' },
+  'explosive-pullup':    { joints: ['elbow', 'shoulder'], impact: 'moderate', pattern: 'pull',  raisesHR: true,  muscle: 'back' },
   'straight-bar-dip':    { joints: ['wrist', 'elbow', 'shoulder'], impact: 'low', pattern: 'push',      raisesHR: false, muscle: 'triceps' },
   'russian-dip':         { joints: ['elbow', 'shoulder'], impact: 'low', pattern: 'push',     raisesHR: false, muscle: 'triceps' },
   'banded-mu-transition':{ joints: ['wrist', 'elbow', 'shoulder'], impact: 'low', pattern: 'pull',      raisesHR: false, muscle: 'back' },
@@ -414,6 +415,112 @@ const NEW_COMPLEMENTARY_TAGS = {
   'physiological-sigh':  { joints: [], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: null },
   'extended-exhale':     { joints: [], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: null },
 };
+
+// ── 2b. BATCH 2 (26 Sep, Instagram intake) ─────────────────────
+// Source: claude/library-intake.md. Sit-through, crawls and rolls were
+// already in the library, so they are not repeated here.
+const _EDGE = 'On a floor line, a low curb or a 2×4. Arms out.';
+
+const NEW_COMPLEMENTARY_BATCH2 = [
+  // B5 Run & sprint drills
+  _cx('wall-accel-drill', 'Wall acceleration drill', 'Power', 'Run Drills', 'B5', ['activate', 'potentiate'], 'moderate', 'reps', 'prehab', ['Wall'],
+    'Hands on a wall or post, body at ~45°, straight line ankle to head. Marches → single switches → triple switches. Variant: hold the drive position and push into the wall at full intent for 3–5s (overcoming isometric). Variant: band around the hips anchored behind.',
+    { dose: { sets: 3, reps: 5, restSec: 45, perSide: true } }),
+  _cx('mini-hurdle-hops', 'Mini-hurdle hops', 'Power', 'Run Drills', 'B5', ['potentiate'], 'moderate', 'reps', 'prehab', ['Mini hurdles'],
+    '6–8 low hurdles or floor lines. Quick, stiff contacts, knees up. Two feet first, single leg later. Full rest.',
+    { dose: { sets: 3, reps: 8, restSec: 60 } }),
+  _cx('snap-down-stick', 'Snap-down to stick landing', 'Power', 'Run Drills', 'B5', ['activate', 'potentiate'], 'moderate', 'reps', 'prehab', [],
+    'Rise onto the toes, arms up, snap down into an athletic landing: hips back, knees over toes, stick 2s. Progress to drop landings off a low box. Deceleration prep.',
+    { dose: { sets: 2, reps: 5, restSec: 45 } }),
+
+  // B6 Activation & prehab
+  _cx('split-squat-iso', 'Split squat isometric hold (rear foot elevated)', 'Body Movement', 'Activation', 'B6', ['activate', 'develop', 'mobilise'], 'moderate', 'hold', 'prehab', ['Bench'],
+    'Back foot on a bench, front knee ~90°, back knee just off the floor, torso tall. Develop: 3 × 30–45s per side. Short holds also open the back hip flexor.',
+    { dose: { sets: 2, durationSec: 25, restSec: 30, perSide: true } }),
+  _cx('spanish-squat', 'Spanish squat / wall sit', 'Body Movement', 'Activation', 'B6', ['activate', 'develop'], 'moderate', 'hold', 'prehab', ['Rubber bands'],
+    'Heavy band behind the knees anchored in front (or back against a wall), shins vertical, sit to 70–90° knee bend. Loads the knee tendon for running and jumping.',
+    { dose: { sets: 3, durationSec: 40, restSec: 60 } }),
+  _cx('nordic-curl', 'Nordic hamstring curl', 'Body Movement', 'Activation', 'B6', ['develop'], 'heavy', 'reps', 'prehab', [],
+    'Heels anchored, kneel tall, lower forward as slowly as possible, catch with the hands, push back up. Start band-assisted or partial range. Not the day before sprints; expect soreness the first two weeks.',
+    { dose: { sets: 2, reps: 4, restSec: 120 }, energy: 'Med', difficulty: 3 }),
+
+  // C3 Balance: edge progression (vestibular → proprioceptive → visual → integration)
+  _cx('edge-walk-head-tilt', 'Edge walk — head tilts', 'Body Movement', 'Balance', 'C3', ['practice'], 'light', 'reps', 'skill', [],
+    `${_EDGE} Slow heel-to-toe walk, tilting the head ear to shoulder. Vestibular: head tilt tolerance.`, { dose: { sets: 3, distanceM: 5, restSec: 20 } }),
+  _cx('edge-walk-turning', 'Edge walk — turns', 'Body Movement', 'Balance', 'C3', ['practice'], 'light', 'reps', 'skill', [],
+    `${_EDGE} Walk the edge and turn around mid-walk: 180°, then 360°. Vestibular: rotational acceleration.`, { dose: { sets: 3, distanceM: 5, restSec: 20 } }),
+  _cx('edge-sl-eyes-closed-taps', 'Edge single-leg balance — eyes closed, taps', 'Body Movement', 'Balance', 'C3', ['practice', 'activate'], 'light', 'reps', 'skill', [],
+    `${_EDGE} Single leg on the edge, eyes closed, free foot taps forward and to the side. Proprioception.`, { dose: { sets: 2, reps: 8, restSec: 20, perSide: true } }),
+  _cx('edge-squat-eyes-closed', 'Edge squat — eyes closed', 'Body Movement', 'Balance', 'C3', ['practice', 'mobilise'], 'light', 'reps', 'skill', [],
+    `${_EDGE} Both feet on the line, eyes closed, lower slowly to a full squat and stand. Proprioception through range.`, { dose: { sets: 2, reps: 5, restSec: 30 } }),
+  _cx('edge-sl-gaze-shifts', 'Edge single-leg balance — gaze shifts', 'Body Movement', 'Balance', 'C3', ['practice'], 'light', 'hold', 'skill', [],
+    `${_EDGE} Single leg, head still, eyes jump up/down, then left/right. Visual: saccades under balance load.`, { dose: { sets: 2, durationSec: 30, restSec: 20, perSide: true } }),
+  _cx('edge-walk-ball-bounce', 'Edge walk — ball bounce', 'Body Movement', 'Balance', 'C3', ['practice'], 'light', 'reps', 'skill', ['Tennis ball'],
+    `${_EDGE} Walk the edge while bouncing a ball, dropping into low lunges to bounce it near the floor. Integration: divided attention.`, { dose: { sets: 3, distanceM: 5, restSec: 20 } }),
+
+  // D4 Muscle-up prep
+  _cx('low-bar-drill', 'Low bar drill (muscle-up hip drive)', 'Rings', 'Skill', 'D4', ['practice'], 'moderate', 'reps', 'skill', ['Rack'],
+    'Bar at chest-to-hip height, feet on the floor. Drive the hips up into the bar and turn over into support with as little arm pull as possible. Fixes muscling over the bar instead of using the hips.',
+    { modalityTags: ['calisthenics'], goals: ['ring-muscle-up'], dose: { sets: 3, reps: 4, restSec: 90 }, segment: 'skill', energy: 'Med' }),
+
+  // D6 Arm balances
+  _cx('turtle-hold', 'Turtle hold', 'Body Movement', 'Arm Balancing', 'D6', ['practice', 'develop'], 'heavy', 'hold', 'skill', [],
+    'Low bent-arm balance: elbows under the hips, body horizontal, knees bent, feet off the floor. Between frog stand and planche-type holds.',
+    { modalityTags: ['calisthenics'], dose: { sets: 5, durationSec: 8, restSec: 45 }, segment: 'skill', energy: 'Med', difficulty: 3 }),
+
+  // D7 Gymnastics conditioning
+  _cx('slingshot-rebound-plank', 'Slingshot rebound plank', 'Body Movement', 'Gymnastics Conditioning', 'D7', ['activate', 'potentiate'], 'moderate', 'reps', 'skill', [],
+    "From child's pose, shoot forward into a plank and rebound back. Reactive shoulders and core. Before handstand or push work.",
+    { modalityTags: ['calisthenics'], dose: { sets: 2, reps: 8, restSec: 45 } }),
+
+  // E1 Locomotion & ground flow (wrestling flow)
+  _cx('sprawl', 'Sprawl', 'Body Movement', 'Ground Flow', 'E1', ['raise', 'potentiate'], 'moderate', 'reps', 'skill', [],
+    'From an athletic stance, shoot the legs back and drop the hips to the floor, chest up, then snap back to stance.', { dose: { sets: 3, reps: 6, restSec: 45 } }),
+  _cx('level-change-step', 'Level change / penetration step', 'Body Movement', 'Ground Flow', 'E1', ['practice'], 'moderate', 'reps', 'skill', [],
+    'From stance, drop the hips and step deep, lead knee to the floor, back straight, then drive up and forward.', { dose: { sets: 2, reps: 6, restSec: 45, perSide: true } }),
+  _cx('donkey-kicks', 'Donkey kicks', 'Body Movement', 'Ground Flow', 'E1', ['raise', 'practice'], 'light', 'reps', 'skill', [],
+    'Hands planted, kick the hips and legs up behind you, land softly on the feet. Handstand entry prep.', { dose: { sets: 2, reps: 8, restSec: 30 } }),
+
+  // E2 Floreio
+  _cx('two-limbs-negativa', 'Two-limbs negativa', 'Body Movement', 'Floreio', 'E2', ['practice'], 'moderate', 'hold', 'skill', [],
+    'Negativa supported on one hand and one foot, hips lifted, other leg extended. Switch sides.', { dose: { sets: 3, durationSec: 5, restSec: 30, perSide: true } }),
+  _cx('wheel-whip', 'Wheel whip', 'Body Movement', 'Floreio', 'E2', ['practice'], 'explosive', 'reps', 'skill', [],
+    'Cartwheel-type pass through handstand with the legs whipping over. Needs a solid cartwheel first.', { dose: { sets: 4, reps: 3, restSec: 60, perSide: true }, energy: 'High', difficulty: 4 }),
+
+  // E3 Tumbling
+  _cx('breakfalls', 'Breakfalls (side / back)', 'Body Movement', 'Tumbling', 'E3', ['practice'], 'light', 'reps', 'skill', [],
+    'Chin tucked, round the back, slap the floor with the arm(s) at ~45° as you land. From sitting, then squatting, then standing.', { dose: { sets: 2, reps: 5, restSec: 30, perSide: true } }),
+  _cx('back-arch-to-bridge', 'Standing back arch into bridge', 'Body Movement', 'Tumbling', 'E3', ['practice'], 'heavy', 'reps', 'skill', [],
+    'From standing, hips forward, arch back and lower the hands to the floor into a bridge. Learn with a wall walk-down or a spotter first.', { dose: { sets: 3, reps: 2, restSec: 60 }, energy: 'Med', difficulty: 4 }),
+];
+
+const NEW_COMPLEMENTARY_TAGS_BATCH2 = {
+  'wall-accel-drill':          { joints: ['hip', 'ankle'], impact: 'low', pattern: 'isometric', raisesHR: true, muscle: 'glutes' },
+  'mini-hurdle-hops':          { joints: ['ankle', 'knee'], impact: 'moderate', pattern: 'other', raisesHR: true, muscle: null },
+  'snap-down-stick':           { joints: ['hip', 'knee', 'ankle'], impact: 'moderate', pattern: 'squat', raisesHR: false, muscle: 'quads' },
+  'split-squat-iso':           { joints: ['hip', 'knee'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'quads' },
+  'spanish-squat':             { joints: ['knee'], impact: 'low', pattern: 'isometric', raisesHR: false, muscle: 'quads' },
+  'nordic-curl':               { joints: ['knee'], impact: 'low', pattern: 'hinge', raisesHR: false, muscle: 'hamstrings' },
+  'edge-walk-head-tilt':       { joints: ['ankle', 'neck'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'edge-walk-turning':         { joints: ['ankle'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'edge-sl-eyes-closed-taps':  { joints: ['ankle', 'hip'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'edge-squat-eyes-closed':    { joints: ['ankle', 'knee', 'hip'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'edge-sl-gaze-shifts':       { joints: ['ankle'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'edge-walk-ball-bounce':     { joints: ['ankle', 'wrist'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: null },
+  'low-bar-drill':             { joints: ['wrist', 'elbow', 'shoulder', 'hip'], impact: 'low', pattern: 'skill', raisesHR: false, muscle: 'back' },
+  'turtle-hold':               { joints: ['wrist', 'elbow', 'shoulder'], impact: 'low', pattern: 'balance', raisesHR: false, muscle: 'shoulders' },
+  'slingshot-rebound-plank':   { joints: ['wrist', 'shoulder'], impact: 'moderate', pattern: 'push', raisesHR: true, muscle: 'core' },
+  'sprawl':                    { joints: ['hip', 'wrist', 'shoulder'], impact: 'moderate', pattern: 'flow', raisesHR: true, muscle: 'core' },
+  'level-change-step':         { joints: ['knee', 'hip'], impact: 'moderate', pattern: 'flow', raisesHR: true, muscle: 'quads' },
+  'donkey-kicks':              { joints: ['wrist', 'shoulder'], impact: 'moderate', pattern: 'flow', raisesHR: true, muscle: 'shoulders' },
+  'two-limbs-negativa':        { joints: ['wrist', 'shoulder', 'hip'], impact: 'low', pattern: 'skill', raisesHR: false, muscle: 'core' },
+  'wheel-whip':                { joints: ['wrist', 'shoulder'], impact: 'high', pattern: 'skill', raisesHR: true, muscle: 'shoulders' },
+  'breakfalls':                { joints: ['back', 'shoulder', 'neck'], impact: 'moderate', pattern: 'skill', raisesHR: false, muscle: null },
+  'back-arch-to-bridge':       { joints: ['back', 'wrist', 'shoulder'], impact: 'moderate', pattern: 'skill', raisesHR: false, muscle: null },
+};
+
+NEW_COMPLEMENTARY_EXERCISES.push(...NEW_COMPLEMENTARY_BATCH2);
+Object.assign(NEW_COMPLEMENTARY_TAGS, NEW_COMPLEMENTARY_TAGS_BATCH2);
 
 // Register: append the new entries (skipping any id that already exists,
 // so a later hand-written library entry wins), then tag everything.
