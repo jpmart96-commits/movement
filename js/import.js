@@ -742,3 +742,214 @@ const Importer = {
 };
 
 if (typeof module !== 'undefined' && module.exports) module.exports.Importer = Importer;
+
+
+// ─────────────────────────────────────────────────────────────
+// WATCH IMPORT — several Ruttio files at once, linked to the day's blocks
+//
+// A morning is several watch workouts at most (a coordination "Other", the
+// ride), and Ruttio exports each one as a JSON (+ optional TCX for laps).
+// This groups whatever files were picked into workouts, proposes which part
+// of the session each one belongs to, and — once confirmed on the review
+// sheet — writes it there.
+//
+// The link is made on two facts: the date, and what kind of workout it is.
+//   run / ride  → the cardio exercise in Main Focus (distance, zones, the
+//                 Z2 verdict, speed at HR — the analysis that matters)
+//   strength    → Main Focus on a lift day
+//   yoga / flex → Mobility & Flexibility
+//   anything else ("Other", soccer, mixed) → Complementary, the coordination
+//                 block, which is where an untyped watch workout nearly
+//                 always comes from
+// When the preferred block isn't there, the closest by duration on the same
+// side of the ride/run in time. Nothing is written until the sheet is
+// confirmed, and every proposal can be changed there.
+// ─────────────────────────────────────────────────────────────
+
+const WatchImport = {
+
+  // Apple's activity names as Ruttio writes them (activityTypeName).
+  kindOf(sport) {
+    const s = String(sport || '').toLowerCase();
+    if (/run/.test(s)) return 'run';
+    if (/cycl|bik/.test(s)) return 'bike';
+    if (/walk|hik/.test(s)) return 'walk';
+    if (/strength|weight|functional|core/.test(s)) return 'strength';
+    if (/yoga|flexib|pilates|mind|cooldown|stretch/.test(s)) return 'mobility';
+    return 'other';
+  },
+
+  // files: [{ name, text }]. Returns { workouts, ignored }.
+  group(files, profile) {
+    const ignored = [], jsons = [], tcxs = [];
+    (files || []).forEach(f => {
+      const n = String(f.name || '').toLowerCase();
+      try {
+        if (n.endsWith('.json')) {
+          const d = JSON.parse(f.text);
+          if (!d || !d.startTime || !('durationSeconds' in d)) { ignored.push({ name: f.name, why: 'not a Ruttio workout JSON' }); return; }
+          jsons.push({ name: f.name, d, text: f.text });
+        } else if (n.endsWith('.tcx')) {
+          tcxs.push({ name: f.name, text: f.text, t: RuttioImport.parseTCX(f.text) });
+        } else {
+          ignored.push({ name: f.name, why: 'only .json and .tcx are read (GPX/FIT carry nothing extra)' });
+        }
+      } catch (e) { ignored.push({ name: f.name, why: 'could not read: ' + e.message }); }
+    });
+    // A TCX belongs to the JSON with the same start time (its <Id>).
+    const workouts = jsons.map(j => {
+      const t0 = Date.parse(j.d.startTime);
+      const tcx = tcxs.find(x => Math.abs(Date.parse(x.t.startTime) - t0) < 5000);
+      if (tcx) tcx.used = true;
+      const r = RuttioImport.review({ json: j.d, tcx: tcx ? tcx.text : null, profile });
+      const start = new Date(t0), end = new Date(Date.parse(j.d.endTime) || (t0 + r.durationSec * 1000));
+      return { ...r, id: j.d.id || j.d.startTime, file: j.name, tcxFile: tcx ? tcx.name : null,
+        kind: this.kindOf(r.sport), start: start.toISOString(), end: end.toISOString(), minutes: Math.round(r.durationSec / 60) };
+    }).sort((a, b) => a.start < b.start ? -1 : 1);
+    tcxs.filter(x => !x.used).forEach(x => ignored.push({ name: x.name, why: 'TCX with no matching JSON — export the JSON too' }));
+    return { workouts, ignored };
+  },
+
+  _isCardioEx(ex) { return ex && ex.logType === 'cardio' && ex.id !== 'walking'; },
+  _mod(id) { return /cycl|bike/.test(id || '') ? 'bike' : 'run'; },
+
+  // Proposed target per workout: { kind: 'cardio', blockIdx, exIdx } |
+  // { kind: 'block', blockIdx } | { kind: 'extra' } | { kind: 'skip', why }.
+  propose(session, workouts) {
+    const already = new Set(this.importedIds(session));
+    const blocks = session.blocks || [];
+    const used = new Set();
+    const mainIdx = blocks.findIndex(b => b.mainFocus || /^main-focus/.test(b.key || ''));
+    const cardioW = workouts.find(w => w.kind === 'run' || w.kind === 'bike');
+    return workouts.map(w => {
+      if (already.has(w.id)) return { kind: 'skip', why: 'already imported' };
+      if (session.date && w.date !== session.date) return { kind: 'skip', why: `recorded ${w.date}, this session is ${session.date}` };
+      if (w.kind === 'run' || w.kind === 'bike') {
+        // The Main Focus cardio exercise; a plyo day's warm-up run counts too.
+        for (let b = 0; b < blocks.length; b++) {
+          if (!/^main-focus/.test(blocks[b].key || '') && blocks[b].key !== 'cardio') continue;
+          const e = (blocks[b].exercises || []).findIndex(x => this._isCardioEx(x) && !used.has(b + ':' + x.id));
+          if (e !== -1) { used.add(b + ':' + blocks[b].exercises[e].id); return { kind: 'cardio', blockIdx: b, exIdx: e }; }
+        }
+        return { kind: 'extra' };
+      }
+      const pref = w.kind === 'strength' ? (k => /^main-focus:weights/.test(k))
+        : w.kind === 'mobility' ? (k => k === 'mobility')
+        : w.kind === 'walk' ? (k => k === 'close' || k === 'open')
+        : (k => k === 'complementary');
+      let bi = blocks.findIndex((b, i) => pref(b.key || '') && !used.has('b' + i));
+      if (bi === -1) {
+        // Closest planned duration on the same side of the cardio workout.
+        const before = cardioW && mainIdx !== -1 ? w.start < cardioW.start : null;
+        const cands = blocks.map((b, i) => ({ b, i })).filter(({ b, i }) => !used.has('b' + i) && !/^main-focus/.test(b.key || '')
+          && (before === null || (before ? i < mainIdx : i > mainIdx)));
+        cands.sort((x, y) => Math.abs((x.b.duration || 0) - w.minutes) - Math.abs((y.b.duration || 0) - w.minutes) || x.i - y.i);
+        bi = cands.length ? cands[0].i : -1;
+      }
+      if (bi === -1) return { kind: 'extra' };
+      used.add('b' + bi);
+      return { kind: 'block', blockIdx: bi };
+    });
+  },
+
+  importedIds(session) {
+    const ids = [];
+    (session.blocks || []).forEach(b => {
+      (b.watch || []).forEach(x => ids.push(x.id));
+      (b.exercises || []).forEach(e => { if (e.cardioLog && e.cardioLog.watchId) ids.push(e.cardioLog.watchId); if (e.watch) ids.push(e.watch.id); });
+    });
+    return ids;
+  },
+
+  // What's kept of a workout on a block or exercise: the summary and the
+  // 30s series, never the raw streams.
+  _watchRecord(w) {
+    return { id: w.id, sport: w.sport, start: w.start, end: w.end, durationSec: w.durationSec,
+      avgHR: w.avgHR, maxHR: w.maxHR, calories: w.calories, zones: w.zones, series: w.series };
+  },
+
+  _hasWork(e) { return !!(e && (e.completed || e.skipped || (e.sets || []).length || e.cardioLog)); },
+
+  // links: [{ workout, target: {kind, blockIdx, exIdx}, markDone, doneInstead }]
+  //   markDone     — tick the block's untouched exercises as prescribed
+  //   doneInstead  — a library exercise that replaces what was planned in
+  //                  that block (planned ones untouched → skipped "replaced")
+  apply(session, links, profile) {
+    const report = [];
+    const starts = [], ends = [];
+    links.forEach(l => {
+      const w = l.workout, t = l.target || { kind: 'skip' };
+      if (t.kind === 'skip') return;
+      starts.push(w.start); ends.push(w.end);
+      if (t.kind === 'cardio' || t.kind === 'extra') {
+        let ex = t.kind === 'cardio' ? (session.blocks[t.blockIdx] || {}).exercises?.[t.exIdx] : null;
+        if (!ex) {
+          const blk = Importer._ensureExtraBlock(session);
+          ex = { id: 'watch-' + w.kind, name: w.sport || 'Workout', logType: 'cardio', notes: '', sets: [], completed: false, skipped: false, link: null };
+          blk.exercises.push(ex);
+        }
+        ex.cardioLog = {
+          duration: w.durationSec, distanceKm: w.distanceKm || null, appleFitnessLink: '', note: '',
+          source: 'ruttio', watchId: w.id, sport: w.sport, start: w.start, end: w.end,
+          avgHR: w.avgHR, maxHR: w.maxHR, avgZone: w.avgZone, elevGainM: w.elevGainM, calories: w.calories,
+          paceMinPerKm: w.paceMinPerKm, zones: w.zones, structure: w.structure, lapSource: w.lapSource, series: w.series,
+          ...(ex.cardioLog && ex.cardioLog.rpe ? { rpe: ex.cardioLog.rpe } : {}),
+        };
+        // Planned a run, rode instead: say so rather than pretend.
+        if (t.kind === 'cardio' && (w.kind === 'run' || w.kind === 'bike') && this._mod(ex.id) !== w.kind) ex.cardioLog.note = `Recorded as ${w.sport}`;
+        ex.completed = true; ex.skipped = false; ex.importedFrom = 'ruttio';
+        report.push(`${w.sport} → ${ex.name}`);
+        return;
+      }
+      const blk = session.blocks[t.blockIdx];
+      if (!blk) return;
+      blk.watch = (blk.watch || []).filter(x => x.id !== w.id).concat([this._watchRecord(w)]);
+      if (l.doneInstead) {
+        const lib = (typeof LIBRARY !== 'undefined') ? LIBRARY.find(e => e.id === l.doneInstead) : null;
+        if (lib) {
+          // Planned exercises that were only ticked "as prescribed" (Already
+          // done — log it) weren't really logged, so they're replaced too.
+          (blk.exercises || []).forEach(e => {
+            if (e.logType === 'none' || (this._hasWork(e) && !e.doneAsPrescribed)) return;
+            e.sets = []; e.completed = false; e.doneAsPrescribed = false; e.skipped = true; e.skipReason = 'replaced';
+          });
+          const built = (typeof Generator !== 'undefined')
+            ? Generator.buildExerciseInstance(lib, profile || (typeof Profile !== 'undefined' ? Profile.load() : null))
+            : { id: lib.id, name: lib.name, logType: lib.logType, sets: [] };
+          if (built) {
+            built.sets = built.logType === 'hold' || built.logType === 'none'
+              ? [{ idx: 1, weight: null, reps: null, duration: w.durationSec, note: 'watch', completed: true, loggedAt: Date.parse(w.end) }]
+              : [];
+            built.completed = true; built.skipped = false; built.importedFrom = 'ruttio';
+            built.watch = { id: w.id, avgHR: w.avgHR, durationSec: w.durationSec };
+            blk.exercises.push(built);
+            report.push(`${w.sport} → ${blk.label}: ${lib.name} ${Math.round(w.durationSec / 60)} min`);
+            return;
+          }
+        }
+      }
+      if (l.markDone) {
+        (blk.exercises || []).forEach(e => {
+          if (this._hasWork(e)) return;
+          const tgt = e.target || {};
+          const n = Math.max(1, Math.min(12, tgt.sets || 1));
+          if (e.logType === 'hold' && tgt.durationSec) e.sets = Array.from({ length: n }, (_, i) => ({ idx: i + 1, duration: tgt.durationSec, completed: true, note: 'as prescribed' }));
+          else if ((e.logType === 'reps' || e.logType === 'weight+reps') && tgt.reps) e.sets = Array.from({ length: n }, (_, i) => ({ idx: i + 1, reps: typeof tgt.reps === 'number' ? tgt.reps : parseInt(tgt.reps, 10) || null, weight: tgt.loadKg ?? null, completed: true, note: 'as prescribed' }));
+          e.completed = true; e.doneAsPrescribed = true;
+        });
+      }
+      report.push(`${w.sport} → ${blk.label}`);
+    });
+    // The session's real window, from the watch. Planned clock times are a
+    // plan; these are what happened.
+    if (starts.length) {
+      const s0 = starts.sort()[0], e1 = ends.sort().slice(-1)[0];
+      const prev = session.watchWindow;
+      session.watchWindow = { start: prev && prev.start < s0 ? prev.start : s0, end: prev && prev.end > e1 ? prev.end : e1 };
+    }
+    session.importSources = [...new Set([...(session.importSources || []), 'ruttio'])];
+    return { session, report };
+  },
+};
+
+if (typeof module !== 'undefined' && module.exports) module.exports.WatchImport = WatchImport;

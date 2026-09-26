@@ -472,6 +472,7 @@ function setTheme(t) {
 <script src="data/scaffold.js"></script>
 <script src="data/monthplan.js"></script>
 <script src="data/media.js"></script>
+<script src="data/rungs.js"></script>
 <script src="js/app.js"></script>
 <script src="js/custom.js"></script>
 <script src="js/import.js"></script>
@@ -722,6 +723,61 @@ function setMilestone(goalId, idx) {
   renderProgress();
 }
 function toggleMove(id) { _openMove = (_openMove === id) ? null : id; renderProgress(); }
+
+// What a rung actually is. Rungs are free text and most aren't library
+// exercises, so the sheet draws on data/rungs.js: a short description, the
+// matching library exercise's cues and video when there is one, and a video
+// search either way. Shares the exercise sheet's shell; _exSheet stays null
+// so nothing re-renders it as a Today exercise.
+function openRung(goalId, k) {
+  const back = document.getElementById('ex-sheet-back');
+  const el = document.getElementById('ex-sheet');
+  if (!back || !el) return;
+  _exSheet = null;
+  const goal = Custom.getAllGoals().find(g => g.id === goalId) || { id: goalId, name: '' };
+  const ms = Custom.getMilestones(goalId) || [];
+  const text = ms[k];
+  if (text == null) return;
+  const at = (goalMilestoneInfo(goalId) || {}).idx || 0;
+  const info = rungInfo(goal, text, Custom.getAllExercises());
+  const base = info.ex;
+  const ex = base ? (base.isCustom ? base : Overrides.apply(base)) : null;
+
+  const thumb = ex ? ((ex.imageUrl || ex.image) || Overrides.thumbFromYouTube(ex.link) || '') : '';
+  const para = (t, c) => `<div style="font-size:.84rem;line-height:1.6;color:${c || 'var(--text2)'};margin-bottom:.9rem;white-space:pre-line">${t}</div>`;
+  const status = k < at ? 'Done' : k === at ? 'You are here' : (k === at + 1 ? 'Next up' : 'Later');
+
+  let body = '';
+  if (thumb) body += `<div class="mv-demo"><img src="${escAttr(thumb)}" alt="${escAttr(ex.name)}" onerror="this.parentNode.style.display='none'"></div>`;
+  if (info.what) body += `<div class="mv-eyebrow" style="margin-bottom:.4rem">What it is</div>` + para(info.what);
+  if (info.cue)  body += `<div class="mv-eyebrow mv-eyebrow--warm" style="margin-bottom:.4rem">Watch for</div>` + para(info.cue);
+  if (ex) {
+    const how = ex.instructions || '';
+    body += `<div class="mv-eyebrow" style="margin-bottom:.4rem">From the library · ${escAttr(ex.name)}</div>`
+      + (how ? para(how) : para(ex.notes || 'No cues written for it yet.', ex.notes ? '' : 'var(--text3)'));
+  }
+  if (!info.what && !ex) body += para('No description for this one yet. The video search below is the quickest way to see it.', 'var(--text3)');
+  body += `<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.9rem">
+      ${ex && ex.link ? `<a href="${escAttr(ex.link)}" target="_blank" rel="noopener" style="font-size:.8rem;color:var(--accent);text-decoration:none">&#9654; Watch</a>` : ''}
+      <a href="${escAttr(info.search)}" target="_blank" rel="noopener" style="font-size:.8rem;color:var(--accent);text-decoration:none">Search videos &#8599;</a>
+      ${ex ? `<a href="#" onclick="event.preventDefault();closeExSheet();openExView('${escAttr(ex.id)}')" style="font-size:.8rem;color:var(--text2);text-decoration:none">Full exercise &rarr;</a>` : ''}
+    </div>`;
+
+  el.innerHTML = `
+    <div class="mv-sheet-head">
+      <div style="min-width:0">
+        <div class="mv-eyebrow" style="margin-bottom:.2rem">${escAttr(goal.name || 'Ladder')} · rung ${k + 1} of ${ms.length} · ${status}</div>
+        <div class="mv-display" style="font-size:1.2rem">${text}</div>
+      </div>
+      <button class="mv-sheet-x" onclick="closeExSheet()" aria-label="Close">&times;</button>
+    </div>
+    <div class="mv-sheet-body">${body}</div>
+    <div class="mv-sheet-foot">
+      <button style="background:var(--bg3);color:var(--text2);border:1px solid var(--border)" onclick="closeExSheet()">Close</button>
+      <button style="background:var(--accent);color:var(--on-accent,#fff);border:none;${k === at ? 'opacity:.4' : ''}" ${k === at ? 'disabled' : ''} onclick="closeExSheet();setMilestone('${goalId}',${k})">${k === at ? 'You are here' : 'I\u2019m on this rung'}</button>
+    </div>`;
+  back.style.display = 'flex';
+}
 
 // One pass over recent sessions, pulling out every cardio log. Capped —
 // this is localStorage, one read per session.
@@ -979,7 +1035,7 @@ function renderProgress() {
         // ahead, solid once that day is done.
         const done = doneDates.has(d.date);
         const cls = d.benchmark ? (done ? 'bench done' : 'bench') : (done ? 'done' : '');
-        const tip = d.date + ' · ' + d.theme + (d.benchmark ? (done ? ' · benchmark done' : ' · benchmark, to come') : '');
+        const tip = d.date + ' · ' + d.theme + (d.benchmark ? (done ? ' · running benchmark done' : ' · running benchmark, to come') : '');
         return `<i class="${cls}" title="${escAttr(tip)}"></i>`;
       }).join('')}</div>
       <div class="mv-weekbar-labels" style="margin-top:.5rem">${(plan.weeks||[]).map(w=>`<span>${w.label}</span>`).join('')}</div>
@@ -1067,16 +1123,16 @@ function renderProgress() {
         </button>
         ${open ? `<div style="margin-top:.7rem;padding-top:.6rem;border-top:1px solid var(--border)">
           <div class="mv-eyebrow" style="margin-bottom:.4rem">The ladder</div>
-          ${ms.map((m,k)=>`<button type="button" class="mv-step" style="width:100%;background:none;border:none;padding:.25rem 0;font-family:var(--font-body);text-align:left;cursor:pointer" onclick="setMilestone('${g.id}',${k})" title="Tap the rung you are on">
-            <div class="mv-step-dot ${k<at?'on':''}"></div>
-            <div style="flex:1;font-size:.78rem;line-height:1.4;color:${k<at?'var(--text)':'var(--text3)'}">${m}</div>
+          ${ms.map((m,k)=>`<div class="mv-step mv-rung">
+            <button type="button" class="mv-rung-mark" onclick="setMilestone('${g.id}',${k})" title="Mark this as where you are" aria-label="Mark as where you are"><span class="mv-step-dot ${k<at?'on':''}"></span></button>
+            <button type="button" class="mv-rung-name" onclick="openRung('${g.id}',${k})" title="What is this?" style="color:${k<at?'var(--text)':'var(--text3)'}">${m}<span class="mv-rung-i" aria-hidden="true">i</span></button>
             ${k===at?'<div class="mv-here">HERE</div>':''}
-          </button>`).join('')}
-          <div style="font-size:.66rem;color:var(--text3);margin-top:.3rem">Tap a rung to mark where you are.</div>
+          </div>`).join('')}
+          <div style="font-size:.66rem;color:var(--text3);margin-top:.3rem">Tap a name to see what it is. Tap the dot to mark where you are.</div>
           <div class="mv-eyebrow" style="margin:.8rem 0 .4rem">Feeds it</div>
           <div class="mv-chips">${(g.feedExercises||[]).map(fid=>{
             const ex = LIBRARY.find(e=>e.id===fid) || Custom.getAllExercises().find(e=>e.id===fid);
-            return ex ? `<span class="mv-chip">${ex.name}</span>` : '';
+            return ex ? `<button type="button" class="mv-chip mv-chip-btn" onclick="openExView('${escAttr(fid)}')">${ex.name}</button>` : '';
           }).join('')}</div>
         </div>` : ''}
       </div>`;
@@ -1118,6 +1174,21 @@ function _todayPlan() {
 function toggleTodayBlock(key) {
   _todayOpen = (_todayOpen === key) ? null : key;
   renderToday();
+}
+
+// Trained first, logging after: everything on today's plan (as edited) is
+// marked done as prescribed, then the session opens for review so whatever
+// went differently can be changed before Complete. One tap to log a day
+// that matched the plan; a few more for the parts that didn't.
+function logTodayDone() {
+  const { session, stored } = _todayPlan();
+  if (!session) { alert('No plan for today.'); return; }
+  if (!stored) DB.set(_todayInstanceKey(), session);
+  const s = DB.get(_todayInstanceKey()) || session;
+  s.loggedAfter = true;
+  _startSession(s);
+  LiveSession.getSession().blocks.forEach((b, i) => LiveSession.markBlockDone(i));
+  renderSessionScreen();
 }
 
 function startTodayFromPlan() {
@@ -1386,7 +1457,11 @@ function renderToday() {
   const d = new Date();
   const head = `${['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()]} ${d.getDate()} ${['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][d.getMonth()]}`
     + (prog && prog.week ? ` · WEEK ${prog.week}` : '')
-    + (session.plannedDuration && session.plannedDuration !== session.duration ? ` · ${session.duration} OF ${session.plannedDuration} MIN` : ` · ${session.duration} MIN`);
+    + (() => {
+      // Instances made before plannedDuration existed: planned = what's there + what was removed.
+      const planned = session.plannedDuration || (session.duration + (session.removedBlocks || []).reduce((a, r) => a + (r.block.duration || 0), 0));
+      return planned !== session.duration ? ` · ${session.duration} OF ${planned} MIN` : ` · ${session.duration} MIN`;
+    })();
 
   let h = `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.6rem;padding:.4rem 0 .9rem;border-bottom:1px solid var(--border);margin-bottom:.9rem">
     <div>
@@ -1453,6 +1528,7 @@ function renderToday() {
       <div class="mv-tile"><div class="mv-tile-k">Easy cap</div><div class="mv-tile-v">${z2} bpm</div></div>
     </div>
     <button class="mv-cta" onclick="${live ? "navTo('session')" : 'startTodayFromPlan()'}">${live ? 'Continue session →' : 'Start session'}</button>
+    ${!live && session.status !== 'completed' ? `<button class="mv-ghost" style="margin-top:.45rem" onclick="logTodayDone()">Already done — log it</button>` : ''}
   </div>
   </div>`;
 
@@ -2341,6 +2417,25 @@ function renderSessionScreen() {
   // composed session has no weekday to swap or plan to scale against.
   const adjBtn = document.getElementById('sh-adjust');
   if (adjBtn) adjBtn.style.display = session.weekday ? '' : 'none';
+  {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.marginBottom = '.75rem';
+    const ww = session.watchWindow;
+    card.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:.6rem">
+      <div style="font-size:.8rem;line-height:1.4;color:var(--text2)">${ww ? `⌚ Watch ${_hhmm(ww.start)}–${_hhmm(ww.end)}` : 'Recorded on the watch? Pick the Ruttio files (several at once).'}</div>
+      <button type="button" class="mv-pill" onclick="openWatchImport('live')">⌚ Import</button></div>
+      ${session.lastImport&&session.lastImport.lines.length?`<div style="font-size:.74rem;line-height:1.5;color:var(--text3);margin-top:.4rem">${session.lastImport.lines.map(escAttr).join('<br>')}</div>`:''}`;
+    container.appendChild(card);
+  }
+  if (session.loggedAfter && session.status === 'active') {
+    const note = document.createElement('div');
+    note.className = 'card';
+    note.style.marginBottom = '.75rem';
+    note.innerHTML = `<div style="font-size:.7rem;letter-spacing:.12em;font-weight:600;color:var(--accent);margin-bottom:.25rem">LOGGED AS PRESCRIBED</div>
+      <div style="font-size:.82rem;line-height:1.45;color:var(--text2)">Everything is ticked with its planned dose. Open a block to change what went differently — real loads, a skipped drill, the ride's km and heart rate, RPE — then Complete session.</div>`;
+    container.appendChild(note);
+  }
   if (session.chatLog && session.chatLog.length) {
     const last = session.chatLog[session.chatLog.length - 1];
     const note = document.createElement('div');
@@ -2359,7 +2454,7 @@ function renderSessionScreen() {
     const wrap = document.createElement('div'); wrap.className='block-wrap' + (isCollapsed ? ' collapsed' : ''); wrap.id=`block-${bIdx}`;
     wrap.innerHTML=`
       <div class="block-header${done===block.exercises.length?' block-done':''}" onclick="toggleBlock(${bIdx})">
-        <div class="bh-left"><div class="bh-dot" style="background:${block.color}"></div><div><div class="bh-title">${escAttr(block.label)}</div>${block.duration?`<div class="bh-dur">~${block.duration} min</div>`:''}</div></div>
+        <div class="bh-left"><div class="bh-dot" style="background:${block.color}"></div><div><div class="bh-title">${escAttr(block.label)}</div>${block.duration?`<div class="bh-dur">~${block.duration} min${_watchLine(block)}</div>`:''}</div></div>
         <div class="bh-right"><span class="bh-count">${done}/${block.exercises.length}</span><svg class="bh-chevron" viewBox="0 0 24 24" width="16"><polyline points="6,9 12,15 18,9"/></svg></div>
       </div>
       ${isCollapsed ? `<div class="bh-summary" style="padding:0 .9rem .7rem 2.1rem;font-size:.76rem;line-height:1.45;color:var(--text3)">${block.exercises.map(e => escAttr(e.name)).join(' · ')}</div>` : ''}
@@ -2421,7 +2516,7 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
   } else if (ex.logType==='cardio') {
     const c=ex.cardioLog;
     logHtml=`<div class="cardio-row">${c
-      ?`<div class="cardio-result">${c.distanceKm?c.distanceKm+'km · ':''}${Utils.formatDuration(c.duration)}${c.avgHr?' · avg '+c.avgHr+' bpm':''}${_safeUrl(c.appleFitnessLink)?' · <a href="'+escAttr(_safeUrl(c.appleFitnessLink))+'" target="_blank" rel="noopener">Apple Fitness ↗</a>':''}</div>`
+      ?`<div class="cardio-result">${c.distanceKm?c.distanceKm+'km · ':''}${Utils.formatDuration(c.duration)}${c.avgHr?' · avg '+c.avgHr+' bpm':''}${_safeUrl(c.appleFitnessLink)?' · <a href="'+escAttr(_safeUrl(c.appleFitnessLink))+'" target="_blank" rel="noopener">Apple Fitness ↗</a>':''}${c.series?'':` <button type="button" class="mv-linkbtn" onclick="editCardio(${bIdx},${eIdx})">change</button>`}</div>`
       :`<div class="cardio-inputs"><input type="number" class="num-in sm" id="cd-m-${bIdx}-${eIdx}" placeholder="min" value="${ex.target&&ex.target.durationSec?Math.round(ex.target.durationSec/60):''}"><span>:</span><input type="number" class="num-in sm" id="cd-s-${bIdx}-${eIdx}" placeholder="ss" max="59"><input type="number" class="num-in sm" id="cd-km-${bIdx}-${eIdx}" placeholder="km" step="0.01" min="0"><input type="number" class="num-in sm" id="cd-hr-${bIdx}-${eIdx}" placeholder="avg HR" min="60" max="220"><input type="text" class="text-in-sm" id="cd-link-${bIdx}-${eIdx}" placeholder="Apple Fitness link"><button class="log-btn" onclick="logCardio(${bIdx},${eIdx})">Log</button></div>`
     }</div>`;
   }
@@ -2571,6 +2666,100 @@ function logCardio(b,e){
   const hr=parseInt(document.getElementById(`cd-hr-${b}-${e}`)?.value)||null;
   LiveSession.logCardio(b,e,{durationMin:m,durationSec:s,distanceKm:km,appleFitnessLink:link,avgHr:hr});refreshExercise(b,e);
 }
+// Reopen a logged run/ride to type in what actually happened (minutes, km,
+// avg HR). An imported one (with a heart-rate series) is left alone.
+function editCardio(b,e){const ex=LiveSession.getSession()?.blocks[b]?.exercises[e];if(!ex)return;const prev=ex.cardioLog;ex.cardioLog=null;ex.completed=false;LiveSession._persist();refreshExercise(b,e);
+  if(prev){const m=document.getElementById(`cd-m-${b}-${e}`);if(m)m.value=Math.floor((prev.duration||0)/60);const km=document.getElementById(`cd-km-${b}-${e}`);if(km&&prev.distanceKm)km.value=prev.distanceKm;const hr=document.getElementById(`cd-hr-${b}-${e}`);if(hr&&prev.avgHr)hr.value=prev.avgHr;}}
+// ─────────────────────────────────────────────────────────────
+// WATCH IMPORT — pick several Ruttio files at once (JSON, plus TCX for
+// laps), see which part of the session each workout is linked to, change
+// any of it, apply. Works on the live session (including "Already done —
+// log it") and on a finished one from Log. See WatchImport in js/import.js.
+// ─────────────────────────────────────────────────────────────
+let _wi = null;   // { target: 'live' | sessionId, workouts, ignored, links }
+
+function _hhmm(iso){const d=new Date(iso);return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+function _watchLine(block){const w=block.watch||[];if(!w.length)return '';const sec=w.reduce((a,x)=>a+(x.durationSec||0),0);const hr=w.find(x=>x.avgHR);return ` · ⌚ ${Math.round(sec/60)}m${hr?' · avg '+hr.avgHR:''}`;}
+
+function _wiSession(){
+  if(!_wi)return null;
+  if(_wi.target==='live')return LiveSession.getSession();
+  return History.getSession(_wi.target);
+}
+function openWatchImport(target){
+  _wi={target,workouts:[],ignored:[],links:[]};
+  const inp=document.getElementById('watch-files');inp.value='';inp.click();
+}
+function closeWatchImport(){document.getElementById('watch-backdrop').style.display='none';_wi=null;}
+
+async function onWatchFiles(input){
+  if(!_wi||!input.files||!input.files.length)return;
+  const files=await Promise.all([...input.files].map(async f=>({name:f.name,text:await f.text()})));
+  const {workouts,ignored}=WatchImport.group(files,App.profile);
+  const session=_wiSession();
+  if(!session){alert('No session to attach them to.');return;}
+  _wi.workouts=workouts;_wi.ignored=ignored;
+  const prop=WatchImport.propose(session,workouts);
+  _wi.links=workouts.map((w,i)=>({workout:w,target:prop[i],markDone:prop[i].kind==='block'&&!(session.blocks[prop[i].blockIdx].exercises||[]).some(e=>WatchImport._hasWork(e)),doneInstead:''}));
+  const dl=document.getElementById('lib-datalist');
+  if(dl&&!dl.children.length)dl.innerHTML=LIBRARY.map(e=>`<option value="${escAttr(e.name)}"></option>`).join('');
+  renderWatchImport();
+  document.getElementById('watch-backdrop').style.display='flex';
+}
+
+function _wiTargetValue(t){return t.kind==='cardio'?`c:${t.blockIdx}:${t.exIdx}`:t.kind==='block'?`b:${t.blockIdx}`:t.kind;}
+function renderWatchImport(){
+  const session=_wiSession();if(!session||!_wi)return;
+  const opts=[];
+  session.blocks.forEach((b,bi)=>{
+    if(b.key===Importer.EXTRA_BLOCK_KEY)return;
+    (b.exercises||[]).forEach((e,ei)=>{if(WatchImport._isCardioEx(e))opts.push({v:`c:${bi}:${ei}`,l:`${String(b.label).replace(/ — .*$/,'')}: ${e.name}`});});
+    opts.push({v:`b:${bi}`,l:String(b.label)});
+  });
+  opts.push({v:'extra',l:'Not in the plan (extra)'},{v:'skip',l:"Don't import"});
+  const row=(l,i)=>{
+    const w=l.workout,t=l.target,cur=_wiTargetValue(t);
+    const why=t.kind==='skip'&&t.why?`<div style="font-size:.72rem;color:var(--warm);margin-top:.25rem">${escAttr(t.why)}</div>`:'';
+    const blockBits=t.kind==='block'?`<label style="display:flex;gap:.4rem;align-items:center;font-size:.76rem;color:var(--text2);margin-top:.45rem"><input type="checkbox" ${l.markDone?'checked':''} onchange="_wi.links[${i}].markDone=this.checked"> Tick the block's planned exercises as done</label>
+      <div style="font-size:.72rem;color:var(--text3);margin-top:.4rem">Did something else in this block? It replaces what was planned:</div>
+      <input type="text" list="lib-datalist" class="text-input" style="margin-top:.25rem;width:100%" placeholder="e.g. Football keepie-uppies" value="${escAttr(l.doneInsteadName||'')}" onchange="wiDoneInstead(${i},this.value)">`:'';
+    return `<div class="mv-card" style="margin-bottom:.55rem">
+      <div style="display:flex;justify-content:space-between;gap:.5rem;align-items:baseline"><div style="font-weight:600;font-size:.88rem">${escAttr(w.sport)}</div>
+      <div style="font-size:.74rem;color:var(--text3)">${Utils.formatDate(w.date)} · ${_hhmm(w.start)}–${_hhmm(w.end)}</div></div>
+      <div style="font-size:.78rem;color:var(--text2);margin:.2rem 0 .5rem">${w.minutes} min${w.distanceKm?` · ${w.distanceKm} km`:''}${w.avgHR?` · avg ${w.avgHR} bpm`:''}${w.maxHR?` · max ${w.maxHR}`:''}${w.tcxFile?' · laps':''}</div>
+      <select class="mv-pill mv-select" style="width:100%" onchange="wiTarget(${i},this.value)">${opts.map(o=>`<option value="${o.v}" ${o.v===cur?'selected':''}>${escAttr(o.l)}</option>`).join('')}</select>
+      ${why}${blockBits}</div>`;
+  };
+  document.getElementById('watch-body').innerHTML=
+    (_wi.workouts.length?_wi.links.map(row).join(''):'<div class="mv-body">No workouts found in those files.</div>')+
+    (_wi.ignored.length?`<div style="font-size:.72rem;color:var(--text3);margin:.3rem 0 .7rem">Ignored: ${_wi.ignored.map(x=>escAttr(x.name+' ('+x.why+')')).join(' · ')}</div>`:'')+
+    (_wi.workouts.length?`<button class="mv-cta" onclick="applyWatchImport()">Link ${_wi.links.filter(l=>l.target.kind!=='skip').length} workout${_wi.links.filter(l=>l.target.kind!=='skip').length===1?'':'s'}</button>`:'');
+}
+function wiTarget(i,v){
+  const l=_wi.links[i];const [k,a,b]=v.split(':');
+  l.target=k==='c'?{kind:'cardio',blockIdx:+a,exIdx:+b}:k==='b'?{kind:'block',blockIdx:+a}:{kind:v};
+  if(l.target.kind==='block'){const s=_wiSession();l.markDone=!(s.blocks[+a].exercises||[]).some(e=>WatchImport._hasWork(e));}
+  renderWatchImport();
+}
+function wiDoneInstead(i,name){
+  const ex=LIBRARY.find(e=>e.name.toLowerCase()===String(name).trim().toLowerCase());
+  _wi.links[i].doneInstead=ex?ex.id:'';_wi.links[i].doneInsteadName=ex?ex.name:'';
+  if(ex)_wi.links[i].markDone=false;
+  renderWatchImport();
+}
+function applyWatchImport(){
+  const session=_wiSession();if(!session||!_wi)return;
+  const {report}=WatchImport.apply(session,_wi.links,App.profile);
+  session.lastImport={at:Date.now(),lines:report};
+  if(_wi.target==='live'){LiveSession._persist();renderSessionScreen();}
+  else{
+    History.updateSession(_wi.target,session);
+    if(session.weekday&&session.date&&session.status==='completed')DB.set('daily_instance_'+session.date,session);
+    openSessionModal(_wi.target);
+  }
+  closeWatchImport();
+}
+
 function toggleExerciseDone(b,e){const ex=LiveSession.getSession()?.blocks[b]?.exercises[e];if(!ex)return;if(ex.completed)LiveSession.unmarkExerciseDone(b,e);else LiveSession.markExerciseDone(b,e);refreshBlock(b);}
 function skipExercise(b,e){LiveSession.skipExercise(b,e);refreshBlock(b);}
 
@@ -3295,9 +3484,9 @@ function openSessionModal(id) {
   const session=History.getSession(id); if(!session) return;
   let html=`<div class="modal-theme" style="color:${Utils.getSessionColor(session)}">${Utils.getSessionLabel(session)}${session.source==='manual'?'<span class="sr-badge">Manual</span>':''}${session.status==='in-progress'?'<span class="sr-badge sr-badge-live">In progress</span>':''}</div><div class="modal-date">${Utils.formatDate(session.date)} · ${session.duration}m</div>${session.notes?`<div class="modal-note">${escAttr(session.notes)}</div>`:''}<div class="modal-blocks">`;
   session.blocks?.forEach(block=>{
-    const logged=block.exercises?.filter(e=>e.sets?.length||e.completed||e.cardioLog);
-    if(!logged?.length) return;
-    html+=`<div class="modal-block-label" style="color:${block.color}">${escAttr(block.label)}</div>`;
+    const logged=block.exercises?.filter(e=>e.sets?.length||e.completed||e.cardioLog)||[];
+    if(!logged.length&&!(block.watch||[]).length) return;
+    html+=`<div class="modal-block-label" style="color:${block.color}">${escAttr(block.label)}${_watchLine(block)}</div>`;
     logged.forEach(ex=>{
       html+=`<div class="modal-ex"><div class="modal-ex-name">${escAttr(ex.name)}</div>`;
       ex.sets?.forEach(s=>{html+=`<div class="modal-set">${s.weight?s.weight+'kg ':''} ${s.reps?'× '+s.reps:''} ${s.duration?Utils.formatMMSS(s.duration):''} ${s.distance?s.distance+'km':''}${s.rpe?' · RPE '+s.rpe:''}</div>`;});
@@ -3311,7 +3500,7 @@ function openSessionModal(id) {
       html+=`</div>`;
     });
   });
-  html+=`</div><button class="btn-ghost" style="margin-top:1rem;color:var(--danger)" onclick="deleteSession('${id}')">Delete session</button>`;
+  html+=`</div><button class="btn-ghost" style="margin-top:1rem" onclick="openWatchImport('${escAttr(id)}')">⌚ Import watch workouts</button><button class="btn-ghost" style="margin-top:.5rem;color:var(--danger)" onclick="deleteSession('${id}')">Delete session</button>`;
   document.getElementById('session-modal-content').innerHTML=html;
   document.getElementById('session-modal-backdrop').style.display='flex';
 }
@@ -4412,6 +4601,17 @@ setInterval(() => {
 </div>
 
 <!-- Adjust today modal -->
+<input type="file" id="watch-files" accept=".json,.tcx,application/json" multiple style="display:none" onchange="onWatchFiles(this)">
+<datalist id="lib-datalist"></datalist>
+<div class="modal-backdrop" id="watch-backdrop" style="display:none" onclick="closeWatchImport()">
+  <div class="modal modal-tall" onclick="event.stopPropagation()">
+    <div class="ex-edit-header">
+      <div class="ex-edit-name">Watch workouts</div>
+      <button class="modal-close" onclick="closeWatchImport()">&#10005;</button>
+    </div>
+    <div id="watch-body"></div>
+  </div>
+</div>
 <div class="modal-backdrop" id="adjust-backdrop" style="display:none" onclick="closeAdjust()">
   <div class="modal modal-tall" onclick="event.stopPropagation()">
     <div class="ex-edit-header">

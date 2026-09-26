@@ -369,3 +369,25 @@
 .prog-sugg b { color: var(--text); font-weight: 600; }
 .block-done-btn { font-family: var(--font-body); font-size: .72rem; padding: .3rem .65rem; border-radius: 999px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; margin: 0 0 .5rem; }
 .set-rpe { font-size: .7rem; color: var(--text3); margin-left: .3rem; }
+
+/* ladder rungs on Progress — the dot marks, the name opens the rung sheet */
+.mv-rung { align-items: center; padding: 0; }
+.mv-rung-mark {
+  background: none; border: none; cursor: pointer; flex-shrink: 0;
+  width: 30px; height: 30px; margin: 0 -.25rem 0 -.5rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.mv-rung-mark .mv-step-dot { margin-top: 0; }
+.mv-rung-name {
+  flex: 1; min-width: 0; background: none; border: none; padding: .35rem 0; cursor: pointer;
+  font-family: var(--font-body); font-size: .78rem; line-height: 1.4; text-align: left;
+}
+.mv-rung-i {
+  display: inline-flex; align-items: center; justify-content: center; vertical-align: 1px;
+  width: 13px; height: 13px; margin-left: .35rem; border-radius: 50%;
+  border: 1px solid var(--border); color: var(--text3);
+  font-size: .56rem; font-weight: 700; font-style: italic; font-family: Georgia, serif;
+}
+.mv-rung-name:hover .mv-rung-i { border-color: var(--accent); color: var(--accent); }
+.mv-chip-btn { cursor: pointer; font-family: var(--font-body); }
+.mv-chip-btn:hover { border-color: var(--accent); color: var(--accent); }

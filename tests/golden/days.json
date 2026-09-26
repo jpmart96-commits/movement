@@ -369,7 +369,7 @@
     },
     "2026-10-01": {
       "dayType": "z2-run",
-      "theme": "Zone 2 long run",
+      "theme": "Zone 2 long run + aerobic check",
       "minutes": 140,
       "coordDomain": "movement",
       "skillLine": "handstand",
@@ -412,7 +412,7 @@
           "label": "Zone 2 long run",
           "minutes": 60,
           "exercises": [
-            { "id": "easy-run", "target": "50 min under 153 · 5 min walk", "sets": 1 }
+            { "id": "easy-run", "target": "10 min build · 30 min at avg ~148 (nothing above 156) · 10 min easy under 153 · 5 min walk", "sets": 1 }
           ]
         },
         {
@@ -886,7 +886,7 @@
     },
     "2026-10-08": {
       "dayType": "z2-run",
-      "theme": "Zone 2 long run",
+      "theme": "Zone 2 long run + aerobic check",
       "minutes": 140,
       "coordDomain": "vision",
       "skillLine": "handstand",
@@ -929,7 +929,7 @@
           "label": "Zone 2 long run",
           "minutes": 60,
           "exercises": [
-            { "id": "easy-run", "target": "55 min under 153 · 5 min walk", "sets": 1 }
+            { "id": "easy-run", "target": "10 min build · 30 min at avg ~148 (nothing above 156) · 15 min easy under 153 · 5 min walk", "sets": 1 }
           ]
         },
         {
@@ -1909,7 +1909,7 @@
     },
     "2026-10-22": {
       "dayType": "z2-run",
-      "theme": "Zone 2 long run",
+      "theme": "Zone 2 long run + aerobic check",
       "minutes": 140,
       "coordDomain": "balance",
       "skillLine": "handstand",
@@ -1952,7 +1952,7 @@
           "label": "Zone 2 long run",
           "minutes": 60,
           "exercises": [
-            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+            { "id": "easy-run", "target": "10 min build · 30 min at avg ~148 (nothing above 156) · 20 min easy under 153 · 5 min walk", "sets": 1 }
           ]
         },
         {
@@ -2426,7 +2426,7 @@
     },
     "2026-10-29": {
       "dayType": "thursday",
-      "theme": "Zone 2 long run",
+      "theme": "Zone 2 long run + aerobic check",
       "minutes": 140,
       "coordDomain": "stick",
       "skillLine": "handstand",
@@ -2469,7 +2469,7 @@
           "label": "Zone 2 long run",
           "minutes": 60,
           "exercises": [
-            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+            { "id": "easy-run", "target": "10 min build · 30 min at avg ~148 (nothing above 156) · 20 min easy under 153 · 5 min walk", "sets": 1 }
           ]
         },
         {
@@ -2943,7 +2943,7 @@
     },
     "2026-11-05": {
       "dayType": "thursday",
-      "theme": "Zone 2 long run",
+      "theme": "Zone 2 long run + aerobic check",
       "minutes": 140,
       "coordDomain": "objects",
       "skillLine": "handstand",
@@ -2986,7 +2986,7 @@
           "label": "Zone 2 long run",
           "minutes": 60,
           "exercises": [
-            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+            { "id": "easy-run", "target": "10 min build · 30 min at avg ~148 (nothing above 156) · 20 min easy under 153 · 5 min walk", "sets": 1 }
           ]
         },
         {
@@ -3460,7 +3460,7 @@
     },
     "2026-11-12": {
       "dayType": "thursday",
-      "theme": "Zone 2 long run",
+      "theme": "Zone 2 long run + aerobic check",
       "minutes": 140,
       "coordDomain": "movement",
       "skillLine": "handstand",
@@ -3503,7 +3503,7 @@
           "label": "Zone 2 long run",
           "minutes": 60,
           "exercises": [
-            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+            { "id": "easy-run", "target": "10 min build · 30 min at avg ~148 (nothing above 156) · 20 min easy under 153 · 5 min walk", "sets": 1 }
           ]
         },
         {
@@ -3977,7 +3977,7 @@
     },
     "2026-11-19": {
       "dayType": "thursday",
-      "theme": "Zone 2 long run",
+      "theme": "Zone 2 long run + aerobic check",
       "minutes": 140,
       "coordDomain": "vision",
       "skillLine": "handstand",
@@ -4020,7 +4020,7 @@
           "label": "Zone 2 long run",
           "minutes": 60,
           "exercises": [
-            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+            { "id": "easy-run", "target": "10 min build · 30 min at avg ~148 (nothing above 156) · 20 min easy under 153 · 5 min walk", "sets": 1 }
           ]
         },
         {
@@ -4494,7 +4494,7 @@
     },
     "2026-11-26": {
       "dayType": "thursday",
-      "theme": "Zone 2 long run",
+      "theme": "Zone 2 long run + aerobic check",
       "minutes": 140,
       "coordDomain": "ball-reaction",
       "skillLine": "handstand",
@@ -4537,7 +4537,7 @@
           "label": "Zone 2 long run",
           "minutes": 60,
           "exercises": [
-            { "id": "easy-run", "target": "60 min under 153 · 5 min walk", "sets": 1 }
+            { "id": "easy-run", "target": "10 min build · 30 min at avg ~148 (nothing above 156) · 20 min easy under 153 · 5 min walk", "sets": 1 }
           ]
         },
         {

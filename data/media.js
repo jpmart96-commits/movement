@@ -174,9 +174,11 @@ const EXERCISE_MEDIA = {
     instructions: "1. Deadlift the weights up with a flat back.\n2. Stand tall, shoulders down and back, weights at your sides.\n3. Brace the core.\n4. Walk with short, quick steps, keeping the torso still.\n5. Walk the set distance, then set the weights down with a flat back.",
   },
   'easy-run': {
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Trail_Running_Walking/1.jpg",
     instructions: "1. Warm up with a few minutes of walking or very easy jogging.\n2. Run at a pace you can hold a conversation at.\n3. Breathe through the nose if you can.\n4. Keep steps short and relaxed.\n5. Cool down with a few minutes of walking.",
   },
   'z2-cycling': {
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bicycling_Stationary/0.jpg",
     instructions: "1. Set up the bike: slight knee bend at the bottom of the pedal stroke.\n2. Warm up for 5 minutes easy.\n3. Ride at zone 2 heart rate, where nose breathing is comfortable.\n4. Keep the cadence smooth, around 80–90 rpm.\n5. Hold for the planned time. Cool down 5 minutes.",
   },
   'interval-run': {
@@ -190,6 +192,7 @@ const EXERCISE_MEDIA = {
     instructions: "1. Warm up for 10–15 minutes easy.\n2. Settle into a comfortably hard pace you could hold for about an hour in a race.\n3. Breathing is strong but controlled; only short phrases are possible.\n4. Hold the pace steady for the planned block (20–30 minutes).\n5. Cool down for 10 minutes easy.",
   },
   'walking': {
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Walking_Treadmill/0.jpg",
     instructions: "1. Walk at a relaxed pace.\n2. No targets. Just move.",
   },
   'uphill-sprints': {
