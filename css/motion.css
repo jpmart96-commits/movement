@@ -1,0 +1,82 @@
+/* ═══════════════════════════════════════════════════════════
+   MOTION (26 Sep) — paired with js/motion.js
+   Short, functional movement only: things arrive from where they
+   live (sheets from the bottom, dialogs from the centre), leave the
+   way they came, and a logged set / finished exercise answers the tap.
+   Everything is off under prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --mv-out: cubic-bezier(.2, .8, .2, 1);   /* decelerate: arriving */
+  --mv-in:  cubic-bezier(.4, 0, 1, 1);     /* accelerate: leaving */
+}
+
+@keyframes mvFadeIn   { from { opacity: 0; } }
+@keyframes mvFadeOut  { from { opacity: 1; } to { opacity: 0; } }
+@keyframes mvSheetIn  { from { transform: translateY(100%); } }
+@keyframes mvSheetOut { from { transform: none; } to { transform: translateY(100%); } }
+@keyframes mvDialogIn { from { opacity: 0; transform: translateY(10px) scale(.97); } }
+@keyframes mvDialogOut{ from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px) scale(.98); } }
+@keyframes mvScreenIn { from { opacity: 0; transform: translateY(6px); } }
+@keyframes mvReveal   { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes mvSetIn {
+  0%   { opacity: 0; transform: scale(.6); box-shadow: 0 0 0 0 transparent; }
+  55%  { opacity: 1; transform: scale(1.08); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent2) 40%, transparent); }
+  100% { transform: none; box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes mvCheckPop { 0% { transform: scale(.5); } 55% { transform: scale(1.25); } 100% { transform: none; } }
+@keyframes mvRing     { from { transform: scale(1); opacity: .7; } to { transform: scale(2.3); opacity: 0; } }
+@keyframes mvFlash    { from { background: color-mix(in srgb, var(--accent2) 24%, transparent); } }
+
+/* screens */
+.screen { animation: mvScreenIn .22s var(--mv-out); }
+
+/* backdrops fade; what sits on them moves */
+.modal-backdrop, .mv-sheet-back, .rest-overlay { animation: mvFadeIn .22s ease-out; }
+.modal-backdrop > .modal,
+.modal-backdrop > .goal-ring-modal,
+.mv-sheet-back > .mv-sheet { animation: mvSheetIn .34s var(--mv-out); }
+.modal-backdrop.centered > .modal,
+.rest-overlay > * { animation: mvDialogIn .26s var(--mv-out) both; }
+
+/* leaving (class set by Motion for ~220ms before display:none) */
+.mv-leaving { animation: mvFadeOut .22s var(--mv-in) forwards !important; pointer-events: none; }
+.mv-leaving > .modal,
+.mv-leaving > .goal-ring-modal,
+.mv-leaving > .mv-sheet { animation: mvSheetOut .22s var(--mv-in) forwards; }
+.mv-leaving.centered > .modal,
+.rest-overlay.mv-leaving > * { animation: mvDialogOut .2s var(--mv-in) forwards; }
+
+/* on a wide screen the sheets are centred dialogs, so they pop instead */
+@media (min-width: 900px) {
+  .modal-backdrop > .modal,
+  .modal-backdrop > .goal-ring-modal,
+  .mv-sheet-back > .mv-sheet { animation: mvDialogIn .26s var(--mv-out); }
+  .mv-leaving > .modal,
+  .mv-leaving > .goal-ring-modal,
+  .mv-leaving > .mv-sheet { animation: mvDialogOut .2s var(--mv-in) forwards; }
+}
+
+/* the live session answers the tap */
+.set-row.mv-set-new { animation: mvSetIn .38s var(--mv-out); }
+.ex-check.mv-check-pop { position: relative; animation: mvCheckPop .4s var(--mv-out); }
+.ex-check.mv-check-pop::after {
+  content: ""; position: absolute; inset: -1.5px; border-radius: 50%;
+  border: 2px solid var(--accent2); pointer-events: none;
+  animation: mvRing .55s ease-out forwards;
+}
+.block-header.mv-block-flash { animation: mvFlash .8s ease-out; }
+
+/* Today: an opened block eases in */
+.mv-blk-body.mv-reveal { animation: mvReveal .24s var(--mv-out); }
+
+/* press feedback */
+.log-btn:active, .sw-btn:active, .mv-sheet-foot button:active, .srpe-chip:active,
+.rest-adj:active, .rest-skip:active, .mv-pill:active, .ex-check:active { transform: scale(.95); }
+.mv-ex:active, .mv-blk-head:active { transform: scale(.99); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; }
+  .log-btn:active, .sw-btn:active, .mv-sheet-foot button:active, .srpe-chip:active,
+  .rest-adj:active, .rest-skip:active, .mv-pill:active, .ex-check:active,
+  .mv-ex:active, .mv-blk-head:active { transform: none; }
+}

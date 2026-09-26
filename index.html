@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="css/rework.css">
 <link rel="stylesheet" href="css/desktop.css">
 <link rel="stylesheet" href="css/settings.css">
+<link rel="stylesheet" href="css/motion.css">
 </head>
 <body>
 
@@ -492,6 +493,7 @@ function setTheme(t) {
 <script src="js/healthimport.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/overrides.js"></script>
+<script src="js/motion.js"></script>
 <script>
 
 // ─────────────────────────────────────────────────────────────
@@ -2305,7 +2307,7 @@ async function sendChatOverride() {
   // The input and log live inside the Adjust sheet, so redraw it while it is
   // open — otherwise the reply lands in a panel that is no longer on screen.
   const back = document.getElementById('adjust-backdrop');
-  if (back && back.style.display !== 'none') openAdjust();
+  if (back && back.style.display !== 'none' && !(typeof Motion !== 'undefined' && Motion.leaving(back))) openAdjust();
 }
 
 // ─────────────────────────────────────────────────────────────
