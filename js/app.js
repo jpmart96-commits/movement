@@ -675,7 +675,16 @@ const Generator = {
   // used to cost exactly 0 and would have looped through a whole pool).
   _SETUP_MIN: 0.5,
 
+  // Bumped when generated plans change shape, so a stored-but-untouched
+  // plan for today is rebuilt (index.html _todayPlan). 2 = 26 Sep 2026:
+  // pinned main focus, recipe blocks, doses.
+  GEN_VERSION: 2,
+
   _estimateExerciseMinutes(ex) {
+    // A prescribed dose is the best estimate there is.
+    if (ex && ex.target && ex.role !== 'main' && typeof Complementary !== 'undefined') {
+      return this._SETUP_MIN + Complementary.doseSeconds(ex.target) / 60;
+    }
     const rest = ex.restSeconds || 0;
     const setup = this._SETUP_MIN;
     switch (ex.logType) {
@@ -1214,44 +1223,85 @@ const Generator = {
     const fresh = pool => pool.filter(id => !used.has(id));
     const bank  = block => { (block.exercises || []).forEach(e => used.add(e.id)); return block; };
 
-    // ── OPEN — the four daily constants, every day, no exceptions.
-    const open = this._buildDailyConstantsBlock(durations['open']);
-    blocks.push(open);
+    // Day type (strength-a, z2-bike, …) decides the recipes. Weekday slots
+    // carry it; a plan day can borrow another type with `dayType`.
+    const dayType = slot.dayType || slotKey;
+    const hasRecipes = typeof MOBILITY_RECIPES !== 'undefined';
+
+    // ── OPEN — four daily slots (hang, spine, squat, release); the variant
+    // follows the day. Falls back to the old free-text constants.
+    const open = (hasRecipes && this._buildOpenBlock(dayType, durations['open'], resolveEx))
+      || this._buildDailyConstantsBlock(durations['open']);
+    blocks.push(bank(open));
 
     // ── COMPLEMENTARY — one coordination domain, explored properly.
     // Pinned by the plan when there is one, so the block's published
     // schedule and what the app actually generates can never drift apart.
     const domain = (planDay && planDay.coordDomain) || this.coordDomainFor(d);
+    const dayIdx = this._dayIndex(d);
+    const weekSeed = Math.floor(dayIdx / 7);
     blocks.push(bank(this._buildComplementaryBlock({
-      domain, durationMin: durations['complementary'], resolveEx, lastSeenMap, painCaution,
+      domain, durationMin: durations['complementary'], resolveEx, lastSeenMap, painCaution, dayType, used,
+      seed: Math.floor(dayIdx / 6),
     })));
 
-    // ── MOBILITY & FLEXIBILITY
+    // ── MOBILITY & FLEXIBILITY — prep before strength and speed (nothing
+    // held over 30s), range-building on easy days. On a movement-practice
+    // day it stays out of the movement families so nothing repeats.
     if (durations['mobility'] > 0) {
-      const mobTags = (slot.mobility && slot.mobility.tags) || ['mobility-movement'];
-      const mobPool = fresh([...new Set(mobTags.flatMap(t => this._poolForTag(t)))]);
-      blocks.push(bank({
-        key: 'mobility', label: 'Mobility & Flexibility', icon: 'flame', color: '#1D9E75', bg: '#E1F5EE',
-        duration: durations['mobility'], note: (slot.mobility && slot.mobility.note) || '',
-        exercises: this._fitToTime(mobPool, durations['mobility'], resolveEx, lastSeenMap, painCaution, false, recentMuscleIntensity),
-        rotationNote: this._rotationNote(mobPool, lastSeenMap),
-      }));
+      const recipeKey = slot.mobility && typeof slot.mobility === 'string' ? slot.mobility : null;
+      const recipe = hasRecipes && recipeKey ? MOBILITY_RECIPES[recipeKey] : null;
+      if (recipe) {
+        blocks.push(bank(this._buildRecipeBlock({
+          key: 'mobility', label: 'Mobility & Flexibility', icon: 'flame', color: '#1D9E75', bg: '#E1F5EE',
+          note: recipe.mode === 'prep'
+            ? 'Prep for today’s main work. Nothing held longer than 30s.'
+            : 'Range day. Long holds — nothing explosive follows.',
+          steps: recipe.steps, duration: durations['mobility'], recipeKey, recipeKind: 'mobility',
+          resolveEx, lastSeenMap, used, painCaution, seed: weekSeed,
+          excludeFamilies: domain === 'movement' ? this._movementFamilies() : [],
+        })));
+      } else {
+        const mobTags = (slot.mobility && slot.mobility.tags) || ['mobility-movement'];
+        const mobPool = fresh([...new Set(mobTags.flatMap(t => this._poolForTag(t)))]);
+        blocks.push(bank({
+          key: 'mobility', label: 'Mobility & Flexibility', icon: 'flame', color: '#1D9E75', bg: '#E1F5EE',
+          duration: durations['mobility'], note: (slot.mobility && slot.mobility.note) || '',
+          exercises: this._fitToTime(mobPool, durations['mobility'], resolveEx, lastSeenMap, painCaution, false, recentMuscleIntensity),
+          rotationNote: this._rotationNote(mobPool, lastSeenMap),
+        }));
+      }
     }
 
-    // ── MAIN FOCUS — the day's spine. Reuses the same modality-block
-    // machinery the manual generator uses, capped at 60min.
+    // ── MAIN FOCUS — the day's spine. What the day is FOR is pinned first:
+    // the plan day's `mainFocusPlan` (that date's loads), else the day
+    // type's `core`. Only a day with neither falls back to pooled modality
+    // blocks, and even then never from prehab/accessory work — that is how
+    // 25 Sep's Strength B came out as ten wrist and neck drills.
     let mainTags = [];
-    if (slot.mainFocus && durations['main-focus'] > 0) {
+    const mfPlan = planDay && planDay.mainFocusPlan;
+    const pinnedMain = slot.mainFocus && durations['main-focus'] > 0
+      ? this._buildPinnedMainFocus({ slot, planDay, mfPlan, loadScale, mainDurMax: durations['main-focus'], resolveEx })
+      : null;
+    if (pinnedMain) {
+      mainTags = slot.mainFocus.tags || [];
+      blocks.push(bank(pinnedMain));
+    } else if (slot.mainFocus && durations['main-focus'] > 0) {
       mainTags = slot.mainFocus.tags || [];
       const mainDur = Math.min(Math.round(durations['main-focus'] * loadScale), 60);
       const mainDurations = {};
       mainTags.forEach(t => { mainDurations[t] = Math.round(mainDur / mainTags.length); });
-      const { blocks: mainBlocks } = this._getModalityBlocks({
-        themes: mainTags, tier, durations: mainDurations, lowEnergy, useExt, profile, focus,
-        resolveEx, lastSeenMap, recentMuscleIntensity, painAvoid, painCaution,
-        cardioMode: slot.mainFocus.cardioMode,
-        cardioModality: slot.mainFocus.modality,
-      });
+      const prevExclude = this._excludeRestGroups;
+      this._excludeRestGroups = new Set(['prehab']);
+      let mainBlocks;
+      try {
+        ({ blocks: mainBlocks } = this._getModalityBlocks({
+          themes: mainTags, tier, durations: mainDurations, lowEnergy, useExt, profile, focus,
+          resolveEx, lastSeenMap, recentMuscleIntensity, painAvoid, painCaution,
+          cardioMode: slot.mainFocus.cardioMode,
+          cardioModality: slot.mainFocus.modality,
+        }));
+      } finally { this._excludeRestGroups = prevExclude; }
       mainBlocks.forEach(b => {
         b.key = 'main-focus:' + b.key;
         b.mainFocus = true;
@@ -1271,9 +1321,17 @@ const Generator = {
       blocks.push(...mainBlocks);
     }
 
-    // ── ACCESSORY & SKILL — hangs, handstand work, whatever supports
-    // the long-horizon goals without being the point of the day.
-    if (durations['accessory'] > 0) {
+    // ── ACCESSORY & SKILL — the day's skill line (prehab, handstand,
+    // muscle-up prep, pancake & hips, hang project). The plan can name one.
+    const skillLineKey = (planDay && planDay.skillLine) || slot.skillLine || null;
+    const skillLine = hasRecipes && skillLineKey && typeof SKILL_LINES !== 'undefined' ? SKILL_LINES[skillLineKey] : null;
+    if (durations['accessory'] > 0 && skillLine) {
+      blocks.push(bank(this._buildRecipeBlock({
+        key: 'accessory', label: 'Accessory & Skill — ' + skillLine.label, icon: 'star', color: '#185FA5', bg: '#E4EEF9',
+        note: '', steps: skillLine.steps, duration: durations['accessory'], recipeKey: skillLineKey, recipeKind: 'skill',
+        resolveEx, lastSeenMap, used, painCaution, seed: Math.floor(dayIdx / 3),
+      })));
+    } else if (durations['accessory'] > 0) {
       const accTags = (slot.accessory && slot.accessory.tags) || ['calisthenics'];
       const accPool = fresh([...new Set(accTags.flatMap(t => this._poolForTag(t)))]);
       blocks.push(bank({
@@ -1286,14 +1344,24 @@ const Generator = {
 
     // ── CLOSE — down-regulation. Cool-down pools of the day's main tags,
     // falling back to a body scan on days with no main focus.
-    const coolIdsRaw = [...new Set(mainTags.flatMap(t => this._MODALITY_COOLDOWN[t] || []))];
-    const coolIds = fresh(coolIdsRaw.length ? coolIdsRaw : ['body-scan', 'breathing-478']);
     const coolDur = durations['close'] || 10;
-    blocks.push({
-      key: 'close', label: 'Close', icon: 'moon', color: '#5F5E5A', bg: '#F1EFE8',
-      duration: coolDur, note: 'Down-regulate. Finish calm.',
-      exercises: this._fitToTime(coolIds, coolDur, resolveEx),
-    });
+    const closeKey = slot.close || null;
+    const closeRecipe = hasRecipes && closeKey && typeof CLOSE_RECIPES !== 'undefined' ? CLOSE_RECIPES[closeKey] : null;
+    if (closeRecipe) {
+      blocks.push(bank(this._buildRecipeBlock({
+        key: 'close', label: 'Close', icon: 'moon', color: '#5F5E5A', bg: '#F1EFE8',
+        note: 'Down-regulate. Finish calm.', steps: closeRecipe, duration: coolDur,
+        recipeKey: closeKey, recipeKind: 'close', resolveEx, lastSeenMap, used, painCaution, seed: dayIdx,
+      })));
+    } else {
+      const coolIdsRaw = [...new Set(mainTags.flatMap(t => this._MODALITY_COOLDOWN[t] || []))];
+      const coolIds = fresh(coolIdsRaw.length ? coolIdsRaw : ['body-scan', 'breathing-478']);
+      blocks.push({
+        key: 'close', label: 'Close', icon: 'moon', color: '#5F5E5A', bg: '#F1EFE8',
+        duration: coolDur, note: 'Down-regulate. Finish calm.',
+        exercises: this._fitToTime(coolIds, coolDur, resolveEx),
+      });
+    }
 
     const built = blocks.filter(b => b.exercises.length > 0);
 
@@ -1311,6 +1379,9 @@ const Generator = {
       // The day-type actually used, so a later block resize re-pools from
       // the borrowed skeleton rather than from the calendar weekday.
       dayType: slotKey,
+      dayKind: dayType,
+      genVersion: this.GEN_VERSION,
+      skillLine: skillLineKey,
       variant,
       coordDomain: domain,
       fuel: slot.fuel || '',
@@ -1357,29 +1428,260 @@ const Generator = {
     return COORD_DOMAINS[((days % n) + n) % n];
   },
 
-  // Coordination exercises in one domain. Overrides are applied first so a
-  // re-domained exercise moves day immediately.
-  _poolForCoordDomain(domain) {
+  // Exercises in one Complementary domain. Membership comes from the
+  // exercise's family (data/complementary.js DOMAIN_FAMILIES); a per-exercise
+  // coordDomain override still wins, so a re-domained exercise moves day
+  // immediately. Without the families layer it falls back to the old
+  // coordDomain + 'coordination' tag rule.
+  //
+  // Movement practice is load-gated: heavy/explosive Floreio and tumbling
+  // only on easy days (MOVEMENT_FULL_DAY_TYPES).
+  _poolForCoordDomain(domain, dayType) {
     if (!domain) return [];
+    const fams = (typeof DOMAIN_FAMILIES !== 'undefined') ? DOMAIN_FAMILIES[domain] : null;
+    const easyDay = typeof MOVEMENT_FULL_DAY_TYPES !== 'undefined' && MOVEMENT_FULL_DAY_TYPES.includes(dayType);
     return LIBRARY.filter(ex => {
       const ov = Overrides.get(ex.id);
-      const dom  = (ov && ov.coordDomain) || ex.coordDomain;
+      if (ov && ov.coordDomain) return ov.coordDomain === domain;
+      if (fams) {
+        if (!fams.includes(ex.family)) return false;
+        if (domain === 'movement') {
+          if (!(ex.roles || []).includes('practice')) return false;
+          if (ex.movementGate === 'easy-days' && dayType && !easyDay) return false;
+        }
+        return true;
+      }
       const tags = (ov && ov.modalityTags) || ex.modalityTags || [];
-      return dom === domain && tags.includes('coordination');
+      return ex.coordDomain === domain && tags.includes('coordination');
     }).map(ex => ex.id);
   },
 
-  _buildComplementaryBlock({ domain, durationMin, resolveEx, lastSeenMap, painCaution }) {
-    const pool  = this._poolForCoordDomain(domain);
+  // With no history (a day not done yet, a fresh device) least-recently-
+  // done is a tie for everything, so every Monday would read the same.
+  // Rotating the candidate order by a date-derived index breaks the tie
+  // differently each week; real history still decides once it exists.
+  _rotateBy(ids, n) {
+    if (!ids.length || !n) return ids;
+    const k = ((n % ids.length) + ids.length) % ids.length;
+    return ids.slice(k).concat(ids.slice(0, k));
+  },
+
+  _dayIndex(d) {
+    const a = new Date(2026, 0, 5); a.setHours(0, 0, 0, 0);      // a Monday
+    const x = new Date(d); x.setHours(0, 0, 0, 0);
+    return Math.round((x - a) / 86400000);
+  },
+
+  _movementFamilies() {
+    return (typeof DOMAIN_FAMILIES !== 'undefined' && DOMAIN_FAMILIES.movement) || ['E1', 'E2', 'E3'];
+  },
+
+  // One theme, three to five items, longer sets. Rotation is family-first
+  // (subcategory groups), so a day is a coherent family rather than a mix.
+  _buildComplementaryBlock({ domain, durationMin, resolveEx, lastSeenMap, painCaution, dayType, used, seed }) {
+    const taken = used || new Set();
+    const pool  = this._rotateBy(this._poolForCoordDomain(domain, dayType).filter(id => !taken.has(id)), seed || 0);
     const label = (typeof COORD_DOMAIN_LABELS !== 'undefined' && COORD_DOMAIN_LABELS[domain]) || domain || 'Complementary';
-    return {
+    const block = {
       key: 'complementary', label: 'Complementary \u2014 ' + label,
       icon: 'star', color: '#D8890A', bg: '#FBEEDA',
       duration: durationMin, coordDomain: domain,
       note: 'One domain today. Stay with it long enough to actually be in it.',
-      exercises: this._fitToTime(pool, durationMin, resolveEx, lastSeenMap, painCaution),
+      exercises: [],
       rotationNote: this._rotationNote(pool, lastSeenMap),
     };
+    if (typeof Complementary === 'undefined') {
+      block.exercises = this._fitToTime(pool, durationMin, resolveEx, lastSeenMap, painCaution);
+      return block;
+    }
+    let ordered = this._orderByGroupRecency(this._applyPoolFilters(pool), lastSeenMap);
+    if (painCaution && painCaution.size) {
+      ordered = [...ordered.filter(id => !this._isPainCaution(id, painCaution)), ...ordered.filter(id => this._isPainCaution(id, painCaution))];
+    }
+    const n = Math.max(3, Math.min(5, Math.round((durationMin || 0) / 6)));
+    const picked = [];
+    for (const id of ordered) {
+      if (picked.length >= n) break;
+      const ex = resolveEx(id);
+      if (ex) picked.push(this._attachDose(ex, 'practice'));
+    }
+    block.exercises = this._fitBlockDoses(picked, durationMin);
+    return block;
+  },
+
+  // \u2500\u2500 RECIPE-BUILT BLOCKS (Open, Mobility, Accessory, Close) \u2500\u2500\u2500\u2500\u2500
+  // A recipe is ordered steps; each step picks `n` of its candidate ids,
+  // least-recently-done first, skipping anything already in the day, and
+  // doses them for the step's role. Steps keep their order, so a warm-up
+  // reads raise \u2192 mobilise \u2192 activate \u2192 potentiate.
+  _buildRecipeBlock({ key, label, icon, color, bg, note, steps, duration, recipeKey, recipeKind, resolveEx, lastSeenMap, used, painCaution, excludeFamilies, seed }) {
+    const taken = used || new Set();
+    const excl = new Set(excludeFamilies || []);
+    const picked = [];
+    const inBlock = new Set();
+    (steps || []).forEach(step => {
+      let ids = (step.ids || []).filter(id => !taken.has(id) && !inBlock.has(id));
+      ids = ids.filter(id => { const l = LIBRARY.find(e => e.id === id); return l && !excl.has(l.family); });
+      ids = this._rotateBy(this._applyPoolFilters(ids), seed || 0);
+      if (lastSeenMap) ids = this._orderByRecency(ids, lastSeenMap);
+      if (painCaution && painCaution.size) {
+        ids = [...ids.filter(id => !this._isPainCaution(id, painCaution)), ...ids.filter(id => this._isPainCaution(id, painCaution))];
+      }
+      let got = 0;
+      for (const id of ids) {
+        if (got >= (step.n || 1)) break;
+        const ex = resolveEx(id);
+        if (!ex) continue;
+        picked.push(this._attachDose(ex, step.role, step.dose));
+        inBlock.add(id); got++;
+      }
+    });
+    return {
+      key, label, icon, color, bg, duration, note: note || '',
+      recipeKey, recipeKind,
+      exercises: this._fitBlockDoses(picked, duration),
+    };
+  },
+
+  _buildOpenBlock(dayType, durationMin, resolveEx) {
+    const variants = (typeof OPEN_VARIANTS !== 'undefined') ? OPEN_VARIANTS[dayType] : null;
+    if (!variants || !resolveEx) return null;
+    const picked = [];
+    variants.forEach(v => {
+      const ex = resolveEx(v.id);
+      if (ex) picked.push(this._attachDose(ex, 'open', v.dose));
+    });
+    if (!picked.length) return null;
+    return {
+      key: 'open', label: 'Open', icon: 'sun', color: '#1D9E75', bg: '#E1F5EE',
+      duration: durationMin, note: 'Hang, spine, squat, release. The version follows the day.',
+      recipeKind: 'open', recipeKey: dayType,
+      exercises: this._fitBlockDoses(picked, durationMin),
+    };
+  },
+
+  // Dose an exercise for the job it is doing. `explicit` (from a recipe step
+  // or an Open variant) beats the library entry's own dose, which beats the
+  // role default in Complementary.doseFor.
+  _attachDose(ex, role, explicit) {
+    if (typeof Complementary === 'undefined') return ex;
+    const lib = LIBRARY.find(e => e.id === ex.id) || {};
+    const src = { ...lib, ...ex, family: lib.family, dose: lib.dose, perSide: lib.perSide };
+    // Curated doses (Open variants, a recipe step's own dose) are kept as
+    // written; only role defaults get scaled to fill the block.
+    let dose = explicit ? { perSide: Complementary.isUnilateral(src), restSec: 20, ...explicit, fixed: true }
+                        : Complementary.doseFor(src, role === 'open' ? 'mobilise' : role);
+    ex.role = role;
+    ex.target = { ...dose, text: Complementary.doseText(dose) };
+    return ex;
+  },
+
+  // Scale every dose in a block so the block adds up to its minutes, then
+  // hand out allocatedMinutes proportionally. The dose shown and the time
+  // allotted come from the same numbers, so they cannot disagree.
+  _fitBlockDoses(picked, durationMin) {
+    if (!picked.length || typeof Complementary === 'undefined') return this._allocateTime(picked, durationMin);
+    const available = Math.max(30, (durationMin || 0) * 60 - this._TRANSITION_BUFFER_MIN * 60 * picked.length);
+    const secs = picked.map(ex => Math.max(20, Complementary.doseSeconds(ex.target)));
+    const total = secs.reduce((a, b) => a + b, 0);
+    picked.forEach((ex, i) => {
+      if (!ex.target || ex.target.fixed) return;
+      const share = available * secs[i] / total;
+      const fitted = Complementary.fitDose(ex.target, share, ex.role);
+      ex.target = { ...fitted, text: Complementary.doseText({ ...fitted, text: undefined }) };
+    });
+    return this._allocateTime(picked, durationMin);
+  },
+
+  // \u2500\u2500 PINNED MAIN FOCUS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // Builds Main Focus from what the day is for: the plan day's
+  // mainFocusPlan (exercises with loads, or a cardio protocol), else the day
+  // type's `core` / `cardio`. Returns null when neither exists so the caller
+  // can fall back to pooled modality blocks.
+  _buildPinnedMainFocus({ slot, planDay, mfPlan, loadScale, mainDurMax, resolveEx }) {
+    const mf = slot.mainFocus;
+    if (!mf) return null;
+    const mainDur = Math.min(Math.round(mainDurMax * (loadScale || 1)), 60);
+    const tag = (mf.tags && mf.tags[0]) || 'weights';
+    const cfg = this._MODALITY_CONFIG[tag] || this._MODALITY_CONFIG['weights'];
+    const planNote = planDay && planDay.focusNote;
+    const block = {
+      key: 'main-focus:' + tag, label: mf.label || cfg.label,
+      icon: cfg.icon, color: cfg.color, bg: cfg.bg,
+      duration: mainDur, mainFocus: true, pinned: true,
+      note: planNote ? planNote + (mfPlan && mfPlan.note ? '  |  ' + mfPlan.note : '') : ((mfPlan && mfPlan.note) || mf.note || ''),
+      exercises: [],
+    };
+    const byIdOrName = spec => {
+      if (!spec) return null;
+      if (spec.id) { const ex = resolveEx(spec.id); if (ex) return ex; }
+      if (spec.name) {
+        const lib = LIBRARY.find(e => e.name.toLowerCase() === String(spec.name).toLowerCase());
+        if (lib) return resolveEx(lib.id);
+      }
+      return null;
+    };
+
+    // Cardio: one exercise fills the block, the protocol is its target.
+    const cardio = (mfPlan && mfPlan.cardio) || (!mfPlan && mf.cardio) || null;
+    if (cardio) {
+      const spec = cardio.exercise || cardio;
+      const ex = byIdOrName(spec);
+      if (!ex) return null;
+      const text = cardio.text || this._protocolText(cardio.protocol) || '';
+      ex.role = 'main';
+      ex.target = { sets: 1, durationSec: (cardio.minutes || mainDur) * 60, text, fixed: true };
+      ex.notes = [text, cardio.note].filter(Boolean).join(' \u2014 ');
+      ex.allocatedMinutes = mainDur;
+      block.exercises.push(ex);
+      // A test day can carry a short extra after the run (max dead hang).
+      ((mfPlan && mfPlan.extra) || []).forEach(x => {
+        const e2 = byIdOrName(x); if (!e2) return;
+        e2.role = 'main';
+        e2.target = { sets: x.sets || 1, text: x.note || 'Max', fixed: true };
+        e2.allocatedMinutes = 2;
+        block.exercises.push(e2);
+      });
+      if (block.exercises.length > 1) { ex.allocatedMinutes = Math.max(5, mainDur - 2 * (block.exercises.length - 1)); }
+      return block;
+    }
+
+    const specs = (mfPlan && mfPlan.exercises) || mf.core;
+    if (!specs || !specs.length) return null;
+    specs.forEach(s => {
+      const ex = byIdOrName(s);
+      if (!ex) return;
+      const dose = {
+        sets: s.sets || 1, reps: s.reps, durationSec: s.durationSec, distanceM: s.distanceM,
+        loadKg: s.loadKg, rpe: s.rpe, restSec: s.restSec != null ? s.restSec : (ex.restSeconds || 90),
+      };
+      Object.keys(dose).forEach(k => dose[k] == null && delete dose[k]);
+      ex.role = 'main';
+      const text = (typeof Complementary !== 'undefined') ? Complementary.doseText(dose) : '';
+      ex.target = { ...dose, text: s.bodyweightPlus && dose.loadKg ? text.replace('@ ' + dose.loadKg + 'kg', '+' + dose.loadKg + 'kg') : text, fixed: true };
+      if (s.note) ex.notes = s.note;
+      block.exercises.push(ex);
+    });
+    if (!block.exercises.length) return null;
+    // Time weights from the prescription itself (sets \u00d7 (work + rest)).
+    const w = block.exercises.map(ex => {
+      const t = ex.target;
+      const work = t.durationSec || (t.distanceM ? 30 : 40);
+      return (t.sets || 1) * (work + (t.restSec || 0));
+    });
+    const tot = w.reduce((a, b) => a + b, 0);
+    const avail = Math.max(0, mainDur - this._TRANSITION_BUFFER_MIN * block.exercises.length);
+    block.exercises.forEach((ex, i) => { ex.allocatedMinutes = Math.max(1, Math.round(avail * w[i] / tot * 2) / 2); });
+    return block;
+  },
+
+  _protocolText(p) {
+    if (!p) return '';
+    if (p.type === 'intervals') return `${p.name ? p.name + ' \u00b7 ' : ''}${p.warmupMin || 10} min warm-up \u00b7 ${p.reps} \u00d7 ${p.workMin} min at ${p.workHr[0]}\u2013${p.workHr[1]} \u00b7 ${p.recoveryMin} min easy between \u00b7 ${p.cooldownMin || 5} min cool-down`;
+    if (p.type === 'tempo') return `${p.warmupMin || 10} min easy \u00b7 ${p.reps} \u00d7 ${p.workMin} min at ${p.workHr[0]}\u2013${p.workHr[1]} \u00b7 ${p.recoveryMin} min easy between \u00b7 ${p.cooldownMin || 5} min easy`;
+    if (p.type === 'fixed-hr-test') return `${p.warmupMin} min build \u00b7 ${p.testMin} min at avg ~${p.targetAvgHr} (nothing above ${p.hrCeiling}) \u00b7 ${p.walkdownMin} min walk`;
+    if (p.type === 'steady') return `${p.mainMin} min${p.hrMin ? ' at ' + p.hrMin + '\u2013' + p.hrMax : ' under ' + p.hrMax}${p.warmupMin ? ' \u00b7 ' + p.warmupMin + ' min spin-up' : ''}${p.walkdownMin ? ' \u00b7 ' + p.walkdownMin + ' min walk' : ''}`;
+    return '';
   },
 
   // Minutes between two 'HH:MM' clock strings.
@@ -1558,6 +1860,14 @@ const Generator = {
       let pick = null;
       for (const id of ordered) { pick = resolveEx(id); if (pick) break; }
       if (!pick) return null;
+      // The replacement does the same job, dosed for the same minutes.
+      if (old.role && old.role !== 'main' && typeof Complementary !== 'undefined') {
+        this._attachDose(pick, old.role);
+        const fitted = Complementary.fitDose(pick.target, Math.max(30, (old.allocatedMinutes || 2) * 60), old.role);
+        pick.target = { ...fitted, text: Complementary.doseText({ ...fitted, text: undefined }) };
+      } else if (old.target) {
+        pick.role = old.role; pick.target = { ...old.target };
+      }
       pick.allocatedMinutes = old.allocatedMinutes;
       blocks[bi].exercises[ei] = pick;
       return { ...instance, blocks, swapped: { from: old.id, to: pick.id } };
@@ -1585,6 +1895,7 @@ const Generator = {
   _TIER_RANK: { flexibility: 0, light: 1, moderate: 2, heavy: 3, explosive: 4 },
   _tierCap: null,
   _avoidIds: null,
+  _excludeRestGroups: null,
 
   _applyPoolFilters(ids) {
     let out = ids;
@@ -1601,6 +1912,15 @@ const Generator = {
       const kept = out.filter(id => !this._avoidIds.has(id));
       if (kept.length) out = kept;
     }
+    // Main Focus never draws prehab (set transiently around main-focus
+    // generation). Unlike the filters above this may empty a pool: an empty
+    // Main Focus is visible, ten wrist drills labelled "Weights" are not.
+    if (this._excludeRestGroups && this._excludeRestGroups.size) {
+      out = out.filter(id => {
+        const ex = LIBRARY.find(e => e.id === id);
+        return !(ex && (this._excludeRestGroups.has(ex.restGroup) || ex.subcategory === 'Prehab'));
+      });
+    }
     return out;
   },
 
@@ -1614,14 +1934,35 @@ const Generator = {
   // same way _regenerateBlockAtDuration derives it. Shared so a single-
   // exercise swap and a whole-block resize can never disagree about where
   // a block's exercises are allowed to come from.
+  _recipeStepsFor(block) {
+    if (!block || !block.recipeKind || !block.recipeKey) return null;
+    if (block.recipeKind === 'mobility' && typeof MOBILITY_RECIPES !== 'undefined') return (MOBILITY_RECIPES[block.recipeKey] || {}).steps || null;
+    if (block.recipeKind === 'skill' && typeof SKILL_LINES !== 'undefined') return (SKILL_LINES[block.recipeKey] || {}).steps || null;
+    if (block.recipeKind === 'close' && typeof CLOSE_RECIPES !== 'undefined') return CLOSE_RECIPES[block.recipeKey] || null;
+    return null;
+  },
+
   _poolForBlock(block, instance) {
     const key = block.key || '';
+    const steps = this._recipeStepsFor(block);
+    if (steps) {
+      let ids = [...new Set(steps.flatMap(st => st.ids || []))];
+      if (block.recipeKind === 'mobility' && (block.coordDomain || instance.coordDomain) === 'movement') {
+        const ex = new Set(this._movementFamilies());
+        ids = ids.filter(id => { const l = LIBRARY.find(e => e.id === id); return l && !ex.has(l.family); });
+      }
+      return ids;
+    }
     if (key === 'open' || key === 'close') return [];
     if (key === 'complementary') {
-      return this._poolForCoordDomain(block.coordDomain || instance.coordDomain);
+      return this._poolForCoordDomain(block.coordDomain || instance.coordDomain, instance.dayKind);
     }
     if (key.startsWith('main-focus:')) {
-      return this._poolForTag(key.replace('main-focus:', ''));
+      // Swapping inside a pinned lift day stays within real training work.
+      return this._poolForTag(key.replace('main-focus:', '')).filter(id => {
+        const ex = LIBRARY.find(e => e.id === id);
+        return !(ex && (ex.restGroup === 'prehab' || ex.subcategory === 'Prehab'));
+      });
     }
     if (key === 'mobility' || key === 'accessory') {
       const slotKey = instance.themeOverride || instance.dayType || instance.weekday;
@@ -1633,14 +1974,30 @@ const Generator = {
   },
 
   _regenerateBlockAtDuration(block, newDuration, instance, profile) {
-    // Fixed-content blocks just take the new duration; there is no pool to
-    // re-draw from.
-    if (block.key === 'close') return { ...block, duration: newDuration };
-    if (block.key === 'open')  return this._buildDailyConstantsBlock(newDuration);
-
     const painTags    = this._parsePainTags(instance.pain);
     const resolveEx   = this._resolveExFactory(profile, painTags.avoid);
     const lastSeenMap = History.getExerciseLastSeenMap(30);
+    // Everything already in the rest of the day stays out of the redraw.
+    const used = new Set();
+    (instance.blocks || []).forEach(b => { if (b !== block && b.key !== block.key) (b.exercises || []).forEach(e => used.add(e.id)); });
+    if (this._avoidIds) this._avoidIds.forEach(id => used.add(id));
+
+    // Recipe blocks rebuild from their recipe at the new length.
+    const steps = this._recipeStepsFor(block);
+    if (steps) {
+      return this._buildRecipeBlock({
+        key: block.key, label: block.label, icon: block.icon, color: block.color, bg: block.bg, note: block.note,
+        steps, duration: newDuration, recipeKey: block.recipeKey, recipeKind: block.recipeKind,
+        resolveEx, lastSeenMap, used, painCaution: painTags.caution,
+        excludeFamilies: block.recipeKind === 'mobility' && instance.coordDomain === 'movement' ? this._movementFamilies() : [],
+      });
+    }
+    if (block.key === 'open') {
+      return (block.recipeKind === 'open' && this._buildOpenBlock(block.recipeKey, newDuration, resolveEx))
+        || this._buildDailyConstantsBlock(newDuration);
+    }
+    // Old-style Close (no recipe) just takes the new duration.
+    if (block.key === 'close') return { ...block, duration: newDuration };
 
     // The day's coordination domain is recorded on the block itself, so a
     // resize keeps the same theme rather than silently jumping domains.
@@ -1648,7 +2005,14 @@ const Generator = {
       return this._buildComplementaryBlock({
         domain: block.coordDomain || instance.coordDomain,
         durationMin: newDuration, resolveEx, lastSeenMap, painCaution: painTags.caution,
+        dayType: instance.dayKind, used,
       });
+    }
+
+    // Pinned Main Focus keeps what the day is for and is only retimed.
+    if (block.pinned) {
+      const ex = (block.exercises || []).map(e => ({ ...e }));
+      return { ...block, duration: newDuration, exercises: this._allocateTime(ex, newDuration) };
     }
 
     if (block.key.startsWith('main-focus:')) {

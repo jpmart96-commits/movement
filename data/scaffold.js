@@ -46,19 +46,19 @@ const DAILY_CONSTANTS = {
 };
 
 // ── COORDINATION DOMAIN ROTATION ──────────────────────────────
-// One theme per day, explored properly, rather than five domains
-// skimmed in 25 minutes. The user was explicit: switching fast between
-// domains leaves no time to consciously involve yourself in any of them.
+// One theme per day, explored properly. Six domains since 26 Sep: movement
+// practice (crawls, ground flow, Floreio, tumbling) joined the five
+// coordination domains. Which families feed each domain lives in
+// data/complementary.js (DOMAIN_FAMILIES).
 //
-// Five domains over a seven-day week means the cycle DRIFTS against the
-// weekday — 5 and 7 are coprime, so over 35 days every domain lands on
-// every day type. Vision work therefore happens sometimes fresh on a
-// light day and sometimes tired after intervals, which is the point.
-const COORD_DOMAINS = ['vision', 'ball-reaction', 'balance', 'stick', 'objects'];
+// Six against a seven-day week drifts one day per week, so over six weeks
+// every domain lands on every day type. The month plan pins the domain per
+// date; this is the fallback when there is no plan day.
+const COORD_DOMAINS = ['vision', 'ball-reaction', 'balance', 'stick', 'objects', 'movement'];
 
-// Anchored to the first day of the Sep-2026 block so the cycle is stable
-// and reproducible rather than dependent on when the app happens to run.
-const COORD_ANCHOR_DATE = '2026-09-21';
+// Anchored so the fallback agrees with the plan: 26 Sep = vision,
+// 27 Sep = ball-reaction, 28 Sep = balance.
+const COORD_ANCHOR_DATE = '2026-09-26';
 
 const COORD_DOMAIN_LABELS = {
   'vision':        'Vision & eyes',
@@ -66,89 +66,121 @@ const COORD_DOMAIN_LABELS = {
   'balance':       'Balance',
   'stick':         'Stick work',
   'objects':       'Object manipulation',
+  'movement':      'Movement practice',
 };
 
 // ── WEEK TEMPLATE ─────────────────────────────────────────────
-// `mainFocus.tags` / `accessory.tags` / `mobility.tags` are modalityTags
-// (data/library.js). Three easy aerobic days against one hard one is
-// roughly the 80/20 split that actually builds an aerobic base — the
-// reason the engine had not moved is that the easy days were being run
-// at 89% of max heart rate.
-const WEEK_SCAFFOLD = {
-  monday: {
+// Rewritten 2026-09-26 to the agreed split:
+//   Mon Strength A · Tue Z2 bike · Wed Plyo/Power/Sprints · Thu Z2 run ·
+//   Fri Strength B · Sat Intervals/Tempo · Sun Light
+// Three of the four hard days follow an easy one. The one exception —
+// Saturday's quality run the day after deadlifts — is accepted: the lift is
+// 3x5 submaximal.
+//
+// Each day type names:
+//   mainFocus  — tags + `core`, the exercises the day is FOR, with a default
+//                dose. A month-plan day's `mainFocusPlan` overrides `core`
+//                with that date's loads. The generator pins these first and
+//                never fills Main Focus from prehab or accessory work.
+//   mobility   — a recipe key in MOBILITY_RECIPES (data/complementary.js):
+//                prep before strength/speed, range-building on easy days.
+//   skillLine  — the Accessory & Skill line (SKILL_LINES).
+//   close      — a key in CLOSE_RECIPES.
+//   open       — a key in OPEN_VARIANTS (same four slots, variant per day).
+const _S = (id, sets, extra = {}) => ({ id, sets, ...extra });
+
+const WEEK_SCAFFOLD_TYPES = {
+  'strength-a': {
     theme: 'Strength A', variant: 'standard',
-    mainFocus: { tags: ['weights'], note: 'Squat, incline bench, pull-up, core. Log every set.' },
-    accessory: { tags: ['calisthenics'] },
-    mobility:  { tags: ['mobility-movement', 'flexibility'] },
+    mainFocus: { tags: ['weights'], label: 'Strength A',
+      note: 'Squat, incline bench, pull-ups, core. Log every set.',
+      core: [ _S('squat', 3, { reps: 5, restSec: 180, note: 'Ramp first: bar x8, ~50% x5, ~70% x3, then the work sets.' }),
+              _S('incline-bench', 3, { reps: 5, restSec: 150 }),
+              _S('pull-up', 3, { reps: 5, restSec: 120, note: 'Strict, full hang to chin over bar.' }),
+              _S('toes-to-bar', 3, { reps: 8, restSec: 90 }) ] },
+    mobility: 'strength-a', skillLine: 'prehab-shoulder-wrist', close: 'strength', open: 'strength-a',
     fuel: 'Something light beforehand — this is a loaded session.',
   },
-  tuesday: {
-    theme: 'Zone 2 run', variant: 'standard',
-    mainFocus: { tags: ['cardio'], cardioMode: 'steady', modality: 'run', note: 'Keep HR at or under 153. If you have to walk the hills, walk them.' },
-    accessory: { tags: ['calisthenics'] },
-    mobility:  { tags: ['mobility-movement', 'flexibility'] },
-    fuel: 'Optional — easy enough to run on an empty stomach if you prefer.',
-  },
-  wednesday: {
-    theme: 'Intervals + Power', variant: 'standard',
-    mainFocus: { tags: ['cardio', 'power-plyo'], cardioMode: 'intervals', modality: 'run', note: 'The hard day. Work intervals near max, recover fully between.' },
-    accessory: { tags: ['gymnastics-conditioning'] },
-    mobility:  { tags: ['mobility-movement'] },
-    fuel: 'Eat something light first — do not do this one empty.',
-  },
-  thursday: {
-    theme: 'Zone 2 bike + Yoga', variant: 'standard',
-    mainFocus: { tags: ['cardio'], cardioMode: 'steady', modality: 'bike', note: 'Bike. Under 153. Nose breathing, conversational.' },
-    accessory: { tags: ['yoga'] },
-    mobility:  { tags: ['yoga', 'flexibility'] },
+  'z2-bike': {
+    theme: 'Zone 2 bike', variant: 'standard',
+    mainFocus: { tags: ['cardio'], cardioMode: 'steady', modality: 'bike', label: 'Zone 2 bike',
+      note: 'Bike, 134–153. Nose breathing, conversational. Easy on the legs the day after squats.',
+      cardio: { id: 'z2-cycling', minutes: 50, text: '50 min · HR 134–153 · nose breathing' } },
+    mobility: 'z2-bike', skillLine: 'handstand', close: 'bike', open: 'z2-bike',
     fuel: 'Optional.',
   },
-  friday: {
-    theme: 'Strength B', variant: 'standard',
-    mainFocus: { tags: ['weights'], note: 'Deadlift, overhead press, row, dip. Log every set.' },
-    accessory: { tags: ['calisthenics'] },
-    mobility:  { tags: ['mobility-movement', 'weighted-mobility'] },
-    fuel: 'Something light beforehand.',
+  'plyo-power': {
+    theme: 'Plyo · Power · Sprints', variant: 'standard',
+    mainFocus: { tags: ['power-plyo'], label: 'Plyo · Power · Sprints',
+      note: 'Quality over volume. Stop a set the moment speed drops.',
+      core: [ _S('easy-run', 1, { durationSec: 600, note: 'Build to HR ~140.' }),
+              _S('uphill-sprints', 6, { durationSec: 20, note: 'Walk all the way down between reps.' }),
+              _S('box-jump', 4, { reps: 4, restSec: 90, note: 'Full reset every rep. Step down.' }),
+              _S('broad-jump', 3, { reps: 3, restSec: 90, note: 'Stick the landing.' }),
+              _S('med-ball-slams', 3, { reps: 8, restSec: 60 }) ] },
+    mobility: 'plyo-power', skillLine: 'muscle-up-prep', close: 'run', open: 'plyo-power',
+    fuel: 'Eat something light first — do not do this one empty.',
   },
-  saturday: {
-    theme: 'Long Easy + Flexibility', variant: 'standard',
-    mainFocus: { tags: ['cardio'], cardioMode: 'steady', modality: 'run', note: 'Longest easy session of the week. Strictly under 153.' },
-    accessory: { tags: ['flexibility'] },
-    mobility:  { tags: ['flexibility', 'weighted-mobility'], note: 'Pancake and hamstring work lives here.' },
+  'z2-run': {
+    theme: 'Zone 2 long run', variant: 'standard',
+    mainFocus: { tags: ['cardio'], cardioMode: 'steady', modality: 'run', label: 'Zone 2 long run',
+      note: 'Continuous, strictly under 153. Walk the hills without negotiating.',
+      cardio: { id: 'easy-run', minutes: 50, text: '50 min continuous · under 153' } },
+    mobility: 'z2-run', skillLine: 'handstand', close: 'run', open: 'z2-run',
     fuel: 'Eat properly — this is the long one.',
   },
-  sunday: {
+  'strength-b': {
+    theme: 'Strength B', variant: 'standard',
+    mainFocus: { tags: ['weights'], label: 'Strength B',
+      note: 'Deadlift, overhead press, row, dips, carry. Log every set.',
+      core: [ _S('deadlift', 3, { reps: 5, restSec: 180, note: 'Ramp first: bar x8, ~50% x5, ~70% x3, then the work sets.' }),
+              _S('overhead-press', 3, { reps: 5, restSec: 150 }),
+              _S('cable-row', 3, { reps: 8, restSec: 90, note: 'Same grip every session this block.' }),
+              _S('triceps-dip', 3, { reps: 6, restSec: 120 }),
+              _S('farmers-walk', 3, { distanceM: 40, restSec: 90, rpe: 8 }) ] },
+    mobility: 'strength-b', skillLine: 'pancake-hips', close: 'strength', open: 'strength-b',
+    fuel: 'Something light beforehand.',
+  },
+  'quality-run': {
+    theme: 'Intervals / Tempo', variant: 'standard',
+    mainFocus: { tags: ['cardio'], cardioMode: 'intervals', modality: 'run', label: 'Intervals / Tempo',
+      note: 'The one quality run of the week. Recover properly between efforts.',
+      cardio: { id: 'interval-run', minutes: 40,
+        text: 'Norwegian 4x4 · 10 min warm-up 118–137 · 4 × 4 min at 167–186 · 3 min easy between · 5 min cool-down' } },
+    mobility: 'quality-run', skillLine: 'muscle-up-prep', close: 'run', open: 'quality-run',
+    fuel: 'Eat something light first — do not do this one empty.',
+  },
+  'aerobic-test': {
+    theme: 'Aerobic retest', variant: 'standard',
+    mainFocus: { tags: ['cardio'], cardioMode: 'steady', modality: 'run', label: 'Aerobic retest',
+      note: 'Home loop, 08:00. Hold avg ~148, nothing above 156. Record distance for minutes 10–40.',
+      cardio: { id: 'easy-run', minutes: 50, text: '10 min build · 30 min at avg ~148 (cap 156) · 10 min walk' } },
+    mobility: 'aerobic-test', skillLine: 'hang-project', close: 'run', open: 'aerobic-test',
+    fuel: 'Same breakfast as the baseline morning.',
+  },
+  'light': {
     theme: 'Light', variant: 'light',
     mainFocus: null,
-    accessory: { tags: ['calisthenics'], note: 'Dead hang accumulation — building toward 2-3min.' },
-    mobility:  { tags: ['yoga', 'mobility-movement'] },
-    fuel: 'Whatever you like.',
-    movable: true,
-  },
-
-  // ── NAMED DAY-TYPES ───────────────────────────────────────
-  // Not weekdays. A month-plan day borrows one by setting `dayType`, which
-  // is how the second quality session of a build week lands on a Saturday
-  // without rewriting the week template. Chat's theme_swap can reach these
-  // too, since it looks up the same map.
-  'quality-4x4': {
-    theme: 'Quality \u2014 4x4', variant: 'standard',
-    mainFocus: {
-      tags: ['cardio'], cardioMode: 'intervals', modality: 'run',
-      intervalSpec: 'Norwegian 4x4 \u2014 10min warm-up at 118-137bpm, then 4 x 4min at 167-186bpm with 3min easy jogging between, 5min cool-down.',
-      note: 'The four intervals are the session. Recover properly between them \u2014 the recovery is what lets the next one count.',
-    },
-    accessory: { tags: ['calisthenics'] },
-    mobility:  { tags: ['mobility-movement'] },
-    fuel: 'Eat something light first \u2014 do not do this one empty.',
-  },
-
-  'light-yoga': {
-    theme: 'Yoga + Mobility', variant: 'light',
-    mainFocus: null,
-    accessory: { tags: ['yoga'] },
-    mobility:  { tags: ['yoga', 'flexibility'] },
+    mobility: 'light', skillLine: 'hang-project', close: 'light', open: 'light',
     fuel: 'Whatever you like.',
     movable: true,
   },
 };
+
+// Calendar weekdays point at a day type. Month-plan days can borrow any day
+// type with `dayType` (a test, a moved session), and chat's theme_swap can
+// reach every key in WEEK_SCAFFOLD, weekdays and day types alike.
+const WEEK_SCAFFOLD = {
+  ...WEEK_SCAFFOLD_TYPES,
+  monday:    { ...WEEK_SCAFFOLD_TYPES['strength-a'],  dayType: 'strength-a' },
+  tuesday:   { ...WEEK_SCAFFOLD_TYPES['z2-bike'],     dayType: 'z2-bike' },
+  wednesday: { ...WEEK_SCAFFOLD_TYPES['plyo-power'],  dayType: 'plyo-power' },
+  thursday:  { ...WEEK_SCAFFOLD_TYPES['z2-run'],      dayType: 'z2-run' },
+  friday:    { ...WEEK_SCAFFOLD_TYPES['strength-b'],  dayType: 'strength-b' },
+  saturday:  { ...WEEK_SCAFFOLD_TYPES['quality-run'], dayType: 'quality-run' },
+  sunday:    { ...WEEK_SCAFFOLD_TYPES['light'],       dayType: 'light' },
+  // Names older plan days and stored instances still use.
+  'quality-4x4': { ...WEEK_SCAFFOLD_TYPES['quality-run'], dayType: 'quality-run' },
+  'light-yoga':  { ...WEEK_SCAFFOLD_TYPES['light'],       dayType: 'light' },
+};
+Object.keys(WEEK_SCAFFOLD_TYPES).forEach(k => { WEEK_SCAFFOLD[k].dayType = k; });

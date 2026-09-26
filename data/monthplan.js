@@ -50,12 +50,24 @@
 //   - Strength A was never baselined in week 1; Mon 28 Sep doubles as it.
 // ────────────────────────────────────────────────────────────
 
+// Revised 2026-09-26 (fourth pass) — new weekly split from 28 Sep:
+//   Mon Strength A · Tue Z2 bike · Wed plyo/power/sprints · Thu Z2 long run ·
+//   Fri Strength B · Sat intervals/tempo · Sun light.
+//   - One quality run a week; Wednesday sprints carry the second hard day.
+//   - Plan days carry `mainFocusPlan`: the exact exercises with sets, reps and
+//     loads (or the cardio protocol), which the Generator pins first. Before
+//     this the prescription was prose only and Main Focus could fill with
+//     prehab (25 Sep).
+//   - `skillLine` names the Accessory & Skill line for the day.
+//   - Aerobic retest moves to Wed 14 Oct. Coordination rotation has six
+//     domains (movement practice added).
+
 const MONTH_PLAN_SEED = {
   // Bumped whenever this file's plan changes. ensureSeeded() supersedes a
   // stored plan with a lower version, and a pull refuses to downgrade past
   // it — without that, the seed reaches storage exactly once and every
   // later revision is silently ignored on the one device that matters.
-  "seedVersion": 3,
+  "seedVersion": 4,
 
   "title": "Block 1 — Aerobic engine + strength",
   "blockStart": "2026-09-20",
@@ -75,7 +87,7 @@ const MONTH_PLAN_SEED = {
     "from": "2026-09-20", "to": "2026-12-20", "weeks": 13,
     "premise": "Never trained consistently; good raw endurance but inefficient — an hour is available, it just costs a high heart rate. VO2max has sat around 42-47. Push strength is well ahead of pull (dips at +10kg x6 against pull-ups of 6/5/3/3 — roughly 101 vs 89kg estimated max, bodyweight included), which is the single clearest thing standing between here and a muscle-up.",
     "spine": "Aerobic engine first, built by two mechanisms that do different jobs: easy volume under 153 raises the ceiling you can sit under, and 4x4 intervals raise the ceiling itself. Strength progresses linearly underneath, sized so it never competes with the intervals. Skill lines (muscle-up, handstand) run the whole quarter inside the Accessory block rather than as extra sessions.",
-    "qualityDayRule": "Two 4x4 sessions in build and peak weeks, one in baseline and deload weeks. Three a week, or two every week without a break, drives most non-elite athletes into overreaching within 3-4 weeks — the undulation is what keeps the stimulus working for 13 weeks instead of 4.",
+    "qualityDayRule": "From 28 Sep: one quality run a week (Saturday), with sprints and jumps on Wednesday carrying the second high-intensity stimulus. Originally: two 4x4 sessions in build and peak weeks, one in baseline and deload weeks. Three a week, or two every week without a break, drives most non-elite athletes into overreaching within 3-4 weeks — the undulation is what keeps the stimulus working for 13 weeks instead of 4.",
     "interferenceRule": "Strength moves one small step per block, never two. Concurrent aerobic work mostly blunts lower-body power and hypertrophy, not maximal strength, so the lifts are sized to keep progressing quietly rather than to be chased. If a week's quality sessions are being hit properly and a lift stalls, let it stall.",
     "blocks": [
       { "n": 1, "name": "Find the floor", "weeks": "1-4", "from": "2026-09-20", "to": "2026-10-18",
@@ -116,8 +128,8 @@ const MONTH_PLAN_SEED = {
       "quarterTarget": "Fixed-HR 30min from 4.40km to 4.75-4.93km (+8-12%). VO2max +3-5 points. 10km continuous under 153.",
       "steps": [
         { "week": 1,  "by": "2026-09-23", "target": "BASELINE — done 23 Sep: 4.40km in 30min at avg 148, max 156." },
-        { "week": 2,  "by": "2026-10-04", "target": "Two 4x4s completed. Intervals at 167-175 — the low end on purpose, this week is about not blowing up on interval 1." },
-        { "week": 3,  "by": "2026-10-11", "target": "Two 4x4s at 172-182. All four intervals the same speed, not a descending set." },
+        { "week": 2,  "by": "2026-10-04", "target": "4x4 on Saturday at 167-175 — the low end on purpose, this week is about not blowing up on interval 1." },
+        { "week": 3,  "by": "2026-10-11", "target": "4x4 at 172-182. All four intervals the same speed, not a descending set." },
         { "week": 4,  "by": "2026-10-17", "target": "RETEST fixed-HR 30min — same loop, same morning slot, same HR profile. Target 4.53-4.62km (+3-5%)." },
         { "week": 6,  "by": "2026-11-01", "target": "Two 4x4s at the full 175-186. Four consistent weeks of 4x4 now banked." },
         { "week": 7,  "by": "2026-11-08", "target": "Extend to 5x4. Long easy day reaches 70min under 153." },
@@ -203,10 +215,10 @@ const MONTH_PLAN_SEED = {
     { "metric": "Overhead press 3x5",     "from": "35x5 @9 (est. 1RM ~42)", "to": "35 by 16 Oct · 37.5 by 13 Nov · 40 by 11 Dec" },
     { "metric": "Pull-ups",               "from": "6/5/3/3 strict",        "to": "3x6 by 12 Oct · 3x8 by 13 Nov · 3x10 by 11 Dec" },
     { "metric": "Dips",                   "from": "+10kg x6 @8",           "to": "3x6 +10kg by 16 Oct · 3x8 +10kg by 13 Nov · 3x8 +15kg by 11 Dec" },
-    { "metric": "Fixed-HR 30min (avg 148)", "from": "4.40km (23 Sep)",     "to": "4.53-4.62 by 17 Oct · 4.66-4.75 by 14 Nov · 4.75-4.93 by 19 Dec" },
+    { "metric": "Fixed-HR 30min (avg 148)", "from": "4.40km (23 Sep)",     "to": "4.53-4.62 by 14 Oct · 4.66-4.75 by 14 Nov · 4.75-4.93 by 19 Dec" },
     { "metric": "Handstand (rung 0-8)",   "from": "rung 1-2 — wall holds", "to": "rung 2 by 11 Oct · rung 3 by 22 Nov · rung 4 by 13 Dec" },
     { "metric": "Ring muscle-up (0-6)",   "from": "rung 0-1",              "to": "rung 1 by 11 Oct · rung 2 by 1 Nov · rung 3 by 22 Nov · rung 4 by 13 Dec" },
-    { "metric": "Dead hang",              "from": "untested",              "to": "60s by 17 Oct · 90s by 14 Nov · 2min by 12 Dec" },
+    { "metric": "Dead hang",              "from": "untested",              "to": "60s by 14 Oct · 90s by 14 Nov · 2min by 12 Dec" },
     { "metric": "10km continuous",        "from": "not attempted",         "to": "under 153 the whole way, by 12 Dec" }
   ],
 
@@ -216,14 +228,14 @@ const MONTH_PLAN_SEED = {
       "intent": "Establish real numbers. The quality session already happened on the 20th, so Wednesday is sprints instead. Easy days strictly under 153 — this is the week you find out what that costs.",
       "actual": "Rearranged by circumstance, and treated as data only. Tue: 60min Z2 bike. Wed: the aerobic baseline, 4.40km in 30min at avg 148. Thu: Strength B baseline. Mon was an unlogged mixed session, so Strength A has no baseline yet." },
     { "n": 2, "label": "Build", "start": "2026-09-28", "end": "2026-10-04",
-      "load": "build", "qualitySessions": 2,
-      "intent": "Two 4x4s, Wednesday and Saturday, both at the low end. Thursday goes light and the long easy run slides to Sunday to make room. Strength: first real working sets, and Monday doubles as the Strength A baseline week 1 never got." },
+      "load": "build", "qualitySessions": 1,
+      "intent": "First week of the new split: Mon Strength A, Tue Z2 bike, Wed plyo/sprints, Thu Z2 long run, Fri Strength B, Sat 4x4 at the low end, Sun light. Strength: first real working sets, and Monday doubles as the Strength A baseline week 1 never got." },
     { "n": 3, "label": "Peak", "start": "2026-10-05", "end": "2026-10-11",
-      "load": "peak", "qualitySessions": 2,
-      "intent": "Hardest week of the block. Two 4x4s at 172-182, strength at the block-1 targets. Saturday's session will feel worse than Wednesday's; that is the week working." },
+      "load": "peak", "qualitySessions": 1,
+      "intent": "Hardest week of the block. Sprints go to 8 x 20s, the 4x4 moves to 172-182, strength at the block-1 targets." },
     { "n": 4, "label": "Deload + retest", "start": "2026-10-12", "end": "2026-10-18",
       "load": "deload", "qualitySessions": 1,
-      "intent": "Volume down about 40%. One half-length quality session on Wednesday. Strength retested across Monday and Friday so neither is a five-lift marathon; aerobic and dead hang retested Saturday, fresh." },
+      "intent": "Test week. Strength retested Monday and Friday so neither is a five-lift marathon. The aerobic retest moves to Wednesday 14 Oct, the day after an easy bike, matching the 23 Sep baseline conditions. Saturday is a controlled tempo, not a quality session." },
     { "n": 5, "label": "Block 2 W1 — Re-establish", "start": "2026-10-19", "end": "2026-10-25",
       "load": "baseline", "qualitySessions": 1,
       "intent": "Block 2 opens the way Block 1 did — one quality session before doubling up in week 6. Intervals reach full intensity. The pancake gets measured Monday." }
@@ -253,6 +265,7 @@ const MONTH_PLAN_SEED = {
         "coordDomain": "vision",
         "load": "baseline",
         "focusNote": "NOT DONE AS PLANNED — an hour of mixed balance and core work instead, unlogged. The Strength A baseline moves to Mon 28 Sep; squat, incline and pull-ups stay on the 17 Sep numbers until then.",
+        "dayType": "strength-a",
         "benchmark": false
       },
       {
@@ -264,6 +277,7 @@ const MONTH_PLAN_SEED = {
         "coordDomain": "ball-reaction",
         "load": "test",
         "focusNote": "DONE AS A BIKE — 60min indoor, avg 143, 87% in zone 2. HR flat at 147-148 from minute 20 to 55. The run test moved to Wednesday.",
+        "dayType": "z2-bike",
         "benchmark": false
       },
       {
@@ -276,6 +290,7 @@ const MONTH_PLAN_SEED = {
         "load": "baseline",
         "intervalSpec": "Short sprints: 6 x 20s uphill at about 85%, walking all the way down between.",
         "focusNote": "BECAME THE AEROBIC BASELINE. Home loop, 08:00. Test window (minute 10-40): 4.40km at avg 148, max 156 — HR drifted 143 to 152. 5.72km in total. No sprints, jumps or slams. Every aerobic retest is measured against this run.",
+        "dayType": "aerobic-test",
         "benchmark": true
       },
       {
@@ -287,6 +302,7 @@ const MONTH_PLAN_SEED = {
         "coordDomain": "stick",
         "load": "baseline",
         "focusNote": "DONE AS STRENGTH B, a day early. OHP 35x5 @9 twice, deadlift 84x5 @9.5, dips +10kg x6 @8, cable row 52x8 @9. These set the Strength B numbers for the rest of the block.",
+        "dayType": "strength-b",
         "benchmark": true
       },
       {
@@ -298,6 +314,7 @@ const MONTH_PLAN_SEED = {
         "coordDomain": "objects",
         "load": "baseline",
         "focusNote": "Strength B baseline already done yesterday. The deadlift and press are not repeated today.",
+        "dayType": "light",
         "benchmark": false
       },
       {
@@ -309,6 +326,8 @@ const MONTH_PLAN_SEED = {
         "coordDomain": "vision",
         "load": "baseline",
         "focusNote": "45min continuous under 153 — the longest easy run of the week. Walk the hills without negotiating. Accessory: first handstand session of the block, wrist prep first, then chest-to-wall holds.",
+        "dayType": "z2-run",
+        "mainFocusPlan": { "cardio": { "exercise": { "id": "easy-run", "name": "Easy run" }, "protocol": { "type": "steady", "mainMin": 45, "hrMax": 153, "walkdownMin": 10 }, "note": "Continuous, strictly under 153. Walk the hills without negotiating." } },
         "benchmark": false
       },
       {
@@ -320,6 +339,7 @@ const MONTH_PLAN_SEED = {
         "coordDomain": "ball-reaction",
         "load": "baseline",
         "focusNote": "No main focus. Dead hang accumulation is the day — 5 x 45-60s in Open, a full minute between. Total time on the bar is the target, not any single hang.",
+        "dayType": "light",
         "benchmark": false
       },
       {
@@ -330,43 +350,166 @@ const MONTH_PLAN_SEED = {
         "variant": "standard",
         "coordDomain": "balance",
         "load": "build",
-        "focusNote": "Doubles as the Strength A baseline week 1 missed — log RPE on every set. Squat 57.5 3x5, incline bench 54 3x5, pull-ups 4x4 strict (last time went 6/5/3/3, so four even sets of four beats one big first set). If everything moved cleanly, week 3 builds off today, not off 17 Sep.",
+        "dayType": "strength-a",
+        "skillLine": "prehab-shoulder-wrist",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "squat",
+              "name": "Squat",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 57.5,
+              "restSec": 180,
+              "note": "Ramp first: bar x8, ~50% x5, ~70% x3, then the work sets."
+            },
+            {
+              "id": "incline-bench",
+              "name": "Incline bench press",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 54,
+              "restSec": 150
+            },
+            {
+              "id": "pull-up",
+              "name": "Pull-up",
+              "sets": 4,
+              "reps": 4,
+              "restSec": 120,
+              "note": "Strict, full hang to chin over bar. Bodyweight."
+            },
+            {
+              "id": "toes-to-bar",
+              "name": "Toes to bar",
+              "sets": 3,
+              "reps": 8,
+              "restSec": 90
+            }
+          ],
+          "note": "Also the Strength A baseline (21 Sep was never logged). Log every set with RPE."
+        },
+        "focusNote": "Squat 3x5 @57.5, Incline bench press 3x5 @54, Pull-up 4x4, Toes to bar 3x8. Also the Strength A baseline (21 Sep was never logged). Log every set with RPE.",
         "benchmark": true
       },
       {
         "date": "2026-09-29",
         "weekday": "tuesday",
         "week": 2,
-        "theme": "Zone 2 run",
+        "theme": "Zone 2 bike",
         "variant": "standard",
         "coordDomain": "stick",
         "load": "build",
-        "focusNote": "40min continuous under 153. Run the baseline loop if you can: 23 Sep held avg 148 at 6:49/km, and every easy run on the same loop is a free reading of the number the 17 Oct retest measures.",
+        "dayType": "z2-bike",
+        "skillLine": "handstand",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "z2-cycling",
+              "name": "Zone 2 indoor cycling"
+            },
+            "protocol": {
+              "type": "steady",
+              "warmupMin": 5,
+              "mainMin": 50,
+              "cooldownMin": 5,
+              "hrMin": 134,
+              "hrMax": 153
+            },
+            "note": "Nose breathing throughout. If it breaks, slow down."
+          }
+        },
+        "focusNote": "50min at 134-153. Nose breathing throughout. If it breaks, slow down.",
         "benchmark": false
       },
       {
         "date": "2026-09-30",
         "weekday": "wednesday",
         "week": 2,
-        "theme": "Quality — 4x4",
+        "theme": "Plyo · Power · Sprints",
         "variant": "standard",
         "coordDomain": "objects",
         "load": "build",
-        "dayType": "quality-4x4",
-        "intervalSpec": "Norwegian 4x4 — 10min warm-up at 118-137, then 4 x 4min at 167-175, 3min easy between, 5min cool-down.",
-        "focusNote": "First 4x4 run to a prescription. Deliberately at the LOW end, 167-175 — 20 Sep's bouts averaged 179 (4:43-5:01/km), so this is meant to feel easier than that. All four the same speed; if interval 4 is slower than interval 1, you went out too fast.",
+        "dayType": "plyo-power",
+        "skillLine": "muscle-up-prep",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "easy-run",
+              "name": "Easy run",
+              "sets": 1,
+              "durationSec": 600,
+              "note": "Build to HR ~140. Warm-up for the sprints."
+            },
+            {
+              "id": "uphill-sprints",
+              "name": "Uphill sprint repeats",
+              "sets": 6,
+              "durationSec": 20,
+              "note": "6 x 20s at 85-90%. Walk all the way down between reps."
+            },
+            {
+              "id": "box-jump",
+              "name": "Box jump",
+              "sets": 4,
+              "reps": 4,
+              "restSec": 90,
+              "note": "Full reset every rep. Step down."
+            },
+            {
+              "id": "broad-jump",
+              "name": "Broad jump",
+              "sets": 3,
+              "reps": 3,
+              "restSec": 90,
+              "note": "Stick the landing. Measure the best one."
+            },
+            {
+              "id": "med-ball-slams",
+              "name": "Medicine ball slams",
+              "sets": 3,
+              "reps": 8,
+              "restSec": 60
+            },
+            {
+              "id": "walking",
+              "name": "Walking / hiking",
+              "sets": 1,
+              "durationSec": 480,
+              "note": "Walk down."
+            }
+          ],
+          "note": "Quality over volume. Stop a set the moment speed drops."
+        },
+        "focusNote": "Easy run 10min, Uphill sprint repeats 6x20s, Box jump 4x4, Broad jump 3x3, Medicine ball slams 3x8, Walking / hiking 8min. Quality over volume. Stop a set the moment speed drops.",
         "benchmark": false
       },
       {
         "date": "2026-10-01",
         "weekday": "thursday",
         "week": 2,
-        "theme": "Yoga + Mobility",
-        "variant": "light",
-        "coordDomain": "vision",
+        "theme": "Zone 2 long run",
+        "variant": "standard",
+        "coordDomain": "movement",
         "load": "build",
-        "dayType": "light-yoga",
-        "focusNote": "Light day. Thursday gives up the bike this week because Saturday is a second 4x4 and the legs need somewhere to recover. Yoga owns the time.",
+        "dayType": "z2-run",
+        "skillLine": "handstand",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "easy-run",
+              "name": "Easy run"
+            },
+            "protocol": {
+              "type": "steady",
+              "mainMin": 50,
+              "hrMax": 153,
+              "walkdownMin": 5
+            },
+            "note": "Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov."
+          }
+        },
+        "focusNote": "50min under 153. Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov.",
         "benchmark": false
       },
       {
@@ -375,34 +518,113 @@ const MONTH_PLAN_SEED = {
         "week": 2,
         "theme": "Strength B",
         "variant": "standard",
-        "coordDomain": "ball-reaction",
+        "coordDomain": "vision",
         "load": "build",
-        "focusNote": "Deadlift 80 3x5, overhead press 32 3x5, cable row 3x8 at 50, dips 3x6 at +7.5kg. All around RPE 7-8 — a working day, not a second baseline. Pick one row grip and keep it for the block; a V-grip 52 and a wide-grip 52 are not the same number. There is a 4x4 tomorrow.",
+        "dayType": "strength-b",
+        "skillLine": "pancake-hips",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "deadlift",
+              "name": "Deadlift",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 80,
+              "restSec": 180,
+              "note": "Ramp first: bar x8, ~50% x5, ~70% x3, then the work sets."
+            },
+            {
+              "id": "overhead-press",
+              "name": "Overhead press",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 32,
+              "restSec": 150
+            },
+            {
+              "id": "cable-row",
+              "name": "Seated cable row",
+              "sets": 3,
+              "reps": 8,
+              "loadKg": 50,
+              "restSec": 90,
+              "note": "Same grip every session this block."
+            },
+            {
+              "id": "triceps-dip",
+              "name": "Triceps dip",
+              "sets": 3,
+              "reps": 6,
+              "loadKg": 7.5,
+              "restSec": 120,
+              "note": "+7.5kg on the belt (bodyweightBase).",
+              "bodyweightPlus": true
+            },
+            {
+              "id": "farmers-walk",
+              "name": "Farmer's walk",
+              "sets": 3,
+              "rpe": 8,
+              "restSec": 90,
+              "note": "3 x 40m. Heavy, posture holds.",
+              "distanceM": 40
+            }
+          ],
+          "note": "Keep the deadlift honest, not heavy."
+        },
+        "focusNote": "Deadlift 3x5 @80, Overhead press 3x5 @32, Seated cable row 3x8 @50, Triceps dip 3x6 +7.5kg, Farmer's walk 3x40m. Keep the deadlift honest, not heavy.",
         "benchmark": false
       },
       {
         "date": "2026-10-03",
         "weekday": "saturday",
         "week": 2,
-        "theme": "Quality — 4x4",
+        "theme": "Intervals / Tempo",
         "variant": "standard",
-        "coordDomain": "balance",
+        "coordDomain": "ball-reaction",
         "load": "build",
-        "dayType": "quality-4x4",
-        "intervalSpec": "Norwegian 4x4 — 4 x 4min at 167-175, 3min easy between.",
-        "focusNote": "Second quality session of the week, three days after the first. Same prescription as Wednesday — repeat it rather than escalate. Two in a week is new; the point is tolerating it, not beating it.",
+        "dayType": "quality-run",
+        "skillLine": "muscle-up-prep",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "interval-run",
+              "name": "Interval run"
+            },
+            "protocol": {
+              "type": "intervals",
+              "name": "Norwegian 4x4",
+              "warmupMin": 10,
+              "warmupHr": [
+                118,
+                137
+              ],
+              "reps": 4,
+              "workMin": 4,
+              "workHr": [
+                167,
+                175
+              ],
+              "recoveryMin": 3,
+              "cooldownMin": 5
+            },
+            "note": "Low end of the range. Record avg HR per bout and whether bout 4 matched bout 1's pace."
+          }
+        },
+        "focusNote": "Norwegian 4x4: 4 x 4min at 167-175, 3min easy between. Low end of the range. Record avg HR per bout and whether bout 4 matched bout 1's pace.",
         "benchmark": false
       },
       {
         "date": "2026-10-04",
         "weekday": "sunday",
         "week": 2,
-        "theme": "Long Easy + Flexibility",
-        "variant": "standard",
-        "coordDomain": "stick",
+        "theme": "Light",
+        "variant": "light",
+        "coordDomain": "balance",
         "load": "build",
-        "dayType": "saturday",
-        "focusNote": "The long easy run moves to Sunday this week. 55min continuous under 153. Ten minutes longer than last Saturday.",
+        "dayType": "light",
+        "skillLine": "hang-project",
+        "focusNote": "No main focus. Hang project in Accessory, long passive holds in Mobility.",
         "benchmark": false
       },
       {
@@ -411,45 +633,168 @@ const MONTH_PLAN_SEED = {
         "week": 3,
         "theme": "Strength A",
         "variant": "standard",
-        "coordDomain": "objects",
+        "coordDomain": "stick",
         "load": "peak",
-        "focusNote": "Squat 60 3x5, incline bench 55 3x5, pull-ups 4x5. Hardest strength day of the block and the block-1 target for squat. If Mon 28 was a grind, hold 57.5 and let the retest decide.",
+        "dayType": "strength-a",
+        "skillLine": "prehab-shoulder-wrist",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "squat",
+              "name": "Squat",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 60,
+              "restSec": 180,
+              "note": "Ramp first: bar x8, ~50% x5, ~70% x3, then the work sets."
+            },
+            {
+              "id": "incline-bench",
+              "name": "Incline bench press",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 55,
+              "restSec": 150
+            },
+            {
+              "id": "pull-up",
+              "name": "Pull-up",
+              "sets": 4,
+              "reps": 5,
+              "restSec": 120,
+              "note": "Strict, full hang to chin over bar. Bodyweight."
+            },
+            {
+              "id": "toes-to-bar",
+              "name": "Toes to bar",
+              "sets": 3,
+              "reps": 10,
+              "restSec": 90
+            }
+          ],
+          "note": "Hardest strength day of the block. Squat 60 is the block-1 target."
+        },
+        "focusNote": "Squat 3x5 @60, Incline bench press 3x5 @55, Pull-up 4x5, Toes to bar 3x10. Hardest strength day of the block. Squat 60 is the block-1 target.",
         "benchmark": false
       },
       {
         "date": "2026-10-06",
         "weekday": "tuesday",
         "week": 3,
-        "theme": "Zone 2 run",
+        "theme": "Zone 2 bike",
         "variant": "standard",
-        "coordDomain": "vision",
+        "coordDomain": "objects",
         "load": "peak",
-        "focusNote": "45min under 153, on the baseline loop if you can.",
+        "dayType": "z2-bike",
+        "skillLine": "handstand",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "z2-cycling",
+              "name": "Zone 2 indoor cycling"
+            },
+            "protocol": {
+              "type": "steady",
+              "warmupMin": 5,
+              "mainMin": 55,
+              "cooldownMin": 5,
+              "hrMin": 134,
+              "hrMax": 153
+            },
+            "note": "Nose breathing throughout. If it breaks, slow down."
+          }
+        },
+        "focusNote": "55min at 134-153. Nose breathing throughout. If it breaks, slow down.",
         "benchmark": false
       },
       {
         "date": "2026-10-07",
         "weekday": "wednesday",
         "week": 3,
-        "theme": "Quality — 4x4",
+        "theme": "Plyo · Power · Sprints",
         "variant": "standard",
-        "coordDomain": "ball-reaction",
+        "coordDomain": "movement",
         "load": "peak",
-        "dayType": "quality-4x4",
-        "intervalSpec": "Norwegian 4x4 — 4 x 4min at 172-182, 3min easy between.",
-        "focusNote": "Intensity moves up to 172-182. Still four intervals of the same speed — the target is evenness, not a hero first rep.",
+        "dayType": "plyo-power",
+        "skillLine": "muscle-up-prep",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "easy-run",
+              "name": "Easy run",
+              "sets": 1,
+              "durationSec": 600,
+              "note": "Build to HR ~140. Warm-up for the sprints."
+            },
+            {
+              "id": "uphill-sprints",
+              "name": "Uphill sprint repeats",
+              "sets": 8,
+              "durationSec": 20,
+              "note": "8 x 20s at 90%. Walk all the way down between reps."
+            },
+            {
+              "id": "box-jump",
+              "name": "Box jump",
+              "sets": 5,
+              "reps": 3,
+              "restSec": 90,
+              "note": "Full reset every rep. Step down."
+            },
+            {
+              "id": "broad-jump",
+              "name": "Broad jump",
+              "sets": 4,
+              "reps": 3,
+              "restSec": 90,
+              "note": "Stick the landing. Measure the best one."
+            },
+            {
+              "id": "med-ball-slams",
+              "name": "Medicine ball slams",
+              "sets": 3,
+              "reps": 8,
+              "restSec": 60
+            },
+            {
+              "id": "walking",
+              "name": "Walking / hiking",
+              "sets": 1,
+              "durationSec": 480,
+              "note": "Walk down."
+            }
+          ],
+          "note": "Quality over volume. Stop a set the moment speed drops."
+        },
+        "focusNote": "Easy run 10min, Uphill sprint repeats 8x20s, Box jump 5x3, Broad jump 4x3, Medicine ball slams 3x8, Walking / hiking 8min. Quality over volume. Stop a set the moment speed drops.",
         "benchmark": false
       },
       {
         "date": "2026-10-08",
         "weekday": "thursday",
         "week": 3,
-        "theme": "Yoga + Mobility",
-        "variant": "light",
-        "coordDomain": "balance",
+        "theme": "Zone 2 long run",
+        "variant": "standard",
+        "coordDomain": "vision",
         "load": "peak",
-        "dayType": "light-yoga",
-        "focusNote": "Light day inside the peak week. It only works if you actually take it — this is the day that makes Saturday possible.",
+        "dayType": "z2-run",
+        "skillLine": "handstand",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "easy-run",
+              "name": "Easy run"
+            },
+            "protocol": {
+              "type": "steady",
+              "mainMin": 55,
+              "hrMax": 153,
+              "walkdownMin": 5
+            },
+            "note": "Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov."
+          }
+        },
+        "focusNote": "55min under 153. Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov.",
         "benchmark": false
       },
       {
@@ -458,34 +803,112 @@ const MONTH_PLAN_SEED = {
         "week": 3,
         "theme": "Strength B",
         "variant": "standard",
-        "coordDomain": "stick",
+        "coordDomain": "ball-reaction",
         "load": "peak",
-        "focusNote": "Deadlift 82.5 3x5, overhead press 34 3x5, cable row 3x8 at 52, dips 3x6 at +10kg.",
+        "dayType": "strength-b",
+        "skillLine": "pancake-hips",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "deadlift",
+              "name": "Deadlift",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 82.5,
+              "restSec": 180,
+              "note": "Ramp first: bar x8, ~50% x5, ~70% x3, then the work sets."
+            },
+            {
+              "id": "overhead-press",
+              "name": "Overhead press",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 34,
+              "restSec": 150
+            },
+            {
+              "id": "cable-row",
+              "name": "Seated cable row",
+              "sets": 3,
+              "reps": 8,
+              "loadKg": 52,
+              "restSec": 90,
+              "note": "Same grip every session this block."
+            },
+            {
+              "id": "triceps-dip",
+              "name": "Triceps dip",
+              "sets": 3,
+              "reps": 6,
+              "loadKg": 10,
+              "restSec": 120,
+              "note": "+10kg on the belt (bodyweightBase).",
+              "bodyweightPlus": true
+            },
+            {
+              "id": "farmers-walk",
+              "name": "Farmer's walk",
+              "sets": 3,
+              "rpe": 8,
+              "restSec": 90,
+              "note": "3 x 40m. Heavy, posture holds.",
+              "distanceM": 40
+            }
+          ]
+        },
+        "focusNote": "Deadlift 3x5 @82.5, Overhead press 3x5 @34, Seated cable row 3x8 @52, Triceps dip 3x6 +10kg, Farmer's walk 3x40m.",
         "benchmark": false
       },
       {
         "date": "2026-10-10",
         "weekday": "saturday",
         "week": 3,
-        "theme": "Quality — 4x4",
+        "theme": "Intervals / Tempo",
         "variant": "standard",
-        "coordDomain": "objects",
+        "coordDomain": "balance",
         "load": "peak",
-        "dayType": "quality-4x4",
-        "intervalSpec": "Norwegian 4x4 — 4 x 4min at 172-182, 3min easy between.",
-        "focusNote": "Second quality of the peak week. Expect this one to feel considerably worse than Wednesday's — that is the week doing its job, not a sign something is wrong. If you cannot reach 172 on interval 3, stop at 3.",
+        "dayType": "quality-run",
+        "skillLine": "muscle-up-prep",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "interval-run",
+              "name": "Interval run"
+            },
+            "protocol": {
+              "type": "intervals",
+              "name": "Norwegian 4x4",
+              "warmupMin": 10,
+              "warmupHr": [
+                118,
+                137
+              ],
+              "reps": 4,
+              "workMin": 4,
+              "workHr": [
+                172,
+                182
+              ],
+              "recoveryMin": 3,
+              "cooldownMin": 5
+            },
+            "note": "All four bouts at the same speed."
+          }
+        },
+        "focusNote": "Norwegian 4x4: 4 x 4min at 172-182, 3min easy between. All four bouts at the same speed.",
         "benchmark": false
       },
       {
         "date": "2026-10-11",
         "weekday": "sunday",
         "week": 3,
-        "theme": "Long Easy + Flexibility",
-        "variant": "standard",
-        "coordDomain": "vision",
+        "theme": "Light",
+        "variant": "light",
+        "coordDomain": "stick",
         "load": "peak",
-        "dayType": "saturday",
-        "focusNote": "60min continuous under 153, on tired legs. Staying under the cap when you are fatigued is the whole test — it will be slower than last Sunday and that is correct.",
+        "dayType": "light",
+        "skillLine": "hang-project",
+        "focusNote": "No main focus. Hang project in Accessory, long passive holds in Mobility.",
         "benchmark": false
       },
       {
@@ -494,45 +917,144 @@ const MONTH_PLAN_SEED = {
         "week": 4,
         "theme": "Strength retest A",
         "variant": "standard",
-        "coordDomain": "ball-reaction",
+        "coordDomain": "objects",
         "load": "test",
-        "focusNote": "RETEST A: squat 60 3x5, incline bench 55 3x5, pull-ups 3x6 strict. Take what moves cleanly, leave what does not. Nothing else heavy today.",
+        "dayType": "strength-a",
+        "skillLine": "prehab-shoulder-wrist",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "squat",
+              "name": "Squat",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 60,
+              "restSec": 180,
+              "note": "Ramp first: bar x8, ~50% x5, ~70% x3, then the work sets."
+            },
+            {
+              "id": "incline-bench",
+              "name": "Incline bench press",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 55,
+              "restSec": 150
+            },
+            {
+              "id": "pull-up",
+              "name": "Pull-up",
+              "sets": 3,
+              "reps": 6,
+              "restSec": 120,
+              "note": "Strict, full hang to chin over bar. Bodyweight."
+            },
+            {
+              "id": "plank",
+              "name": "Plank",
+              "sets": 3,
+              "durationSec": 45,
+              "restSec": 60
+            }
+          ],
+          "note": "RETEST A. Take what moves cleanly, leave what doesn't. Nothing else heavy today."
+        },
+        "focusNote": "Squat 3x5 @60, Incline bench press 3x5 @55, Pull-up 3x6, Plank 3x45s. RETEST A. Take what moves cleanly, leave what doesn't. Nothing else heavy today.",
         "benchmark": true
       },
       {
         "date": "2026-10-13",
         "weekday": "tuesday",
         "week": 4,
-        "theme": "Zone 2 run",
+        "theme": "Zone 2 bike",
         "variant": "standard",
-        "coordDomain": "balance",
-        "load": "deload",
-        "focusNote": "30min easy under 153. Deliberately short.",
+        "coordDomain": "movement",
+        "load": "test",
+        "dayType": "z2-bike",
+        "skillLine": "handstand",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "z2-cycling",
+              "name": "Zone 2 indoor cycling"
+            },
+            "protocol": {
+              "type": "steady",
+              "warmupMin": 5,
+              "mainMin": 40,
+              "cooldownMin": 5,
+              "hrMin": 134,
+              "hrMax": 153
+            },
+            "note": "Nose breathing throughout. If it breaks, slow down. Kept short: tomorrow is the aerobic retest."
+          }
+        },
+        "focusNote": "40min at 134-153. Nose breathing throughout. If it breaks, slow down. Kept short: tomorrow is the aerobic retest.",
         "benchmark": false
       },
       {
         "date": "2026-10-14",
         "weekday": "wednesday",
         "week": 4,
-        "theme": "Quality — reduced",
+        "theme": "Aerobic retest",
         "variant": "standard",
-        "coordDomain": "stick",
-        "load": "deload",
-        "dayType": "quality-4x4",
-        "intervalSpec": "Reduced: 2 x 4min at 167-175 only. Half the usual session.",
-        "focusNote": "Half a 4x4 and nothing else. No jumps, no slams. You are resting for Friday and Saturday — the temptation to make this a real session is exactly what ruins the retest.",
-        "benchmark": false
+        "coordDomain": "vision",
+        "load": "test",
+        "dayType": "aerobic-test",
+        "skillLine": "muscle-up-prep",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "easy-run",
+              "name": "Easy run"
+            },
+            "protocol": {
+              "type": "fixed-hr-test",
+              "warmupMin": 10,
+              "testMin": 30,
+              "targetAvgHr": 148,
+              "hrCeiling": 156,
+              "walkdownMin": 10
+            },
+            "note": "Same conditions as the 23 Sep baseline: home loop, 08:00, day after a Z2 bike. Hold avg ~148, nothing above 156. Record distance for min 10-40. Target 4.53-4.62 km."
+          },
+          "extra": [
+            {
+              "id": "dead-hang",
+              "name": "Dead hang",
+              "sets": 1,
+              "note": "Max unbroken hang, after the run. Record it."
+            }
+          ]
+        },
+        "focusNote": "AEROBIC RETEST. Same conditions as the 23 Sep baseline: home loop, 08:00, day after a Z2 bike. Hold avg ~148, nothing above 156. Record distance for min 10-40. Target 4.53-4.62 km. Then a max dead hang.",
+        "benchmark": true
       },
       {
         "date": "2026-10-15",
         "weekday": "thursday",
         "week": 4,
-        "theme": "Yoga + Mobility",
-        "variant": "light",
-        "coordDomain": "objects",
-        "load": "deload",
-        "dayType": "light-yoga",
-        "focusNote": "Light. Legs should feel fresh by tonight. If they do not, cut Friday's warm-up ramps rather than the test itself.",
+        "theme": "Zone 2 long run",
+        "variant": "standard",
+        "coordDomain": "ball-reaction",
+        "load": "test",
+        "dayType": "z2-run",
+        "skillLine": "handstand",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "easy-run",
+              "name": "Easy run"
+            },
+            "protocol": {
+              "type": "steady",
+              "mainMin": 40,
+              "hrMax": 153,
+              "walkdownMin": 5
+            },
+            "note": "Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov."
+          }
+        },
+        "focusNote": "40min under 153. Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov.",
         "benchmark": false
       },
       {
@@ -541,21 +1063,68 @@ const MONTH_PLAN_SEED = {
         "week": 4,
         "theme": "Strength retest B",
         "variant": "standard",
-        "coordDomain": "vision",
+        "coordDomain": "balance",
         "load": "test",
-        "focusNote": "RETEST B: deadlift 85 3x5, overhead press 35 3x5 — all three sets this time, where 24 Sep managed two at RPE 9. Two lifts only — ramp properly, then test. Splitting the five lifts across Monday and Friday is why both can be done fresh.",
+        "dayType": "strength-b",
+        "skillLine": "pancake-hips",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "deadlift",
+              "name": "Deadlift",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 85,
+              "restSec": 180,
+              "note": "Ramp first: bar x8, ~50% x5, ~70% x3, then the work sets."
+            },
+            {
+              "id": "overhead-press",
+              "name": "Overhead press",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 35,
+              "restSec": 150
+            }
+          ],
+          "note": "RETEST B. Two lifts only. Ramp properly, then test."
+        },
+        "focusNote": "Deadlift 3x5 @85, Overhead press 3x5 @35. RETEST B. Two lifts only. Ramp properly, then test.",
         "benchmark": true
       },
       {
         "date": "2026-10-17",
         "weekday": "saturday",
         "week": 4,
-        "theme": "Aerobic retest",
+        "theme": "Intervals / Tempo",
         "variant": "standard",
-        "coordDomain": "ball-reaction",
+        "coordDomain": "stick",
         "load": "test",
-        "focusNote": "RETEST: the home loop at around 08:00, as on 23 Sep. 10min build, then 30min held at avg ~148 with nothing above 156 — the same profile the baseline ran at. Baseline 4.40km; target 4.53-4.62km. Then, rested: one max unbroken dead hang, target 60s.",
-        "benchmark": true
+        "dayType": "quality-run",
+        "skillLine": "muscle-up-prep",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "tempo-run",
+              "name": "Tempo run"
+            },
+            "protocol": {
+              "type": "tempo",
+              "warmupMin": 10,
+              "reps": 2,
+              "workMin": 10,
+              "workHr": [
+                153,
+                165
+              ],
+              "recoveryMin": 3,
+              "cooldownMin": 5
+            },
+            "note": "Test week: controlled tempo, not a quality session. Comfortably hard, talkable in short phrases."
+          }
+        },
+        "focusNote": "Tempo: 2 x 10min at 153-165. Test week: controlled tempo, not a quality session. Comfortably hard, talkable in short phrases.",
+        "benchmark": false
       },
       {
         "date": "2026-10-18",
@@ -563,9 +1132,11 @@ const MONTH_PLAN_SEED = {
         "week": 4,
         "theme": "Light",
         "variant": "light",
-        "coordDomain": "balance",
-        "load": "deload",
-        "focusNote": "Block 1 closes. Before anything else, write down the numbers: fixed-HR distance, dead hang, and where the five lifts actually landed. Block 2's targets are computed off these, not off the estimates.",
+        "coordDomain": "objects",
+        "load": "test",
+        "dayType": "light",
+        "skillLine": "hang-project",
+        "focusNote": "No main focus. Hang project in Accessory, long passive holds in Mobility.",
         "benchmark": false
       },
       {
@@ -574,44 +1145,168 @@ const MONTH_PLAN_SEED = {
         "week": 5,
         "theme": "Strength A",
         "variant": "standard",
-        "coordDomain": "stick",
+        "coordDomain": "movement",
         "load": "baseline",
-        "focusNote": "Block 2 opens. Squat and incline at whatever 12 Oct actually gave you, 3x5. In Accessory: MEASURE THE PANCAKE — chest height off the floor in a straddle, written down before you train it. Everything in the pancake line is compared to today.",
+        "dayType": "strength-a",
+        "skillLine": "prehab-shoulder-wrist",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "squat",
+              "name": "Squat",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 60,
+              "restSec": 180,
+              "note": "Ramp first: bar x8, ~50% x5, ~70% x3, then the work sets."
+            },
+            {
+              "id": "incline-bench",
+              "name": "Incline bench press",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 55,
+              "restSec": 150
+            },
+            {
+              "id": "pull-up",
+              "name": "Pull-up",
+              "sets": 3,
+              "reps": 6,
+              "restSec": 120,
+              "note": "Strict, full hang to chin over bar. Bodyweight."
+            },
+            {
+              "id": "hollow-body-hold",
+              "name": "Hollow body hold",
+              "sets": 3,
+              "durationSec": 30,
+              "restSec": 60
+            }
+          ],
+          "note": "Block 2 opens. Squat and incline at what 12 Oct gave you (+2.5kg on any lift that moved cleanly). Pancake is measured today in Accessory."
+        },
+        "focusNote": "Squat 3x5 @60, Incline bench press 3x5 @55, Pull-up 3x6, Hollow body hold 3x30s. Block 2 opens. Squat and incline at what 12 Oct gave you (+2.5kg on any lift that moved cleanly). Pancake is measured today in Accessory.",
         "benchmark": true
       },
       {
         "date": "2026-10-20",
         "weekday": "tuesday",
         "week": 5,
-        "theme": "Zone 2 run",
+        "theme": "Zone 2 bike",
         "variant": "standard",
-        "coordDomain": "objects",
+        "coordDomain": "vision",
         "load": "baseline",
-        "focusNote": "40min under 153. Worth comparing how this feels against 29 Sep at the same duration and cap — four weeks of base in between.",
+        "dayType": "z2-bike",
+        "skillLine": "handstand",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "z2-cycling",
+              "name": "Zone 2 indoor cycling"
+            },
+            "protocol": {
+              "type": "steady",
+              "warmupMin": 5,
+              "mainMin": 60,
+              "cooldownMin": 5,
+              "hrMin": 134,
+              "hrMax": 153
+            },
+            "note": "Nose breathing throughout. If it breaks, slow down."
+          }
+        },
+        "focusNote": "60min at 134-153. Nose breathing throughout. If it breaks, slow down.",
         "benchmark": false
       },
       {
         "date": "2026-10-21",
         "weekday": "wednesday",
         "week": 5,
-        "theme": "Quality — 4x4",
+        "theme": "Plyo · Power · Sprints",
         "variant": "standard",
-        "coordDomain": "vision",
+        "coordDomain": "ball-reaction",
         "load": "baseline",
-        "dayType": "quality-4x4",
-        "intervalSpec": "Norwegian 4x4 — 4 x 4min at 175-186, 3min easy between.",
-        "focusNote": "Full prescribed intensity now, 175-186. One quality session this week — Block 2 opens the same way Block 1 did, with a single session before doubling up again in week 6.",
+        "dayType": "plyo-power",
+        "skillLine": "muscle-up-prep",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "easy-run",
+              "name": "Easy run",
+              "sets": 1,
+              "durationSec": 600,
+              "note": "Build to HR ~140. Warm-up for the sprints."
+            },
+            {
+              "id": "uphill-sprints",
+              "name": "Uphill sprint repeats",
+              "sets": 8,
+              "durationSec": 20,
+              "note": "8 x 20s at 90-95%. Walk all the way down between reps."
+            },
+            {
+              "id": "box-jump",
+              "name": "Box jump",
+              "sets": 5,
+              "reps": 3,
+              "restSec": 90,
+              "note": "Full reset every rep. Step down."
+            },
+            {
+              "id": "broad-jump",
+              "name": "Broad jump",
+              "sets": 4,
+              "reps": 3,
+              "restSec": 90,
+              "note": "Stick the landing. Measure the best one."
+            },
+            {
+              "id": "med-ball-slams",
+              "name": "Medicine ball slams",
+              "sets": 3,
+              "reps": 8,
+              "restSec": 60
+            },
+            {
+              "id": "walking",
+              "name": "Walking / hiking",
+              "sets": 1,
+              "durationSec": 480,
+              "note": "Walk down."
+            }
+          ],
+          "note": "Quality over volume. Stop a set the moment speed drops."
+        },
+        "focusNote": "Easy run 10min, Uphill sprint repeats 8x20s, Box jump 5x3, Broad jump 4x3, Medicine ball slams 3x8, Walking / hiking 8min. Quality over volume. Stop a set the moment speed drops.",
         "benchmark": false
       },
       {
         "date": "2026-10-22",
         "weekday": "thursday",
         "week": 5,
-        "theme": "Zone 2 bike + Yoga",
+        "theme": "Zone 2 long run",
         "variant": "standard",
-        "coordDomain": "ball-reaction",
+        "coordDomain": "balance",
         "load": "baseline",
-        "focusNote": "45min on the bike under 153.",
+        "dayType": "z2-run",
+        "skillLine": "handstand",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "easy-run",
+              "name": "Easy run"
+            },
+            "protocol": {
+              "type": "steady",
+              "mainMin": 60,
+              "hrMax": 153,
+              "walkdownMin": 5
+            },
+            "note": "Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov."
+          }
+        },
+        "focusNote": "60min under 153. Continuous, strictly under 153. Walk the hills without negotiating. Builds toward 70 min by 8 Nov.",
         "benchmark": false
       },
       {
@@ -620,20 +1315,100 @@ const MONTH_PLAN_SEED = {
         "week": 5,
         "theme": "Strength B",
         "variant": "standard",
-        "coordDomain": "balance",
+        "coordDomain": "stick",
         "load": "baseline",
-        "focusNote": "Deadlift and overhead press at the 16 Oct numbers, both 3x5. Cable row 3x10 at 50, dips 3x7 at +10kg — reps climb toward 3x8 at the same load before any more weight goes on.",
+        "dayType": "strength-b",
+        "skillLine": "pancake-hips",
+        "mainFocusPlan": {
+          "exercises": [
+            {
+              "id": "deadlift",
+              "name": "Deadlift",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 85,
+              "restSec": 180,
+              "note": "Ramp first: bar x8, ~50% x5, ~70% x3, then the work sets."
+            },
+            {
+              "id": "overhead-press",
+              "name": "Overhead press",
+              "sets": 3,
+              "reps": 5,
+              "loadKg": 35,
+              "restSec": 150
+            },
+            {
+              "id": "cable-row",
+              "name": "Seated cable row",
+              "sets": 3,
+              "reps": 10,
+              "loadKg": 50,
+              "restSec": 90,
+              "note": "Same grip every session this block."
+            },
+            {
+              "id": "triceps-dip",
+              "name": "Triceps dip",
+              "sets": 3,
+              "reps": 7,
+              "loadKg": 10,
+              "restSec": 120,
+              "note": "+10kg on the belt (bodyweightBase).",
+              "bodyweightPlus": true
+            },
+            {
+              "id": "farmers-walk",
+              "name": "Farmer's walk",
+              "sets": 3,
+              "rpe": 8,
+              "restSec": 90,
+              "note": "3 x 40m. Heavy, posture holds.",
+              "distanceM": 40
+            }
+          ],
+          "note": "Deadlift and press at the 16 Oct numbers."
+        },
+        "focusNote": "Deadlift 3x5 @85, Overhead press 3x5 @35, Seated cable row 3x10 @50, Triceps dip 3x7 +10kg, Farmer's walk 3x40m. Deadlift and press at the 16 Oct numbers.",
         "benchmark": false
       },
       {
         "date": "2026-10-24",
         "weekday": "saturday",
         "week": 5,
-        "theme": "Long Easy + Flexibility",
+        "theme": "Intervals / Tempo",
         "variant": "standard",
-        "coordDomain": "stick",
+        "coordDomain": "objects",
         "load": "baseline",
-        "focusNote": "60min under 153. Pancake work owns Accessory from here: 3 x 90s passive plus loaded pancake good mornings at a genuinely light weight.",
+        "dayType": "quality-run",
+        "skillLine": "muscle-up-prep",
+        "mainFocusPlan": {
+          "cardio": {
+            "exercise": {
+              "id": "interval-run",
+              "name": "Interval run"
+            },
+            "protocol": {
+              "type": "intervals",
+              "name": "Norwegian 4x4",
+              "warmupMin": 10,
+              "warmupHr": [
+                118,
+                137
+              ],
+              "reps": 4,
+              "workMin": 4,
+              "workHr": [
+                172,
+                182
+              ],
+              "recoveryMin": 3,
+              "cooldownMin": 5
+            },
+            "note": "Same range as week 3; bout-to-bout pace should now hold."
+          }
+        },
+        "focusNote": "Norwegian 4x4: 4 x 4min at 172-182, 3min easy between. Same range as week 3; bout-to-bout pace should now hold.",
         "benchmark": false
       },
       {
@@ -642,9 +1417,11 @@ const MONTH_PLAN_SEED = {
         "week": 5,
         "theme": "Light",
         "variant": "light",
-        "coordDomain": "objects",
+        "coordDomain": "movement",
         "load": "baseline",
-        "focusNote": "Pancake accumulation replaces hang accumulation in Open. Same principle as the hang — time in the position, not intensity.",
+        "dayType": "light",
+        "skillLine": "hang-project",
+        "focusNote": "No main focus. Hang project in Accessory, long passive holds in Mobility.",
         "benchmark": false
       }
     ]
