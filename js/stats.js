@@ -166,16 +166,21 @@ const Stats = {
     (session.blocks || []).forEach(b => (b.exercises || []).forEach(ex => {
       const c = ex.cardioLog;
       if (!c) return;
-      const series = Array.isArray(c.series) ? c.series.filter(p => p && p.hr) : [];
+      // Two stored shapes: the importer writes {t, hr} objects and
+      // zones[zN].seconds; the Sep backfill (written straight to Supabase)
+      // stores compact [t, hr] pairs and zones[zN].sec. Reading only the
+      // first shape left every real run looking HR-less.
+      const pt = p => Array.isArray(p) ? { t: p[0], hr: p[1] } : (p || {});
+      const all = Array.isArray(c.series) ? c.series.map(pt) : [];
+      const series = all.filter(p => p.hr);
       if (series.length) {
         // 30s bins (see RuttioImport._series). Bin width taken from the
         // data itself in case that ever changes.
-        const all = c.series;
         const bin = all.length > 1 ? Math.max(1, (all[1].t - all[0].t) || 30) : 30;
         series.forEach(p => { secs[zoneFor(p.hr)] += bin; });
         any = true;
       } else if (c.zones) {
-        [1, 2, 3, 4, 5].forEach(n => { secs[n] += (c.zones['z' + n] && c.zones['z' + n].seconds) || 0; });
+        [1, 2, 3, 4, 5].forEach(n => { const zn = c.zones['z' + n]; secs[n] += (zn && (zn.seconds != null ? zn.seconds : zn.sec)) || 0; });
         any = any || [1, 2, 3, 4, 5].some(n => secs[n] > 0);
       }
     }));

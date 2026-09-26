@@ -122,3 +122,24 @@ create policy "session_index: own data"    on session_index    for all using (au
 create policy "cache: own data"            on cache            for all using (auth.uid() = user_id);
 create policy "week_scaffold: own data"    on week_scaffold    for all using (auth.uid() = user_id);
 create policy "daily_instances: own data"  on daily_instances  for all using (auth.uid() = user_id);
+
+-- Month plans (js/monthplan.js via js/sync.js, route 'month_plan').
+-- Added to this file 26 Sep 2026: the table was used by sync.js but never
+-- written down here, so recreating the project would have broken plan sync.
+-- Safe to run on a project that already has it.
+create table if not exists month_plans (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  block_start date,
+  block_end date,
+  title text,
+  data jsonb not null default '{}',
+  updated_at timestamptz default now(),
+  unique(user_id, block_start)
+);
+alter table month_plans enable row level security;
+do $$ begin
+  if not exists (select 1 from pg_policies where tablename = 'month_plans' and policyname = 'month_plans: own data') then
+    create policy "month_plans: own data" on month_plans for all using (auth.uid() = user_id);
+  end if;
+end $$;

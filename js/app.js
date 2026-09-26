@@ -209,9 +209,11 @@ const History = {
 
     // Update index
     const index = DB.get('session_index') || [];
-    index.unshift({ id, date: session.date, theme: session.theme, themes: session.themes, duration: session.duration, source: session.source || 'generated', status: session.status || 'completed' });
-    // Keep last 200 sessions in index
-    if (index.length > 200) index.pop();
+    index.unshift({ id, date: session.date, theme: session.theme, themes: session.themes, duration: session.duration, source: session.source || 'generated', status: session.status || 'completed',
+      ...(session.planRef ? { planRef: session.planRef } : {}) });
+    // No cap: the index is a few hundred bytes per session, and dropping the
+    // oldest entry here hid real sessions from Stats while sync.js pull()
+    // rebuilds the full index from the sessions table anyway.
     DB.set('session_index', index);
 
     // Update exercise history cache
@@ -237,6 +239,7 @@ const History = {
       entry.duration = session.duration;
       entry.source = session.source || 'generated';
       entry.status = session.status || 'completed';
+      if (session.planRef) entry.planRef = session.planRef;
       DB.set('session_index', index);
     }
 
@@ -277,6 +280,10 @@ const History = {
             results.push({
               date: session.date,
               sets: ex.sets,
+              // What was prescribed that day, so a progression judgement
+              // compares against the day's own target (Insights.progression).
+              target: ex.target || null,
+              status: entry.status || session.status || 'completed',
             });
           }
         });
@@ -678,7 +685,7 @@ const Generator = {
   // Bumped when generated plans change shape, so a stored-but-untouched
   // plan for today is rebuilt (index.html _todayPlan). 2 = 26 Sep 2026:
   // pinned main focus, recipe blocks, doses.
-  GEN_VERSION: 3,
+  GEN_VERSION: 4,
 
   _estimateExerciseMinutes(ex) {
     // A prescribed dose is the best estimate there is.
@@ -1183,24 +1190,38 @@ const Generator = {
   // per the 2026-08-06 decision in project_scaffold_revamp. recentMuscleIntensity
   // is still threaded through purely for pool *ordering* (same signal
   // _fitToTime already uses elsewhere), not as a gating feature.
-  generateFromScaffold({ date, themeOverride, profile, sleep, energy, pain, focus, correlationMode }) {
-    const d = date ? new Date(date) : new Date();
+  generateFromScaffold({ date, themeOverride, profile, sleep, energy, pain, focus, correlationMode, contentDay, contentKind }) {
+    const d = this._parseDate(date);
     const WEEKDAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const weekdayKey = WEEKDAY_KEYS[d.getDay()];
     // The month plan decides what today is FOR; the scaffold and generator
     // decide what that means in exercises. Absent a plan the week stands on
     // its own exactly as before, so this layer is additive.
-    const planDay   = (typeof MonthPlan !== 'undefined') ? MonthPlan.dayFor(d) : null;
-    const loadScale = (typeof MonthPlan !== 'undefined') ? MonthPlan.loadScaleFor(d) : 1;
+    const hasPlan   = typeof MonthPlan !== 'undefined';
+    const ownDay    = hasPlan ? MonthPlan.dayFor(d) : null;
+    const loadScale = hasPlan ? MonthPlan.loadScaleFor(d) : 1;
 
     // A plan day may borrow another day-type's whole skeleton. The second
     // quality session of a build week lands on a Saturday, whose own template
     // is the long easy run; without this the plan's theme changed only the
     // LABEL while the generator still built the template's day underneath.
-    // An explicit themeOverride (chat) still wins over the plan.
-    const slotKey = themeOverride || (planDay && planDay.dayType) || weekdayKey;
+    // An explicit themeOverride (chat, Adjust, a trade) still wins.
+    const slotKey = themeOverride || (contentDay && contentDay.dayType) || (ownDay && ownDay.dayType) || weekdayKey;
     const slot = (typeof WEEK_SCAFFOLD !== 'undefined') ? WEEK_SCAFFOLD[slotKey] : null;
     if (!slot) return null;
+
+    // Which plan day the CONTENT (lifts, loads, protocol, skill line) comes
+    // from. Before this, a theme swap or trade changed the skeleton but kept
+    // the calendar date's prescription — a "Zone 2 bike" block full of
+    // squats. See MonthPlan.contentFor.
+    let planDay = ownDay, planSource = { kind: ownDay ? 'plan' : 'none', from: ownDay ? ownDay.date : null };
+    if (contentDay !== undefined) {
+      planDay = contentDay;
+      planSource = { kind: contentKind || 'traded', from: contentDay ? (contentDay._carriedFrom || contentDay.date) : null };
+    } else if (hasPlan && MonthPlan.contentFor && (themeOverride || !ownDay)) {
+      const r = MonthPlan.contentFor(d, slot.dayType || slotKey);
+      planDay = r.day; planSource = { kind: r.kind, from: r.from };
+    }
 
     const variant   = slot.variant || 'standard';
     const durations = this._scaffoldBlockDurations(variant);
@@ -1237,7 +1258,9 @@ const Generator = {
     // ── COMPLEMENTARY — one coordination domain, explored properly.
     // Pinned by the plan when there is one, so the block's published
     // schedule and what the app actually generates can never drift apart.
-    const domain = (planDay && planDay.coordDomain) || this.coordDomainFor(d);
+    // The coordination domain belongs to the DATE (its rotation), not to
+    // whichever plan day the main work was borrowed from.
+    const domain = (ownDay && ownDay.coordDomain) || this.coordDomainFor(d);
     const dayIdx = this._dayIndex(d);
     const weekSeed = Math.floor(dayIdx / 7);
     blocks.push(bank(this._buildComplementaryBlock({
@@ -1371,10 +1394,18 @@ const Generator = {
       date: this._localDateKey(d),
       weekday: weekdayKey,
       theme: (planDay && planDay.theme) || slot.theme,
-      planBlock: planDay ? {
-        week: planDay.week, load: planDay.load, benchmark: !!planDay.benchmark,
-        focusNote: planDay.focusNote || '',
+      planBlock: (planDay || ownDay) ? {
+        week: (ownDay || planDay).week, load: (ownDay || planDay).load, benchmark: !!(planDay && planDay.benchmark),
+        focusNote: (planDay && planDay.focusNote) || '',
       } : null,
+      // Where the prescription came from: its own plan day, another date's
+      // (borrowed for a theme swap, or traded), or carried forward past the
+      // end of the written plan. Kept so a later regeneration (resize,
+      // correlation flip, new GEN_VERSION) uses the same source.
+      planSource,
+      contentDate: planDay ? (planDay._carriedFrom ? null : planDay.date) : null,
+      edits: [],
+      removedBlocks: [],
       themes: mainTags.length ? mainTags : ['mobility-movement'],
       themeOverride: themeOverride || null,
       // The day-type actually used, so a later block resize re-pools from
@@ -1393,6 +1424,7 @@ const Generator = {
       // so this is inert.
       correlationMode: correlationMode === 'anti_correlated' ? 'anti_correlated' : 'correlated',
       duration: built.reduce((sum, b) => sum + (b.duration || 0), 0),
+      plannedDuration: built.reduce((sum, b) => sum + (b.duration || 0), 0),
       tier,
       sleep, energy, pain, focus,
       status: 'active',
@@ -1405,6 +1437,15 @@ const Generator = {
         ? { avoid: [...painAvoid], caution: [...painCaution] }
         : null,
     };
+  },
+
+  // 'YYYY-MM-DD' strings are LOCAL dates. new Date('2026-09-28') is UTC
+  // midnight — the previous evening anywhere west of UTC, which turned a
+  // Monday override into a Sunday (review 3.10/15).
+  _parseDate(date) {
+    if (!date) return new Date();
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) return new Date(date + 'T12:00:00');
+    return new Date(date);
   },
 
   // Local calendar date — never toISOString().slice(0,10), which files an
@@ -1656,11 +1697,16 @@ const Generator = {
       const spec = cardio.exercise || cardio;
       const ex = byIdOrName(spec);
       if (!ex) return null;
-      const text = cardio.text || this._protocolText(cardio.protocol) || '';
+      const modality = this._cardioModality(ex.id);
+      const text = cardio.text || this._protocolText(cardio.protocol, modality) || '';
+      // The protocol decides the minutes (a 4x4 is ~40, not the 60-minute
+      // slot it sits in); the block keeps its slot and the rest is slack.
+      const protoMin = this._protocolMinutes(cardio.protocol) || cardio.minutes || mainDur;
       ex.role = 'main';
-      ex.target = { sets: 1, durationSec: (cardio.minutes || mainDur) * 60, text, fixed: true };
+      ex.target = { sets: 1, durationSec: Math.min(protoMin, mainDur) * 60, text, fixed: true,
+        protocol: cardio.protocol || null, planNote: cardio.note || '' };
       ex.notes = [text, cardio.note].filter(Boolean).join(' \u2014 ');
-      ex.allocatedMinutes = mainDur;
+      ex.allocatedMinutes = Math.min(protoMin, mainDur);
       block.exercises.push(ex);
       // A test day can carry a short extra after the run (max dead hang).
       ((mfPlan && mfPlan.extra) || []).forEach(x => {
@@ -1703,8 +1749,33 @@ const Generator = {
     return block;
   },
 
-  _protocolText(p) {
+  // Total minutes a cardio protocol takes, warm-up to walk-down.
+  _protocolMinutes(p) {
+    if (!p) return 0;
+    if (p.type === 'intervals' || p.type === 'tempo')
+      return (p.warmupMin || 10) + p.reps * p.workMin + Math.max(0, p.reps - 1) * (p.recoveryMin || 0) + (p.cooldownMin || 5);
+    if (p.type === 'fixed-hr-test') return (p.warmupMin || 0) + (p.testMin || 0) + (p.walkdownMin || 0);
+    if (p.type === 'steady') return (p.warmupMin || 0) + (p.mainMin || 0) + (p.cooldownMin || 0) + (p.walkdownMin || 0);
+    return 0;
+  },
+
+  // Run and bike versions of the same session. A swap keeps the protocol and
+  // the heart-rate numbers; only the machine changes.
+  _CARDIO_PAIRS: {
+    run:  { 'easy-run': 'z2-cycling', 'long-run': 'z2-cycling', 'interval-run': 'interval-cycling', 'tempo-run': 'interval-cycling' },
+    bike: { 'z2-cycling': 'easy-run', 'interval-cycling': 'interval-run' },
+  },
+  _cardioModality(id) {
+    if (this._CARDIO_PAIRS.bike[id]) return 'bike';
+    if (this._CARDIO_PAIRS.run[id]) return 'run';
+    return null;
+  },
+
+  _protocolText(p, modality) {
     if (!p) return '';
+    if (modality === 'bike' && p.type === 'steady') {
+      return `${p.mainMin} min${p.hrMin ? ' at ' + p.hrMin + '\u2013' + p.hrMax : ' under ' + p.hrMax}${p.warmupMin ? ' \u00b7 ' + p.warmupMin + ' min spin-up' : ''}${(p.walkdownMin || p.cooldownMin) ? ' \u00b7 ' + (p.walkdownMin || p.cooldownMin) + ' min easy spin' : ''}`;
+    }
     if (p.type === 'intervals') return `${p.name ? p.name + ' \u00b7 ' : ''}${p.warmupMin || 10} min warm-up \u00b7 ${p.reps} \u00d7 ${p.workMin} min at ${p.workHr[0]}\u2013${p.workHr[1]} \u00b7 ${p.recoveryMin} min easy between \u00b7 ${p.cooldownMin || 5} min cool-down`;
     if (p.type === 'tempo') return `${p.warmupMin || 10} min easy \u00b7 ${p.reps} \u00d7 ${p.workMin} min at ${p.workHr[0]}\u2013${p.workHr[1]} \u00b7 ${p.recoveryMin} min easy between \u00b7 ${p.cooldownMin || 5} min easy`;
     if (p.type === 'fixed-hr-test') return `${p.warmupMin} min build \u00b7 ${p.testMin} min at avg ~${p.targetAvgHr} (nothing above ${p.hrCeiling}) \u00b7 ${p.walkdownMin} min walk`;
@@ -1762,7 +1833,101 @@ const Generator = {
   // already uses. Returns a new instance, or null if the intent didn't
   // validate against the instance's actual blocks / WEEK_SCAFFOLD keys (the
   // caller falls back to a "couldn't apply that" note in that case).
+  // Every change to a day goes through here. The raw action builds the new
+  // instance; the wrapper then puts back everything already trained today
+  // (review 2.2: Shorter/Lighter/chat used to regenerate blocks and drop
+  // logged sets) and keeps the instance's identity, history link and log of
+  // edits, so a mid-session change is never a new session.
   applyOverride(instance, intent, profile) {
+    if (!instance || !intent) return null;
+    const out = this._applyOverrideRaw(instance, intent, profile);
+    if (!out) return null;
+    const merged = this._preserveLogged(instance, out);
+    merged.id = instance.id; merged.startedAt = instance.startedAt;
+    if (instance.loggedHistoryId) merged.loggedHistoryId = instance.loggedHistoryId;
+    merged.status = instance.status || merged.status;
+    merged.chatLog = instance.chatLog || [];
+    merged.edits = (instance.edits || []).concat([{ action: intent.action, at: Date.now(),
+      ...(intent.blockKey ? { blockKey: intent.blockKey } : {}),
+      ...(intent.modality ? { modality: intent.modality } : {}),
+      ...(intent.targetTheme ? { targetTheme: intent.targetTheme } : {}) }]);
+    if (!out.removedBlocks) merged.removedBlocks = instance.removedBlocks || [];
+    merged.duration = merged.blocks.reduce((sum, b) => sum + (b.duration || 0), 0);
+    return merged;
+  },
+
+  _exHasWork(ex) {
+    return !!ex && !!(ex.completed || ex.skipped || (ex.sets || []).length || ex.cardioLog);
+  },
+  _blockHasWork(b) {
+    return !!b && (b.exercises || []).some(e => this._exHasWork(e));
+  },
+
+  // Carries every trained exercise from `old` into `fresh`. A block that
+  // still exists keeps its trained exercises (same id: the trained copy
+  // wins; gone from the new list: put back at its old position). A block
+  // that no longer exists but holds trained work is kept whole where it was.
+  _preserveLogged(old, fresh) {
+    const blocks = (fresh.blocks || []).map(b => ({ ...b, exercises: [...(b.exercises || [])] }));
+    (old.blocks || []).forEach((ob, obIdx) => {
+      const worked = (ob.exercises || []).map((e, i) => ({ e, i })).filter(x => this._exHasWork(x.e));
+      if (!worked.length) return;
+      const nb = blocks.find(b => b.key === ob.key);
+      if (!nb) { blocks.splice(Math.min(obIdx, blocks.length), 0, { ...ob, exercises: [...ob.exercises] }); return; }
+      worked.forEach(({ e, i }) => {
+        const at = nb.exercises.findIndex(x => x.id === e.id);
+        if (at !== -1) nb.exercises[at] = e;
+        else nb.exercises.splice(Math.min(i, nb.exercises.length), 0, e);
+      });
+    });
+    return { ...fresh, blocks };
+  },
+
+  // Lighter for a pinned Main Focus: the same lifts at ~90% with one set
+  // fewer (never below two); an interval or tempo session becomes the same
+  // minutes easy, under the Z2 cap. Steady easy work is already easy.
+  _lightenPinned(block) {
+    const exercises = (block.exercises || []).map(ex => {
+      if (this._exHasWork(ex) || !ex.target) return ex;
+      const t = { ...ex.target };
+      const p = t.protocol;
+      if (p && (p.type === 'intervals' || p.type === 'tempo')) {
+        const mins = Math.round((t.durationSec || 2400) / 60);
+        const easy = { type: 'steady', mainMin: Math.max(20, mins - 10), warmupMin: 5, cooldownMin: 5, hrMin: 134, hrMax: 153 };
+        const mod = this._cardioModality(ex.id);
+        const text = this._protocolText(easy, mod);
+        return { ...ex, target: { ...t, protocol: easy, text, lightened: true }, notes: `${text} \u2014 lighter today: the intervals become easy minutes.` };
+      }
+      if (t.loadKg != null || (t.sets || 0) > 2) {
+        if (t.loadKg != null) t.loadKg = Math.round(t.loadKg * 0.9 * 2) / 2;
+        if ((t.sets || 0) > 2) t.sets = t.sets - 1;
+        t.text = typeof Complementary !== 'undefined' ? Complementary.doseText({ ...t, text: undefined, protocol: undefined }) : t.text;
+        t.lightened = true;
+        return { ...ex, target: t };
+      }
+      return ex;
+    });
+    return { ...block, exercises, note: (block.note ? block.note + '  |  ' : '') + 'Lighter today: loads about 10% down, one set fewer.' };
+  },
+
+  // The arguments that regenerate an instance's own day: same date, same
+  // borrowed/traded content source, same check-in.
+  _regenArgs(instance, profile) {
+    const src = instance.planSource || {};
+    const args = {
+      date: instance.date, correlationMode: instance.correlationMode,
+      themeOverride: instance.themeOverride, profile,
+      sleep: instance.sleep, energy: instance.energy, pain: instance.pain, focus: instance.focus,
+    };
+    if (src.kind === 'traded' && instance.contentDate && typeof MonthPlan !== 'undefined') {
+      const plan = MonthPlan.load();
+      const day = plan && (plan.days || []).find(x => x.date === instance.contentDate);
+      if (day) { args.contentDay = day; args.contentKind = 'traded'; }
+    }
+    return args;
+  },
+
+  _applyOverrideRaw(instance, intent, profile) {
     if (!instance || !intent) return null;
 
     if (intent.action === 'theme_swap') {
@@ -1773,64 +1938,139 @@ const Generator = {
         sleep: instance.sleep, energy: instance.energy, pain: instance.pain, focus: instance.focus,
       });
       if (!fresh) return null;
-      fresh.id = instance.id; fresh.startedAt = instance.startedAt; // keep continuity — user is mid-session
-      fresh.chatLog = instance.chatLog || [];
       return fresh;
     }
 
     if (intent.action === 'correlation_flip') {
       const mode = intent.mode === 'anti_correlated' ? 'anti_correlated' : 'correlated';
-      const fresh = this.generateFromScaffold({
-        date: instance.date, correlationMode: mode,
-        themeOverride: instance.themeOverride, profile,
-        sleep: instance.sleep, energy: instance.energy, pain: instance.pain, focus: instance.focus,
-      });
+      const fresh = this.generateFromScaffold({ ...this._regenArgs(instance, profile), correlationMode: mode });
       if (!fresh) return null;
-      fresh.id = instance.id; fresh.startedAt = instance.startedAt;
-      fresh.chatLog = instance.chatLog || [];
       return fresh;
     }
 
+    // ── Remove a block: the day gets shorter ──
+    // "I don't have time for Accessory today." Later blocks move up; the
+    // block is kept aside on the instance so it can be put back. A block
+    // with logged work can't be removed — that would delete training.
     if (intent.action === 'remove_block') {
       const blocks = instance.blocks.map(b => ({ ...b }));
       const idx = blocks.findIndex(b => b.key === intent.blockKey);
       if (idx === -1) return null;
-      const freedMinutes = blocks[idx].duration || 0;
-      blocks.splice(idx, 1);
+      if (this._blockHasWork(blocks[idx])) return null;
+      const [gone] = blocks.splice(idx, 1);
+      const freedMinutes = gone.duration || 0;
 
+      // Chat can still ask for the minutes to go somewhere specific.
       const tIdx = intent.giveMinutesTo ? blocks.findIndex(b => b.key === intent.giveMinutesTo) : -1;
       if (tIdx !== -1 && freedMinutes > 0) {
         const target = blocks[tIdx];
-        const newDuration = (target.duration || 0) + freedMinutes;
-        blocks[tIdx] = this._regenerateBlockAtDuration(target, newDuration, instance, profile) || target;
+        blocks[tIdx] = this._regenerateBlockAtDuration(target, (target.duration || 0) + freedMinutes, instance, profile) || target;
       }
-
-      return {
-        ...instance, blocks, chatLog: instance.chatLog || [],
-        duration: blocks.reduce((s, b) => s + (b.duration || 0), 0),
-      };
+      const removedBlocks = (instance.removedBlocks || []).filter(r => r.block.key !== gone.key)
+        .concat([{ block: gone, index: idx }]);
+      return { ...instance, blocks, removedBlocks };
     }
 
-    // ── Swap the cardio modality for this date only (rain, gym closed) ──
-    // Rebuilds just the cardio block; everything else on the day is left
-    // exactly as it is, including anything already logged.
+    // ── Put a removed block back where it was ──
+    if (intent.action === 'restore_block') {
+      const rb = (instance.removedBlocks || []).find(r => r.block.key === intent.blockKey);
+      if (!rb) return null;
+      const blocks = instance.blocks.map(b => ({ ...b }));
+      blocks.splice(Math.min(rb.index, blocks.length), 0, rb.block);
+      return { ...instance, blocks, removedBlocks: (instance.removedBlocks || []).filter(r => r !== rb) };
+    }
+
+    // ── Resize one block; the day's total moves with it ──
+    if (intent.action === 'resize_block') {
+      const blocks = instance.blocks.map(b => ({ ...b }));
+      const idx = blocks.findIndex(b => b.key === intent.blockKey);
+      if (idx === -1) return null;
+      const minutes = Math.max(5, Math.min(120, Math.round(Number(intent.minutes) || 0)));
+      if (!minutes || minutes === blocks[idx].duration) return null;
+      blocks[idx] = this._regenerateBlockAtDuration(blocks[idx], minutes, instance, profile) || { ...blocks[idx], duration: minutes };
+      return { ...instance, blocks };
+    }
+
+    // ── Move a block earlier or later in the day ──
+    // A test day wants Main Focus first, fresh (review 3.9).
+    if (intent.action === 'move_block') {
+      const blocks = instance.blocks.map(b => ({ ...b }));
+      const idx = blocks.findIndex(b => b.key === intent.blockKey);
+      const to = idx + (intent.delta < 0 ? -1 : 1);
+      if (idx === -1 || to < 0 || to >= blocks.length) return null;
+      [blocks[idx], blocks[to]] = [blocks[to], blocks[idx]];
+      return { ...instance, blocks };
+    }
+
+    // ── A different coordination domain for Complementary, this date only ──
+    if (intent.action === 'swap_domain') {
+      const idx = instance.blocks.findIndex(b => b.key === 'complementary');
+      if (idx === -1 || !intent.domain) return null;
+      const old = instance.blocks[idx];
+      const blocks = instance.blocks.map(b => ({ ...b }));
+      const next = this._regenerateBlockAtDuration({ ...old, coordDomain: intent.domain }, old.duration, instance, profile);
+      if (!next || !(next.exercises || []).length) return null;
+      blocks[idx] = next;
+      return { ...instance, blocks };
+    }
+
+    // ── A different skill line for Accessory & Skill, this date only ──
+    if (intent.action === 'swap_skill_line') {
+      const idx = instance.blocks.findIndex(b => b.key === 'accessory');
+      const line = typeof SKILL_LINES !== 'undefined' ? SKILL_LINES[intent.line] : null;
+      if (idx === -1 || !line) return null;
+      const old = instance.blocks[idx];
+      const blocks = instance.blocks.map(b => ({ ...b }));
+      const next = this._regenerateBlockAtDuration(
+        { ...old, recipeKind: 'skill', recipeKey: intent.line, label: 'Accessory & Skill \u2014 ' + line.label },
+        old.duration, { ...instance, skillLine: intent.line }, profile);
+      if (!next) return null;
+      blocks[idx] = next;
+      return { ...instance, blocks, skillLine: intent.line };
+    }
+
+    // ── Swap the cardio modality for this date only (rain, gym closed, no
+    // time to get to the loop) ──
+    // Rebuilds just the cardio exercise; everything else on the day is left
+    // exactly as it is. The protocol and heart-rate numbers carry across —
+    // an interval day stays an interval day on whichever machine — but the
+    // text is rewritten for the machine, so a bike day never says "walk the
+    // hills".
     if (intent.action === 'swap_modality') {
-      const want = intent.modality === 'bike' ? 'z2-cycling' : 'easy-run';
       const blocks = instance.blocks.map(b => ({ ...b }));
       const idx = blocks.findIndex(b => /^main-focus:cardio$/.test(b.key || '') || b.key === 'cardio');
       if (idx === -1) return null;
+      const exs = blocks[idx].exercises || [];
+      const oi = exs.findIndex(e => this._cardioModality(e.id));
+      const old = oi === -1 ? null : exs[oi];
+      if (!old || this._exHasWork(old)) return null;
+      const from = this._cardioModality(old.id);
+      const wantMod = intent.modality === 'run' ? 'run' : intent.modality === 'bike' ? 'bike' : (from === 'run' ? 'bike' : 'run');
+      if (wantMod === from) return null;
+      let protocol = old.target && old.target.protocol;
+      if (!protocol && typeof MonthPlan !== 'undefined') {
+        const src = MonthPlan.dayFor(instance.contentDate || instance.date);
+        protocol = src && src.mainFocusPlan && src.mainFocusPlan.cardio && src.mainFocusPlan.cardio.protocol;
+      }
+      let wantId = this._CARDIO_PAIRS[from][old.id];
+      if (wantMod === 'run' && protocol && protocol.type === 'tempo') wantId = 'tempo-run';
       const painTags = this._parsePainTags(instance.pain);
       const resolveEx = this._resolveExFactory(profile, painTags.avoid);
-      const ex = resolveEx(want);
+      const ex = wantId && resolveEx(wantId);
       if (!ex) return null;
-      const old = blocks[idx].exercises && blocks[idx].exercises[0];
-      ex.allocatedMinutes = blocks[idx].duration;
-      // Carry the prescription across — an interval day stays an interval day
-      // whichever machine it happens on.
-      if (old && old.notes) ex.notes = old.notes;
-      if (old && old.cardioLog) ex.cardioLog = old.cardioLog;
-      blocks[idx] = { ...blocks[idx], exercises: [ex] };
-      return { ...instance, blocks, modalitySwapped: intent.modality || 'bike' };
+      const text = (protocol && this._protocolText(protocol, wantMod)) || (old.target && old.target.text) || '';
+      ex.role = old.role || 'main';
+      ex.allocatedMinutes = old.allocatedMinutes || blocks[idx].duration;
+      ex.target = { ...(old.target || {}), text, protocol: protocol || null, planNote: '' };
+      ex.notes = `${text}${text ? ' \u2014 ' : ''}on the ${wantMod === 'bike' ? 'bike' : 'run'} today (planned: ${old.name}).`;
+      ex.swappedFrom = old.id;
+      const newExs = exs.slice(); newExs[oi] = ex;
+      const cfgLabel = wantMod === 'bike' ? 'Zone 2 bike' : 'Zone 2 run';
+      const label = /interval|tempo/.test(ex.id) ? (wantMod === 'bike' ? 'Intervals \u2014 bike' : 'Intervals \u2014 run') : cfgLabel;
+      blocks[idx] = { ...blocks[idx], exercises: newExs, label,
+        plannedNote: blocks[idx].plannedNote || blocks[idx].note,
+        note: `${text}. Swapped from the ${from} \u2014 same minutes, same heart-rate numbers.` };
+      return { ...instance, blocks, modalitySwapped: wantMod };
     }
 
     // ── Shorter: scale every block, keep the shape ──
@@ -1855,8 +2095,9 @@ const Generator = {
       const prev = this._tierCap;
       this._tierCap = cap;
       try {
-        const blocks = instance.blocks.map(b =>
-          this._regenerateBlockAtDuration(b, b.duration, instance, profile) || { ...b });
+        const blocks = instance.blocks.map(b => b.pinned
+          ? this._lightenPinned(b)
+          : (this._regenerateBlockAtDuration(b, b.duration, instance, profile) || { ...b }));
         return { ...instance, blocks, tierCapped: cap };
       } finally { this._tierCap = prev; }
     }
@@ -1871,20 +2112,51 @@ const Generator = {
       if (bi === -1) return null;
       const ei = blocks[bi].exercises.findIndex(e => e.id === intent.exerciseId);
       if (ei === -1) return null;
+      const old = blocks[bi].exercises[ei];
+      // Already trained: a swap would throw the logged sets away.
+      if (this._exHasWork(old)) return null;
+      // A run or ride swaps with its other-machine twin, protocol intact —
+      // not with a kettlebell swing "for 10 minutes" (review 2.3).
+      if (this._cardioModality(old.id) && /^main-focus:cardio$|^cardio$/.test(blocks[bi].key || '')) {
+        return this._applyOverrideRaw(instance, { action: 'swap_modality' }, profile);
+      }
 
       const used = new Set();
       instance.blocks.forEach(b => (b.exercises || []).forEach(e => used.add(e.id)));
-      const pool = this._poolForBlock(blocks[bi], instance).filter(id => !used.has(id));
+      let pool = this._poolForBlock(blocks[bi], instance).filter(id => !used.has(id));
+      // In Main Focus the replacement has to do the same job: same movement
+      // pattern and same way of logging. A squat is replaced by a squat
+      // pattern, never a lateral raise.
+      // Closest job first: same pattern, then same main muscle, then at
+      // least the same way of logging. A lift is never replaced by
+      // something logged differently.
+      // The weights pool alone is too thin for that (a squat's only squat-
+      // pattern neighbour there is an isometric), so a Main Focus lift looks
+      // across the whole library, never at prehab or explosive work, and
+      // gives up rather than offer a lateral raise for a squat.
+      if ((blocks[bi].key || '').startsWith('main-focus:') && old.logType !== 'cardio') {
+        const tags = typeof EXERCISE_TAGS !== 'undefined' ? EXERCISE_TAGS : {};
+        const mine = tags[old.id] || {};
+        const cands = LIBRARY.filter(e => !used.has(e.id) && e.logType === old.logType
+          && e.restGroup !== 'prehab' && e.subcategory !== 'Prehab' && e.intensityTier !== 'explosive').map(e => e.id);
+        const byPat = mine.pattern && mine.pattern !== 'other' ? cands.filter(id => tags[id] && tags[id].pattern === mine.pattern) : [];
+        const byMus = mine.muscle ? cands.filter(id => tags[id] && tags[id].muscle === mine.muscle) : [];
+        pool = byPat.length ? byPat : byMus;
+      }
       if (!pool.length) return null;
 
       const painTags  = this._parsePainTags(instance.pain);
       const resolveEx = this._resolveExFactory(profile, painTags.avoid);
       const lastSeen  = History.getExerciseLastSeenMap(60);
-      // Longest-unseen first, so a swap is also a rotation rather than
-      // whatever happens to sit next in the library.
-      const ordered = pool.slice().sort((a, b) => (lastSeen[a] || '') < (lastSeen[b] || '') ? -1 : 1);
+      // Longest-unseen first (never seen first of all), ties by id, so a
+      // swap is also a rotation and repeated swaps walk the pool instead of
+      // flipping between two picks.
+      const ordered = pool.slice().sort((a, b) => {
+        const la = lastSeen[a] || '', lb = lastSeen[b] || '';
+        if (la !== lb) return la < lb ? -1 : 1;
+        return a < b ? -1 : a > b ? 1 : 0;
+      });
 
-      const old = blocks[bi].exercises[ei];
       let pick = null;
       for (const id of ordered) { pick = resolveEx(id); if (pick) break; }
       if (!pick) return null;
@@ -1894,7 +2166,10 @@ const Generator = {
         const fitted = Complementary.fitDose(pick.target, Math.max(30, (old.allocatedMinutes || 2) * 60), old.role);
         pick.target = { ...fitted, text: Complementary.doseText({ ...fitted, text: undefined }) };
       } else if (old.target) {
-        pick.role = old.role; pick.target = { ...old.target };
+        // Sets and reps carry; the load belonged to the old lift and does not.
+        const t = { ...old.target }; delete t.loadKg; delete t.protocol;
+        t.text = typeof Complementary !== 'undefined' ? Complementary.doseText({ ...t, text: undefined }) : (t.text || '');
+        pick.role = old.role; pick.target = t;
       }
       pick.allocatedMinutes = old.allocatedMinutes;
       blocks[bi].exercises[ei] = pick;
@@ -2791,33 +3066,41 @@ const Timer = {
   _onDone: null,
 
   // ── Stopwatch (for holds, cardio if needed) ───────────────
+  // Elapsed time is read off the wall clock, not counted in ticks: a phone
+  // with the screen locked throttles or pauses setInterval, so a 60s hold
+  // used to log as a few seconds.
+  _stopwatchStartedAt: 0,
   startStopwatch(onTick) {
     this.stopAll();
     this._stopwatchElapsed = 0;
+    this._stopwatchStartedAt = Date.now();
     this._onTick = onTick;
     this._stopwatchInterval = setInterval(() => {
-      this._stopwatchElapsed++;
+      this._stopwatchElapsed = Math.round((Date.now() - this._stopwatchStartedAt) / 1000);
       onTick && onTick(this._stopwatchElapsed);
     }, 1000);
   },
 
   stopStopwatch() {
+    if (this._stopwatchInterval) this._stopwatchElapsed = Math.round((Date.now() - this._stopwatchStartedAt) / 1000);
     clearInterval(this._stopwatchInterval);
     this._stopwatchInterval = null;
     return this._stopwatchElapsed; // returns elapsed seconds
   },
 
   // ── Rest countdown ────────────────────────────────────────
+  _countdownEndsAt: 0,
   startCountdown(seconds, onTick, onDone) {
     this.stopAll();
     this._countdownRemaining = seconds;
+    this._countdownEndsAt = Date.now() + seconds * 1000;
     this._onTick = onTick;
     this._onDone = onDone;
 
     onTick && onTick(this._countdownRemaining);
 
     this._countdownInterval = setInterval(() => {
-      this._countdownRemaining--;
+      this._countdownRemaining = Math.max(0, Math.round((this._countdownEndsAt - Date.now()) / 1000));
       onTick && onTick(this._countdownRemaining);
       if (this._countdownRemaining <= 0) {
         this.stopCountdown();
@@ -2831,6 +3114,7 @@ const Timer = {
   adjustCountdown(deltaSecs) {
     // ±15s adjustment
     this._countdownRemaining = Math.max(0, this._countdownRemaining + deltaSecs);
+    this._countdownEndsAt = Date.now() + this._countdownRemaining * 1000;
     this._onTick && this._onTick(this._countdownRemaining);
   },
 
@@ -2899,7 +3183,7 @@ const LiveSession = {
   // Log a set for a specific exercise (block/exercise index — the session
   // screen renders every exercise at once, so the caller always knows
   // exactly which one it's logging against).
-  logSet(blockIdx, exIdx, { weight, reps, duration, note, completed = true }) {
+  logSet(blockIdx, exIdx, { weight, reps, duration, note, rpe, completed = true }) {
     const ex = this._getExercise(blockIdx, exIdx);
     if (!ex) return;
 
@@ -2912,6 +3196,7 @@ const LiveSession = {
       completed,
       loggedAt:  Date.now(),
     };
+    if (rpe) set.rpe = rpe;
     ex.sets = ex.sets || [];
     ex.sets.push(set);
     this._persist();
@@ -2922,6 +3207,97 @@ const LiveSession = {
       return { startRest: true, restSeconds: ex.restSeconds };
     }
     return { startRest: false };
+  },
+
+  // ── One tap: "done as prescribed" ──
+  // Writes the target as logged sets (weight × reps, holds, the cardio
+  // minutes), so a plain tick teaches history, e1RM and progression
+  // something instead of nothing. Returns false when there is no target.
+  logAsPrescribed(blockIdx, exIdx, { rpe } = {}) {
+    const ex = this._getExercise(blockIdx, exIdx);
+    const t = ex && ex.target;
+    if (!ex || !t) return false;
+    const n = Math.max(1, Math.min(12, t.sets || 1));
+    const now = Date.now();
+    const mk = (i, fields) => ({ idx: (ex.sets?.length || 0) + i + 1, weight: null, reps: null, duration: null,
+      note: 'as prescribed', completed: true, loggedAt: now, ...(rpe ? { rpe } : {}), ...fields });
+    ex.sets = ex.sets || [];
+    if (ex.logType === 'cardio') {
+      ex.cardioLog = ex.cardioLog || { duration: t.durationSec || (ex.allocatedMinutes || 0) * 60, distanceKm: null,
+        appleFitnessLink: '', note: 'as prescribed', avgHr: null };
+    } else if (ex.logType === 'weight+reps' || ex.logType === 'reps') {
+      const reps = typeof t.reps === 'number' ? t.reps : parseInt(t.reps, 10) || null;
+      const load = ex.logType === 'weight+reps' && t.loadKg != null ? t.loadKg : null;
+      for (let i = 0; i < n; i++) ex.sets.push(mk(i, { weight: load, reps }));
+    } else if (ex.logType === 'hold') {
+      const dur = t.durationSec || null;
+      for (let i = 0; i < n; i++) ex.sets.push(mk(i, { duration: dur }));
+    }
+    ex.completed = true;
+    ex.skipped = false;
+    ex.doneAsPrescribed = true;
+    this._persist();
+    this._onUpdate && this._onUpdate(this._session);
+    return true;
+  },
+
+  // RPE for the exercise: stamped on every logged set (and the exercise),
+  // which is what Insights.progression reads.
+  setRpe(blockIdx, exIdx, rpe) {
+    const ex = this._getExercise(blockIdx, exIdx);
+    if (!ex) return;
+    ex.rpe = rpe || null;
+    (ex.sets || []).forEach(st => { if (rpe) st.rpe = rpe; else delete st.rpe; });
+    this._persist();
+    this._onUpdate && this._onUpdate(this._session);
+  },
+
+  // Today's target for one exercise (accepting a progression suggestion).
+  // The plan is not touched.
+  setTarget(blockIdx, exIdx, patch) {
+    const ex = this._getExercise(blockIdx, exIdx);
+    if (!ex) return;
+    const t = { ...(ex.target || {}), ...patch, accepted: true };
+    if (typeof Complementary !== 'undefined') {
+      const txt = Complementary.doseText({ ...t, text: undefined, protocol: undefined });
+      const lib = LIBRARY.find(l => l.id === ex.id);
+      t.text = lib && lib.bodyweightBase && t.loadKg ? txt.replace('@ ' + t.loadKg + 'kg', '+' + t.loadKg + 'kg') : txt;
+    }
+    ex.target = t;
+    this._persist();
+    this._onUpdate && this._onUpdate(this._session);
+  },
+
+  // Everything untouched in a block, done as prescribed.
+  markBlockDone(blockIdx) {
+    const b = this._session?.blocks[blockIdx];
+    if (!b) return;
+    b.exercises.forEach((ex, i) => {
+      if (ex.completed || ex.skipped || (ex.sets || []).length || ex.cardioLog) return;
+      if (!this.logAsPrescribed(blockIdx, i)) { ex.completed = true; }
+    });
+    this._persist();
+    this._onUpdate && this._onUpdate(this._session);
+  },
+
+  unmarkExerciseDone(blockIdx, exIdx) {
+    const ex = this._getExercise(blockIdx, exIdx);
+    if (!ex) return;
+    ex.completed = false;
+    this._persist();
+    this._onUpdate && this._onUpdate(this._session);
+  },
+
+  // Finishing with rows left open marks them skipped ("not done") instead of
+  // refusing to finish.
+  skipRemaining(reason) {
+    if (!this._session) return 0;
+    let n = 0;
+    this._session.blocks.forEach(b => b.exercises.forEach(ex => {
+      if (ex.logType !== 'none' && !ex.completed && !ex.skipped) { ex.skipped = true; ex.skipReason = reason || 'not done'; n++; }
+    }));
+    this._persist();
+    return n;
   },
 
   // Mark exercise done (no sets — for holds, somatic, etc.)
@@ -2955,7 +3331,7 @@ const LiveSession = {
   },
 
   // Log cardio exercise
-  logCardio(blockIdx, exIdx, { durationMin, durationSec, distanceKm, appleFitnessLink, note }) {
+  logCardio(blockIdx, exIdx, { durationMin, durationSec, distanceKm, appleFitnessLink, note, avgHr, rpe }) {
     const ex = this._getExercise(blockIdx, exIdx);
     if (!ex) return;
     ex.cardioLog = {
@@ -2963,6 +3339,8 @@ const LiveSession = {
       distanceKm: distanceKm || null,
       appleFitnessLink: appleFitnessLink || '',
       note: note || '',
+      avgHr: avgHr || null,
+      ...(rpe ? { rpe } : {}),
     };
     ex.completed = true;
     this._persist();
@@ -3034,9 +3412,14 @@ const LiveSession = {
 
   // Complete the session
   complete() {
-    if (!this._session) return null;
+    if (!this._session || this._session.status === 'completed') return null;
     this._session.status = 'completed';
     this._session.completedAt = Date.now();
+    // Planned and executed are different things: record which plan day this
+    // session carried out, and when, so a Strength B done on Thursday is
+    // still Friday's Strength B (review 5.2).
+    this._session.executedAt = this._session.completedAt;
+    if (typeof Day !== 'undefined' && this._session.weekday) this._session.planRef = Day.planRef(this._session);
     Timer.stopAll();
     // If this session was already checkpoint-logged mid-workout (see
     // logCheckpoint), finish by updating that same history entry instead
@@ -3060,6 +3443,10 @@ const LiveSession = {
     }
 
     DB.remove('active_session');
+    // A finished session is no longer live. Keeping it here left Home on
+    // "Session in progress → Continue", and a second Complete wrote a
+    // duplicate History entry (review 2.4).
+    this._session = null;
     return id;
   },
 
@@ -3132,7 +3519,8 @@ const Utils = {
   // Format a date string nicely
   formatDate(iso) {
     if (!iso) return '';
-    const d = new Date(iso);
+    // 'YYYY-MM-DD' is a local date; new Date() would read it as UTC midnight.
+    const d = (typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso)) ? new Date(iso + 'T12:00:00') : new Date(iso);
     return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
   },
 
