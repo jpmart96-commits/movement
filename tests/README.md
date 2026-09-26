@@ -40,3 +40,11 @@ under "now passing"; remove the `todo` then.
 - `tests/browser/settings.js` — Settings end to end: tabs, library tiles → category → subcategory, search,
   filters, the exercise sheet (state, 1RM tracking, Edit refreshes it), steppers saving, zone ceilings
   staying in order, equipment chips, theme, and the sync status line. `node tests/browser/settings.js`
+
+## Before every push
+
+`tools/git-hooks/pre-push` runs `node tests/run.js` and stops the push if anything
+fails (GitHub Desktop shows the output). It lives in `.git/hooks/pre-push`; after a
+fresh clone, copy it back there. Needs Node.js on the PC — without it the hook only
+prints a warning. `.github/workflows/tests.yml` runs the same suite on GitHub after
+each push.

@@ -35,7 +35,7 @@ const W=ms=>new Promise(r=>setTimeout(r,ms));
   console.log('MAIN', await A.page.evaluate(b=>JSON.stringify(LiveSession.getSession().blocks[b].exercises[0].cardioLog),bi));
   await A.page.evaluate(()=>toggleBlock(0)); await W(100);
   await A.page.click('#block-0 .block-done-btn'); await W(200);
-  await A.page.evaluate(()=>finishSession()); await W(300);
+  await A.page.evaluate(()=>finishSession(true)); await W(300);
   console.log('DIALOGS', A.page._dialogs);
   console.log('LIVE AFTER', await A.page.evaluate(()=>!!LiveSession.getSession()), 'instance', await A.page.evaluate(()=>DB.get('daily_instance_2026-09-26').status));
   await A.page.clock.runFor(5000); await W(800);

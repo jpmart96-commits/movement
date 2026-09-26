@@ -20,7 +20,7 @@ const tests={
     await settle(A.page);
     await A.page.evaluate(()=>startScaffoldToday());
     await A.page.clock.runFor(135*60*1000); sb.fakeNowMs=T('2026-09-26T11:05:00+01:00');
-    await A.page.evaluate(()=>{ const s=LiveSession.getSession(); s.blocks.forEach(b=>b.exercises.forEach(e=>e.completed=true)); finishSession(); });
+    await A.page.evaluate(()=>{ const s=LiveSession.getSession(); s.blocks.forEach(b=>b.exercises.forEach(e=>e.completed=true)); finishSession(true); });
     await settle(A.page);
     const n401=sb.log.filter(l=>l.startsWith('401')).length, refreshes=sb.log.filter(l=>l.includes('refresh_token')).length;
     const localIdx=await A.page.evaluate(()=>History.getIndex().length);

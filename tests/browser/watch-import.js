@@ -26,7 +26,7 @@ function ruttio({id,sport,start,minutes,hr}){const t0=Date.parse(start),n=minute
   await A.page.click('#watch-body .mv-cta'); await W(300);
   console.log('CARD', await A.page.evaluate(()=>document.querySelector('#session-blocks .card').textContent.replace(/\s+/g,' ')));
   console.log('HEADERS', await A.page.evaluate(()=>[...document.querySelectorAll('.bh-dur')].map(x=>x.textContent).join(' | ')));
-  await A.page.evaluate(()=>finishSession()); await W(300);
+  await A.page.evaluate(()=>finishSession(true)); await W(300);
   const s=await A.page.evaluate(()=>DB.get('daily_instance_2026-09-26'));
   const comp=s.blocks.find(b=>b.key==='complementary');
   console.log('SAVED', s.status, comp.exercises.map(e=>e.id+(e.skipped?'(skipped)':'')+(e.completed?'✓':'')).join(', '), 'ride', s.blocks.find(b=>b.mainFocus).exercises[0].cardioLog.avgHR);

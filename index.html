@@ -484,6 +484,8 @@ function setTheme(t) {
 <script src="js/insights.js"></script>
 <script src="js/blockbuilder.js"></script>
 <script src="js/notes.js"></script>
+<script src="js/trainingload.js"></script>
+<script src="js/backup.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/overrides.js"></script>
@@ -1363,6 +1365,9 @@ function renderProgress() {
   // 3b — the next block, drafted from the retests
   h += _draftCard(plan);
 
+  // 3c — training load (session RPE × minutes)
+  if (typeof TrainingLoad !== 'undefined') h += TrainingLoad.card();
+
   // 5 — strength
   const lifts = ((plan && plan.targets) || []).filter(t => /squat|deadlift|bench|press|pull/i.test(t.metric));
   if (lifts.length) h += _mvCard('Strength', 'mv-eyebrow--accent',
@@ -1998,6 +2003,8 @@ function renderToday() {
   if (focusNote && !swappedMachine) h += `<div class="mv-note dk-today-note" style="margin-bottom:.9rem">${escAttr(focusNote)}</div>`;
   else if (focusNote) h += `<div class="mv-note dk-today-note" style="margin-bottom:.9rem">${escAttr(cardioBlk.note || '')}<div style="margin-top:.3rem;font-size:.72rem;color:var(--text3)">Planned: ${escAttr(focusNote)}</div></div>`;
   h += _readinessBanner(session);
+  if (typeof TrainingLoad !== 'undefined') h += TrainingLoad.todayBanner(session);
+  if (typeof Backup !== 'undefined') h += Backup.reminder();
   h += _editsStrip(session);
 
   // the timeline
@@ -3453,7 +3460,7 @@ function showRest(s){if(!s)return;document.getElementById('rest-overlay').style.
 function hideRest(){document.getElementById('rest-overlay').style.display='none';Timer.stopCountdown();}
 function skipRest(){hideRest();}
 function adjustRest(d){Timer.adjustCountdown(d);}
-function finishSession(){
+function finishSession(rpeAsked){
   LiveSession.setSessionNote(document.getElementById('session-note').value);
   if(!LiveSession.isFullyDone()){
     // Rows still open: finish anyway and mark them "not done", or keep the
@@ -3466,6 +3473,13 @@ function finishSession(){
       return;
     }
     LiveSession.skipRemaining('not done');
+  }
+  // One question at the end: how hard was the whole session. Session RPE ×
+  // minutes is the training load (js/trainingload.js). Skippable.
+  const cur=LiveSession.getSession();
+  if(!rpeAsked&&cur&&!cur.sessionRpe&&typeof TrainingLoad!=='undefined'){
+    TrainingLoad.askRpe(v=>{const s=LiveSession.getSession();if(s&&v){s.sessionRpe=v;LiveSession._persist();}finishSession(true);});
+    return;
   }
   const id=LiveSession.complete();if(id){document.querySelector('.session-nav').style.display='none';App.session=null;navTo('home');}
 }
@@ -4091,7 +4105,7 @@ function openSessionModal(id) {
       html+=`</div>`;
     });
   });
-  html+=`</div><button class="btn-ghost" style="margin-top:1rem" onclick="openWatchImport('${escAttr(id)}')">Import workouts (watch / Hevy)</button><button class="btn-ghost" style="margin-top:.5rem;color:var(--danger)" onclick="deleteSession('${id}')">Delete session</button>`;
+  html+=`</div>${typeof TrainingLoad!=='undefined'&&session.status!=='in-progress'?TrainingLoad.detailRow(id,session):''}<button class="btn-ghost" style="margin-top:1rem" onclick="openWatchImport('${escAttr(id)}')">Import workouts (watch / Hevy)</button><button class="btn-ghost" style="margin-top:.5rem;color:var(--danger)" onclick="deleteSession('${id}')">Delete session</button>`;
   document.getElementById('session-modal-content').innerHTML=html;
   document.getElementById('session-modal-backdrop').style.display='flex';
 }
@@ -4506,6 +4520,8 @@ function renderBodySettings() {
 
 function saveNumSetting(key, raw) {
   saveSetting(key, raw === '' || raw == null ? null : +raw);
+  // A new body weight is also a weigh-in on today's vitals (Stats → Body).
+  if (key === 'bodyweightKg' && raw !== '' && raw != null && typeof Vitals !== 'undefined' && Vitals.addWeight) Vitals.addWeight(Day.key(new Date()), +raw);
 }
 
 function saveZone(k, raw) {
@@ -4924,6 +4940,7 @@ function setDataStatus(msg, isError) {
 
 // ── EXPORT BACKUP ──────────────────────────────────────────────
 function exportBackup() {
+  if (typeof Backup !== 'undefined') { Backup.save().then(r => setDataStatus(r === 'cancelled' ? 'Backup cancelled' : 'Backup saved ✓ — ' + Backup.statusLine())); return; }
   const data = DB.exportAll();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);

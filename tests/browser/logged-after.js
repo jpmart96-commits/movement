@@ -20,7 +20,7 @@ const W=ms=>new Promise(r=>setTimeout(r,ms));
   await A.page.click(`#ex-${bi}-0 .mv-linkbtn:has-text("change")`); await W(150);
   await A.page.fill(`#cd-km-${bi}-0`,'18.4'); await A.page.fill(`#cd-hr-${bi}-0`,'141');
   await A.page.click(`#ex-${bi}-0 .log-btn`); await W(150);
-  await A.page.evaluate(()=>finishSession()); await W(300);
+  await A.page.evaluate(()=>finishSession(true)); await W(300);
   console.log('DIALOGS', A.page._dialogs||[]);
   const s=await A.page.evaluate(()=>DB.get('daily_instance_2026-09-26'));
   console.log('SAVED', s.status, s.duration+'min', JSON.stringify(s.blocks.find(b=>b.mainFocus).exercises[0].cardioLog), 'planRef', JSON.stringify(s.planRef));

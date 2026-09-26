@@ -342,9 +342,25 @@ const Vitals = {
     rhr:   { label: 'Resting HR', unit: 'bpm', dec: 0, avg: 7 },
     hrv:   { label: 'HRV',        unit: 'ms',  dec: 0, avg: 7, band: 60 },
     vo2:   { label: 'VO2 max',    unit: 'ml/kg·min',    dec: 1, sparse: true },
+    // Weigh-ins: from the Health export (smart scale / manual entries in
+    // Health) and from Settings → Body. Sparse — a point per weigh-in.
+    weight: { label: 'Body weight', unit: 'kg', dec: 1, sparse: true },
     sleep: { label: 'Sleep',      unit: '',    dec: 0, avg: 7, time: true },
   },
-  ORDER: ['rhr', 'hrv', 'vo2', 'sleep'],
+  ORDER: ['rhr', 'hrv', 'vo2', 'sleep', 'weight'],
+
+  // A weigh-in typed in the app (Settings → Body). Adds to that day rather
+  // than replacing it, unlike a file import.
+  addWeight(dateKey, kg) {
+    if (!(kg > 20 && kg < 300) || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return;
+    const cur = this.load() || { kind: 'movement-vitals', version: 1, days: {} };
+    cur.days[dateKey] = { ...(cur.days[dateKey] || {}), weight: Math.round(kg * 10) / 10, weightSrc: 'app' };
+    const keys = Object.keys(cur.days).sort();
+    cur.days = Object.fromEntries(keys.map(k => [k, cur.days[k]]));
+    cur.range = [keys[0], keys[keys.length - 1]];
+    cur.updatedAt = new Date().toISOString();
+    DB.set(this.KEY, cur);
+  },
 
   load() { return (typeof DB !== 'undefined' && DB.get(this.KEY)) || null; },
 
@@ -358,7 +374,9 @@ const Vitals = {
     Object.entries(doc.days).forEach(([d, v]) => {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !v || typeof v !== 'object') return;
       if (cur.days[d]) updated++; else added++;
-      cur.days[d] = v;
+      const prev = cur.days[d];
+      // A weigh-in typed in the app survives a file that has none that day.
+      cur.days[d] = (prev && prev.weight != null && v.weight == null) ? { ...v, weight: prev.weight, weightSrc: prev.weightSrc } : v;
     });
     cur.source = doc.source || cur.source || 'apple-health';
     cur.version = doc.version || 1;
