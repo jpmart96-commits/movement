@@ -678,7 +678,7 @@ const Generator = {
   // Bumped when generated plans change shape, so a stored-but-untouched
   // plan for today is rebuilt (index.html _todayPlan). 2 = 26 Sep 2026:
   // pinned main focus, recipe blocks, doses.
-  GEN_VERSION: 2,
+  GEN_VERSION: 3,
 
   _estimateExerciseMinutes(ex) {
     // A prescribed dose is the best estimate there is.
@@ -1242,6 +1242,7 @@ const Generator = {
     const weekSeed = Math.floor(dayIdx / 7);
     blocks.push(bank(this._buildComplementaryBlock({
       domain, durationMin: durations['complementary'], resolveEx, lastSeenMap, painCaution, dayType, used,
+      skillLine: (planDay && planDay.skillLine) || slot.skillLine || null,
       seed: Math.floor(dayIdx / 6),
     })));
 
@@ -1435,11 +1436,14 @@ const Generator = {
   // coordDomain + 'coordination' tag rule.
   //
   // Movement practice is load-gated: heavy/explosive Floreio and tumbling
-  // only on easy days (MOVEMENT_FULL_DAY_TYPES).
-  _poolForCoordDomain(domain, dayType) {
+  // only on easy days (MOVEMENT_FULL_DAY_TYPES). On a wrist skill-line day
+  // (handstand) high-impact wrist work is out too; the rest is capped when
+  // the block is built.
+  _poolForCoordDomain(domain, dayType, skillLine) {
     if (!domain) return [];
     const fams = (typeof DOMAIN_FAMILIES !== 'undefined') ? DOMAIN_FAMILIES[domain] : null;
     const easyDay = typeof MOVEMENT_FULL_DAY_TYPES !== 'undefined' && MOVEMENT_FULL_DAY_TYPES.includes(dayType);
+    const wristDay = this._isWristDay(skillLine);
     return LIBRARY.filter(ex => {
       const ov = Overrides.get(ex.id);
       if (ov && ov.coordDomain) return ov.coordDomain === domain;
@@ -1448,6 +1452,7 @@ const Generator = {
         if (domain === 'movement') {
           if (!(ex.roles || []).includes('practice')) return false;
           if (ex.movementGate === 'easy-days' && dayType && !easyDay) return false;
+          if (wristDay && this._wristLoad(ex.id) === 'high') return false;
         }
         return true;
       }
@@ -1472,20 +1477,38 @@ const Generator = {
     return Math.round((x - a) / 86400000);
   },
 
+  _isWristDay(skillLine) {
+    return !!skillLine && typeof WRIST_SKILL_LINES !== 'undefined' && WRIST_SKILL_LINES.includes(skillLine);
+  },
+
+  // 'none' | 'some' | 'high'. Tagged items go by joints + impact. Untagged
+  // crawls and floreio are hand-supported, so they count; the easy-day-gated
+  // ones (presses, pistol-to-push-up) count as high.
+  _wristLoad(id) {
+    const t = (typeof EXERCISE_TAGS !== 'undefined') ? EXERCISE_TAGS[id] : null;
+    if (t) {
+      if (!(t.joints || []).includes('wrist')) return 'none';
+      return t.impact === 'high' ? 'high' : 'some';
+    }
+    const ex = LIBRARY.find(e => e.id === id);
+    if (!ex || !['E1', 'E2'].includes(ex.family)) return 'none';
+    return ex.movementGate === 'easy-days' ? 'high' : 'some';
+  },
+
   _movementFamilies() {
     return (typeof DOMAIN_FAMILIES !== 'undefined' && DOMAIN_FAMILIES.movement) || ['E1', 'E2', 'E3'];
   },
 
   // One theme, three to five items, longer sets. Rotation is family-first
   // (subcategory groups), so a day is a coherent family rather than a mix.
-  _buildComplementaryBlock({ domain, durationMin, resolveEx, lastSeenMap, painCaution, dayType, used, seed }) {
+  _buildComplementaryBlock({ domain, durationMin, resolveEx, lastSeenMap, painCaution, dayType, used, seed, skillLine }) {
     const taken = used || new Set();
-    const pool  = this._rotateBy(this._poolForCoordDomain(domain, dayType).filter(id => !taken.has(id)), seed || 0);
+    const pool  = this._rotateBy(this._poolForCoordDomain(domain, dayType, skillLine).filter(id => !taken.has(id)), seed || 0);
     const label = (typeof COORD_DOMAIN_LABELS !== 'undefined' && COORD_DOMAIN_LABELS[domain]) || domain || 'Complementary';
     const block = {
       key: 'complementary', label: 'Complementary \u2014 ' + label,
       icon: 'star', color: '#D8890A', bg: '#FBEEDA',
-      duration: durationMin, coordDomain: domain,
+      duration: durationMin, coordDomain: domain, skillLine: skillLine || null,
       note: 'One domain today. Stay with it long enough to actually be in it.',
       exercises: [],
       rotationNote: this._rotationNote(pool, lastSeenMap),
@@ -1499,11 +1522,16 @@ const Generator = {
       ordered = [...ordered.filter(id => !this._isPainCaution(id, painCaution)), ...ordered.filter(id => this._isPainCaution(id, painCaution))];
     }
     const n = Math.max(3, Math.min(5, Math.round((durationMin || 0) / 6)));
+    const wristCap = (domain === 'movement' && this._isWristDay(skillLine) && typeof WRIST_CAP_ON_SKILL_DAYS === 'number')
+      ? WRIST_CAP_ON_SKILL_DAYS : Infinity;
+    let wristN = 0;
     const picked = [];
     for (const id of ordered) {
       if (picked.length >= n) break;
+      const wrist = wristCap < Infinity && this._wristLoad(id) !== 'none';
+      if (wrist && wristN >= wristCap) continue;
       const ex = resolveEx(id);
-      if (ex) picked.push(this._attachDose(ex, 'practice'));
+      if (ex) { picked.push(this._attachDose(ex, 'practice')); if (wrist) wristN++; }
     }
     block.exercises = this._fitBlockDoses(picked, durationMin);
     return block;
@@ -1955,7 +1983,7 @@ const Generator = {
     }
     if (key === 'open' || key === 'close') return [];
     if (key === 'complementary') {
-      return this._poolForCoordDomain(block.coordDomain || instance.coordDomain, instance.dayKind);
+      return this._poolForCoordDomain(block.coordDomain || instance.coordDomain, instance.dayKind, block.skillLine || instance.skillLine);
     }
     if (key.startsWith('main-focus:')) {
       // Swapping inside a pinned lift day stays within real training work.
@@ -2005,7 +2033,7 @@ const Generator = {
       return this._buildComplementaryBlock({
         domain: block.coordDomain || instance.coordDomain,
         durationMin: newDuration, resolveEx, lastSeenMap, painCaution: painTags.caution,
-        dayType: instance.dayKind, used,
+        dayType: instance.dayKind, used, skillLine: block.skillLine || instance.skillLine,
       });
     }
 

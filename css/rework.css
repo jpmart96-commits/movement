@@ -305,5 +305,38 @@
 .st-vraw { fill: none; stroke: var(--text3); stroke-width: 1; opacity: .45; stroke-linejoin: round; }
 .st-vline { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .st-vdot { fill: var(--accent); stroke: var(--bg2); stroke-width: 2; }
+.st-vdot.st-vnow { fill: var(--now); }
 .st-vpartial { fill: var(--bg2); stroke: var(--text3); stroke-width: 1.5; }
 .st-vcross { stroke: var(--text2); stroke-width: 1; }
+
+/* "now" — the most recent reading, wherever it is marked (Body charts,
+   Strength card). Yellow; darker in light mode so text stays readable. */
+:root { --now: #A87C00; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --now: #F2C94C; } }
+:root[data-theme="dark"] { --now: #F2C94C; }
+
+/* progress — strength targets: one row per lift, a segment per checkpoint */
+.mv-lift { padding: .75rem 0; border-bottom: 1px solid var(--border); }
+.mv-lift:first-of-type { padding-top: .15rem; }
+.mv-lift-head { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; margin-bottom: .6rem; }
+.mv-lift-name { font-size: .92rem; font-weight: 600; }
+.mv-lift-scheme { font-size: .7rem; color: var(--text3); margin-top: .1rem; }
+.mv-lift-now { text-align: right; flex-shrink: 0; }
+.mv-lift-v { color: var(--now); font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.mv-lift-v span { font-family: var(--font-body); font-size: .7rem; font-weight: 500; color: var(--text3); margin-left: .2rem; letter-spacing: 0; }
+.mv-lift-src { font-size: .66rem; color: var(--text3); margin-top: .12rem; white-space: nowrap; }
+.mv-lift-track { position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; }
+.mv-lift-here {
+  position: absolute; top: -3px; width: 12px; height: 12px; margin-left: -6px; border-radius: 6px;
+  background: var(--now); border: 2px solid var(--bg2); pointer-events: none;
+}
+.mv-lift-seg i { display: block; height: 6px; border-radius: 3px; background: var(--bg3); overflow: hidden; }
+.mv-lift-seg i b { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+.mv-lift-seg.done i b { background: var(--accent2); }
+.mv-lift-cp { font-size: .74rem; font-weight: 600; color: var(--text3); margin-top: .35rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mv-lift-cp em { font-style: normal; font-weight: 400; font-size: .66rem; margin-left: .3rem; }
+.mv-lift-seg.next .mv-lift-cp { color: var(--text); }
+.mv-lift-seg.done .mv-lift-cp { color: var(--accent2); }
+.mv-lift-next { font-size: .76rem; line-height: 1.45; color: var(--text2); margin-top: .5rem; }
+.mv-lift-next b { color: var(--text); font-weight: 600; }
+.mv-lift-foot { font-size: .68rem; line-height: 1.45; color: var(--text3); margin-top: .7rem; }

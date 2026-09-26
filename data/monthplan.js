@@ -61,13 +61,20 @@
 //   - `skillLine` names the Accessory & Skill line for the day.
 //   - Aerobic retest moves to Wed 14 Oct. Coordination rotation has six
 //     domains (movement practice added).
+//
+// Revision 26 Sep (seedVersion 5) — library batch 2 into the skill lines:
+//   - Muscle-up line opens with the low bar drill (hip drive) from week 1,
+//     so the week-9 transition rung has an on-ramp.
+//   - Handstand line: slingshot rebound plank joins the activation step;
+//     donkey kicks replace kick-ups until the cartwheel bail is in (block 2).
+//   - Movement-domain days that land on a handstand day cap wrist work.
 
 const MONTH_PLAN_SEED = {
   // Bumped whenever this file's plan changes. ensureSeeded() supersedes a
   // stored plan with a lower version, and a pull refuses to downgrade past
   // it — without that, the seed reaches storage exactly once and every
   // later revision is silently ignored on the one device that matters.
-  "seedVersion": 4,
+  "seedVersion": 5,
 
   "title": "Block 1 — Aerobic engine + strength",
   "blockStart": "2026-09-20",
@@ -93,12 +100,12 @@ const MONTH_PLAN_SEED = {
       { "n": 1, "name": "Find the floor", "weeks": "1-4", "from": "2026-09-20", "to": "2026-10-18",
         "aerobic": "Establish real numbers. Learn what under-153 actually costs, and learn to pace a 4x4 — the first interval is always too fast.",
         "strength": "Baseline every lift in week 1, then one step to the block targets, tested across two days.",
-        "skill": "Handstand to chest-to-wall 30s. Pull side starts closing on the push side.",
+        "skill": "Handstand to chest-to-wall 30s; donkey kicks, not kick-ups, until the bail is learned. Pull side starts closing on the push side. The muscle-up line opens with the low bar drill: hips carry you over, not arms.",
         "hardPart": "Pacing. Both directions — easy days too fast, first interval too hard." },
       { "n": 2, "name": "Widen the window", "weeks": "5-8", "from": "2026-10-19", "to": "2026-11-15",
         "aerobic": "Volume up, and the interval extends to 5x4 once four consistent weeks of 4x4 are in the bank.",
         "strength": "Second step. Dips go weighted rather than higher-rep.",
-        "skill": "False grip pull-ups. Handstand consolidates at the wall rather than rushing off it.",
+        "skill": "False grip pull-ups; the banded ring transition joins the low bar drill in the muscle-up line. Handstand consolidates at the wall rather than rushing off it. The cartwheel bail goes into the handstand line (both sides) and kick-ups come back in behind it: no kick-up away from the wall until the bail is automatic.",
         "hardPart": "The long easy day reaching 70min without the heart rate drifting up in the last 20." },
       { "n": 3, "name": "Put the engine to work", "weeks": "9-12", "from": "2026-11-16", "to": "2026-12-13",
         "aerobic": "10km continuous under 153, and one threshold session per week (4x8min) alongside the 5x4.",
@@ -152,7 +159,7 @@ const MONTH_PLAN_SEED = {
         { "week": 4,  "by": "2026-10-18", "goalId": "pullups-10",     "rung": 2, "target": "Pull-ups 3x6 strict. Dips 3x6 at +10kg, every set RPE 8 or under." },
         { "week": 6,  "by": "2026-11-01", "goalId": "ring-muscle-up", "rung": 2, "target": "False grip pull-up x 3. This is the rung most people skip and then stall on." },
         { "week": 8,  "by": "2026-11-15", "goalId": "pullups-10",     "rung": 3, "target": "Pull-ups 3x8 strict. False grip hold 45s. Dips 3x8 at +10kg." },
-        { "week": 9,  "by": "2026-11-22", "goalId": "ring-muscle-up", "rung": 3, "target": "Banded transition drill, 5 controlled reps. Slow through the sticking point, no snatching." },
+        { "week": 9,  "by": "2026-11-22", "goalId": "ring-muscle-up", "rung": 3, "target": "Banded transition drill, 5 controlled reps. Slow through the sticking point, no snatching. The low bar drill has been rehearsing the hip drive since week 1, so this is not first contact." },
         { "week": 11, "by": "2026-12-06", "target": "Transition with minimal band. Explosive pull-ups x 3 to chest-height or above." },
         { "week": 12, "by": "2026-12-13", "goalId": "ring-muscle-up", "rung": 4, "target": "FIRST KIPPING MUSCLE-UP." },
         { "week": 13, "by": "2026-12-20", "goalId": "ring-muscle-up", "rung": 5, "target": "STRETCH — 3 kipping muscle-ups." }
@@ -169,7 +176,7 @@ const MONTH_PLAN_SEED = {
       "steps": [
         { "week": 3,  "by": "2026-10-11", "goalId": "handstand", "rung": 2, "target": "Chest-to-wall hold 30s." },
         { "week": 4,  "by": "2026-10-18", "target": "Wrists tolerate three handstand sessions in a week with no lingering soreness. If they do not, this line pauses and the wrist work continues alone." },
-        { "week": 6,  "by": "2026-11-01", "goalId": "handstand", "rung": 2, "target": "Chest-to-wall 3 x 45s, plus 10min handstand taps. Consolidating, not advancing — time at the wall is what buys the float later." },
+        { "week": 6,  "by": "2026-11-01", "goalId": "handstand", "rung": 2, "target": "Chest-to-wall 3 x 45s, plus 10min handstand taps. Consolidating, not advancing — time at the wall is what buys the float later. Cartwheel bail learned both sides before kick-ups leave the wall." },
         { "week": 9,  "by": "2026-11-22", "goalId": "handstand", "rung": 3, "target": "Pike press entry, controlled." },
         { "week": 12, "by": "2026-12-13", "goalId": "handstand", "rung": 4, "target": "Freestanding tuck 5s." },
         { "week": 13, "by": "2026-12-20", "goalId": "handstand", "rung": 5, "target": "STRETCH — straddle freestanding 5s." }
