@@ -19,6 +19,9 @@
 <link rel="stylesheet" href="css/desktop.css">
 <link rel="stylesheet" href="css/settings.css">
 <link rel="stylesheet" href="css/motion.css">
+<link rel="stylesheet" href="css/scopes.css">
+<link rel="stylesheet" href="css/meals.css">
+<link rel="stylesheet" href="css/daylog.css">
 </head>
 <body>
 
@@ -45,33 +48,72 @@
 <!-- App root — hidden until auth passes -->
 <div id="app-root" style="display:none">
 
-<!-- NAV: Block / Today / Session(hidden) / Progress / Stats / Log / Notes / Settings -->
+<!-- NAV: three scopes (js/scopes.js). Training: Block / Today / Session(hidden) / Progress / Stats / Log / Notes / Settings.
+     Daily log: Check-in / Sleep / Trends. Meals: Week / Prep / Shop / Recipes / Food. Swipe the bar to change scope. -->
 <nav id="nav">
   <div class="nav-brand" aria-hidden="true">MOVEMENT</div>
-  <button class="nav-btn active" data-screen="home" onclick="navTo('home')" aria-label="Block">
-    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span>Block</span>
-  </button>
-  <button class="nav-btn" data-screen="today" onclick="navTo('today')" aria-label="Today">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span>Today</span>
-  </button>
-  <button class="nav-btn session-nav" data-screen="session" onclick="navTo('session')" style="display:none" aria-label="Session">
-    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Live</span>
-  </button>
-  <button class="nav-btn" data-screen="progress" onclick="navTo('progress')" aria-label="Progress">
-    <svg viewBox="0 0 24 24"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg><span>Progress</span>
-  </button>
-  <button class="nav-btn" data-screen="stats" onclick="navTo('stats')" aria-label="Stats">
-    <svg viewBox="0 0 24 24"><path d="M4 20V11M9.33 20V5M14.67 20v-8M20 20V8"/></svg><span>Stats</span>
-  </button>
-  <button class="nav-btn" data-screen="log" onclick="navTo('log')" aria-label="Log">
-    <svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Log</span>
-  </button>
-  <button class="nav-btn" data-screen="notes" onclick="navTo('notes')" aria-label="Notes">
-    <svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="14 3 14 9 20 9"/><path d="M8 13h8M8 17h5"/></svg><span>Notes</span>
-  </button>
-  <button class="nav-btn" data-screen="settings" onclick="navTo('settings')" aria-label="Settings">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Settings</span>
-  </button>
+  <div class="nav-scopes" role="tablist" aria-label="App section">
+    <button role="tab" data-scope-go="train" onclick="Scopes.go('train')">Training</button>
+    <button role="tab" data-scope-go="daylog" onclick="Scopes.go('daylog')">Daily log</button>
+    <button role="tab" data-scope-go="meals" onclick="Scopes.go('meals')">Meals</button>
+  </div>
+  <div class="nav-viewport"><div class="nav-track" id="nav-track">
+  <div class="nav-group on" data-scope="train">
+    <button class="nav-btn active" data-screen="home" onclick="navTo('home')" aria-label="Block">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span>Block</span>
+    </button>
+    <button class="nav-btn" data-screen="today" onclick="navTo('today')" aria-label="Today">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg><span>Today</span>
+    </button>
+    <button class="nav-btn session-nav" data-screen="session" onclick="navTo('session')" style="display:none" aria-label="Session">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>Live</span>
+    </button>
+    <button class="nav-btn" data-screen="progress" onclick="navTo('progress')" aria-label="Progress">
+      <svg viewBox="0 0 24 24"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg><span>Progress</span>
+    </button>
+    <button class="nav-btn" data-screen="stats" onclick="navTo('stats')" aria-label="Stats">
+      <svg viewBox="0 0 24 24"><path d="M4 20V11M9.33 20V5M14.67 20v-8M20 20V8"/></svg><span>Stats</span>
+    </button>
+    <button class="nav-btn" data-screen="log" onclick="navTo('log')" aria-label="Log">
+      <svg viewBox="0 0 24 24"><polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/></svg><span>Log</span>
+    </button>
+    <button class="nav-btn" data-screen="notes" onclick="navTo('notes')" aria-label="Notes">
+      <svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="14 3 14 9 20 9"/><path d="M8 13h8M8 17h5"/></svg><span>Notes</span>
+    </button>
+    <button class="nav-btn" data-screen="settings" onclick="navTo('settings')" aria-label="Settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Settings</span>
+    </button>
+  </div>
+  <div class="nav-group" data-scope="daylog">
+    <button class="nav-btn" data-screen="daylog-checkin" onclick="navTo('daylog-checkin')" aria-label="Check-in">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.2 2.1 1.8 3.5 1.8s2.5-.6 3.5-1.8M9 9.5h.01M15 9.5h.01"/></svg><span>Check-in</span>
+    </button>
+    <button class="nav-btn" data-screen="daylog-sleep" onclick="navTo('daylog-sleep')" aria-label="Sleep">
+      <svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span>Sleep</span>
+    </button>
+    <button class="nav-btn" data-screen="daylog-trends" onclick="navTo('daylog-trends')" aria-label="Trends">
+      <svg viewBox="0 0 24 24"><path d="M3 20h18M6 16l4-5 4 3 5-7"/></svg><span>Trends</span>
+    </button>
+  </div>
+  <div class="nav-group" data-scope="meals">
+    <button class="nav-btn" data-screen="meals-week" onclick="navTo('meals-week')" aria-label="Week">
+      <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Week</span>
+    </button>
+    <button class="nav-btn" data-screen="meals-prep" onclick="navTo('meals-prep')" aria-label="Prep">
+      <svg viewBox="0 0 24 24"><path d="M4 10h16v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M2 10h20M9 6.5c0-1 1-1.2 1-2.5M14 6.5c0-1 1-1.2 1-2.5"/></svg><span>Prep</span>
+    </button>
+    <button class="nav-btn" data-screen="meals-shop" onclick="navTo('meals-shop')" aria-label="Shop">
+      <svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h11l2-8H6.2"/><circle cx="9" cy="19.5" r="1.4"/><circle cx="17" cy="19.5" r="1.4"/></svg><span>Shop</span>
+    </button>
+    <button class="nav-btn" data-screen="meals-recipes" onclick="navTo('meals-recipes')" aria-label="Recipes">
+      <svg viewBox="0 0 24 24"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3M9 7.5h6"/></svg><span>Recipes</span>
+    </button>
+    <button class="nav-btn" data-screen="meals-me" onclick="navTo('meals-me')" aria-label="Food">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Food</span>
+    </button>
+  </div>
+  </div></div>
+  <div class="nav-scopebar" id="nav-scopebar"></div>
 </nav>
 
 <!-- ═══ HOME ═══════════════════════════════════════════════════ -->
@@ -277,6 +319,16 @@
      Four tabs. The panels are static so their ids (sync-status,
      data-status, the rest inputs…) always exist; renderSettings() fills
      the dynamic parts. Library → renderLibrary(), the sheet → openLibSheet(). -->
+<!-- ═══ DAILY LOG (js/daylog.js) ════════════════════════════ -->
+<main id="screen-daylog" class="screen">
+  <div id="daylog-body"></div>
+</main>
+
+<!-- ═══ MEALS (js/meals.js) ══════════════════════════════════ -->
+<main id="screen-meals" class="screen">
+  <div id="meals-body"></div>
+</main>
+
 <main id="screen-settings" class="screen">
   <div class="set-head">
     <div class="logo" style="font-size:1.45rem">Settings</div>
@@ -411,6 +463,10 @@
 
 <!-- Note sheet (global) — quick add from Today / the live session / an
      exercise, and editing a note from the Notes tab. Outside every .screen. -->
+<div id="ml-sheet-back" class="mv-sheet-back" style="display:none">
+  <div class="mv-sheet" id="ml-sheet" role="dialog" aria-modal="true" aria-label="Meals"></div>
+</div>
+
 <div id="note-sheet-back" class="mv-sheet-back" style="display:none" onclick="closeNoteSheet()">
   <div class="mv-sheet" onclick="event.stopPropagation()" id="note-sheet"></div>
 </div>
@@ -494,17 +550,26 @@ function setTheme(t) {
 <script src="js/sync.js"></script>
 <script src="js/overrides.js"></script>
 <script src="js/motion.js"></script>
+<script src="data/meals.js"></script>
+<script src="js/meals.js"></script>
+<script src="js/daylog.js"></script>
+<script src="js/scopes.js"></script>
 <script>
 
 // ─────────────────────────────────────────────────────────────
 // NAVIGATION
 // ─────────────────────────────────────────────────────────────
 function navTo(screen) {
+  // Daily log and Meals screens are 'daylog-<tab>' / 'meals-<tab>': one
+  // <main> per scope, the tab rendered inside it (js/scopes.js).
+  const scope = (typeof Scopes !== 'undefined') ? Scopes.scopeOf(screen) : 'train';
+  const main = scope === 'train' ? screen : scope;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('screen-' + screen)?.classList.add('active');
+  document.getElementById('screen-' + main)?.classList.add('active');
   document.querySelector(`.nav-btn[data-screen="${screen}"]`)?.classList.add('active');
   App.screen = screen;
+  if (typeof Scopes !== 'undefined') Scopes.entered(scope, screen);
   document.getElementById('fab').style.display = 'none';
   if (screen === 'home')     renderHome();
   if (screen === 'today')    renderToday();
@@ -516,6 +581,8 @@ function navTo(screen) {
   if (screen === 'notes')    renderNotes();
   if (screen === 'settings') renderSettings();
   if (screen === 'session')  renderSessionScreen();
+  if (scope === 'meals'  && typeof Meals  !== 'undefined') Meals.render(screen.slice(6));
+  if (scope === 'daylog' && typeof DayLog !== 'undefined') DayLog.render(screen.slice(7));
 }
 
 // ─────────────────────────────────────────────────────────────
