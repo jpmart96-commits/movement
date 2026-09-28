@@ -277,6 +277,8 @@ function _route(fullKey) {
   if (fullKey === 'pb_hevy_aliases')     return 'hevy_aliases';
   if (fullKey === 'pb_vitals')           return 'vitals';
   if (fullKey === 'pb_week_scaffold')    return 'week_scaffold';
+  if (fullKey === 'pb_meals')            return 'meals';
+  if (fullKey === 'pb_daylog')           return 'daylog';
   return null;
 }
 const _LISTS = {
@@ -640,6 +642,12 @@ Object.assign(DB, {
     // row, so pull() restores it as 'pb_vitals' with no schema change.
     if (route === 'vitals') {
       return _upsert('overrides', { user_id: uid, store_key: 'vitals', data: value }, 'user_id,store_key');
+    }
+    // Meals (js/meals.js) and the daily log (js/daylog.js): one document
+    // each per account, in the generic overrides table — pull() restores
+    // them as 'pb_meals' / 'pb_daylog' with no schema change.
+    if (route === 'meals' || route === 'daylog') {
+      return _upsert('overrides', { user_id: uid, store_key: route, data: value }, 'user_id,store_key');
     }
     // Week scaffold override (project_scaffold_revamp) — user's edited copy
     // of the default WEEK_SCAFFOLD shipped in data/scaffold.js, if/when the
@@ -1110,6 +1118,8 @@ async function manualSync() {
     if (App.screen === 'settings') renderSettings();
     if (App.screen === 'log')      renderLog();
     if (App.screen === 'stats' && typeof renderStats === 'function') renderStats();
+    if (String(App.screen).startsWith('meals-')  && typeof Meals  !== 'undefined') Meals.render();
+    if (String(App.screen).startsWith('daylog-') && typeof DayLog !== 'undefined') DayLog.render();
   } catch(e) {
     console.error('Sync error:', e);
     if (status) { status.textContent = 'Sync failed — check connection'; status.style.color = 'var(--danger)'; }

@@ -1,0 +1,62 @@
+/* ═══════════════════════════════════════════════════════════════
+   MOVEMENT — scopes: Training · Daily log · Meals
+   The bottom bar holds one row of icons per scope, side by side on a
+   track. Swipe the bar left/right (or tap a dot) to change scope; the
+   icons and the accent colour change with it. On a laptop the sidebar
+   shows a three-way switch at the top and only the current scope's items.
+   body[data-scope] carries the scope, so each scope's accent flows through
+   the same --accent token every component already uses.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root { --nav-h: 76px; }
+
+body[data-scope="meals"]  { --accent: #2F7A4A; --on-accent: #FFFFFF; }
+body[data-scope="daylog"] { --accent: #7A4E96; --on-accent: #FFFFFF; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body[data-scope="meals"]  { --accent: #62B97E; --on-accent: #0C1A11; }
+  :root:not([data-theme="light"]) body[data-scope="daylog"] { --accent: #B994D2; --on-accent: #1A1020; }
+}
+:root[data-theme="dark"] body[data-scope="meals"]  { --accent: #62B97E; --on-accent: #0C1A11; }
+:root[data-theme="dark"] body[data-scope="daylog"] { --accent: #B994D2; --on-accent: #1A1020; }
+
+#nav { flex-direction: column; align-items: stretch; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.nav-viewport { overflow: hidden; width: 100%; max-width: 620px; margin: 0 auto; flex: 1; display: flex; }
+.nav-track { display: flex; flex: none; width: 300%; transition: transform .32s cubic-bezier(.3,.7,.2,1); }
+.nav-track.is-drag { transition: none; }
+.nav-group { width: calc(100% / 3); flex: none; min-width: 0; display: flex; align-items: center; }
+.nav-group .nav-btn { min-width: 0; }
+.nav-scopes { display: none; }
+
+.nav-scopebar {
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+  height: 14px; padding-bottom: 4px; font-size: 10px; font-weight: 600; color: var(--text3);
+}
+.nav-scopebar button {
+  width: 6px; height: 6px; padding: 0; border: none; border-radius: 3px; background: var(--border);
+  cursor: pointer; transition: width .3s, background-color .3s;
+  /* bigger hit area than the dot */
+  box-shadow: 0 0 0 7px transparent;
+}
+.nav-scopebar button.on { width: 18px; background: var(--accent); }
+.nav-scopebar span { margin-left: 4px; letter-spacing: .02em; }
+
+@media (prefers-reduced-motion: reduce) { .nav-track { transition: none; } }
+
+/* ── laptop sidebar ─────────────────────────────────────────── */
+@media (min-width: 900px) {
+  .nav-scopebar { display: none; }
+  .nav-viewport { max-width: none; overflow: visible; }
+  .nav-track { width: 100%; transform: none !important; display: block; }
+  .nav-group { width: 100%; display: none; flex-direction: column; align-items: stretch; gap: 2px; height: 100%; }
+  .nav-group.on { display: flex; }
+  .nav-scopes {
+    display: flex; gap: 2px; margin: 0 .25rem 1rem; padding: 3px;
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+  }
+  .nav-scopes button {
+    flex: 1; border: none; background: none; border-radius: 8px; padding: .4rem .2rem;
+    font-family: var(--font-body); font-size: .68rem; font-weight: 600; color: var(--text2); cursor: pointer; white-space: nowrap;
+  }
+  .nav-scopes button.on { background: var(--bg2); color: var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .nav-viewport { flex: 1; min-height: 0; }
+}

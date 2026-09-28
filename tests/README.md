@@ -18,6 +18,7 @@ node --test 'tests/*.test.js'      # the stock runner works too
 | `snapshot.test.js` | `generateFromScaffold` for 26 Sep–30 Nov (empty history) against `golden/days.json`, plus a determinism check. |
 | `invariants.test.js` | Per plan day (26 Sep–25 Oct): no duplicates, every item dosed, minutes add up, and blocks fit their time (+10%). Main Focus must match `mainFocusPlan` loads with no prehab, `dayType` must match the plan, and Complementary must be 3–5 items in one domain. Also checks the known-bug behaviours. |
 | `notes.test.js` | Notes tab (`js/notes.js`): day/exercise context stamping, status and resolution, ordering, tombstoned delete, outbox routing to `plan_notes`, markdown export. |
+| `meals.test.js` | Meals and the daily log: day effort from the plan (a "lighter" day steps down, an override wins), weight from weigh-ins, hybrid/Sunday planning rules, portions by day, vegetarian and constraint filtering, shopping list, eaten meals kept on regenerate, sync routing (`pb_meals`, `pb_daylog`), week pruning, training auto-tick. |
 | `run.js` | Runner. It groups output into failures, KNOWN violations, expected failures and now-passing tests. |
 
 **Known bugs.** A known bug is a test with `{ todo: 'known bug: …' }`. It is reported under
@@ -40,6 +41,10 @@ under "now passing"; remove the `todo` then.
 - `tests/browser/notes.js` — Notes tab end to end: write from the tab, quick add from Today
   and the exercise sheet, sync to `plan_notes`, an off-device review marking a note applied
   (wins over a pending local edit of another note), a second device, delete, export.
+- `tests/browser/meals.js` — scopes, Meals and Daily log end to end: swipe the bar between Training / Daily log / Meals
+  (accent and icons change, rubber band, short drags ignored), generate a week, eaten, shopping ticks, a second
+  device pulls the plan, two-touch check-in seeding the training check-in, routine edits, laptop sidebar switch.
+  `SHOTS=1` writes screenshots to /tmp. `node tests/browser/meals.js`
 - `tests/browser/settings.js` — Settings end to end: tabs, library tiles → category → subcategory, search,
   filters, the exercise sheet (state, 1RM tracking, Edit refreshes it), steppers saving, zone ceilings
   staying in order, equipment chips, theme, and the sync status line. `node tests/browser/settings.js`
