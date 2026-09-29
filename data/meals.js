@@ -82,6 +82,37 @@ const ING_ROWS = [
  ['oil','Olive oil','plant','Pantry',884,0,0,100,0,8,'',0,1],
  ['spices','Spices & dried herbs','plant','Pantry',250,10,40,5,20,25,'',0,1]
 ];
+// How each ingredient is sold and what happens to what's left of a pack.
+//   pack: grams (or pieces for items counted in pieces) in the smallest
+//     usual pack; 0 = loose, bought to the gram.
+//   keep: 'shelf'  dry, tinned-unopened, frozen: the rest stays in the
+//                  cupboard or freezer and counts next week
+//         'freeze' raw meat, fish, bread: freeze the rest, counts next week
+//         'fridge' lasts a couple of weeks in the fridge (eggs, parmesan)
+//         'fresh'  opened or perishable: the rest is waste unless the week
+//                  uses it (the planner tries to)
+const PACK={
+ chicken:[500,'freeze'],thigh:[600,'freeze'],beef:[500,'freeze'],turkey:[500,'freeze'],pork:[500,'freeze'],
+ salmon:[250,'freeze'],cod:[400,'freeze'],shrimp:[400,'shelf'],tuna:[120,'fresh'],sardines:[120,'fresh'],
+ eggs:[6,'fridge'],greek:[500,'fresh'],skyr:[450,'fresh'],cottage:[200,'fresh'],feta:[200,'fresh'],parmesan:[150,'fridge'],
+ whey:[1000,'shelf'],peaprot:[1000,'shelf'],milk:[1000,'fresh'],oatmilk:[1000,'fresh'],tofu:[400,'fresh'],
+ chickpeas:[240,'fresh'],blackbeans:[240,'fresh'],lentils:[500,'shelf'],rice:[1000,'shelf'],quinoa:[500,'shelf'],
+ pasta:[500,'shelf'],oats:[500,'shelf'],bread:[500,'freeze'],wrap:[8,'freeze'],tintom:[400,'freeze'],
+ spinach:[300,'fresh'],leaves:[150,'fresh'],mushroom:[250,'fresh'],berries:[500,'shelf'],peas:[1000,'shelf'],
+ pb:[350,'shelf'],almonds:[200,'shelf'],walnuts:[200,'shelf'],coconut:[400,'freeze'],pesto:[190,'fridge']
+};
+// Cooked weight per gram of raw ingredients (pieces counted by weight), so a
+// batch pot can be split into boxes by weight. Grains take on water; roasts
+// and meat lose it.
+const YIELD={quinoa:2.8,rice:3,roastveg:0.7,roastsweet:0.75,roastpot:0.75,chickpeas:0.85,dal:1.5,chili:0.9,vegchili:1,
+ tomsauce:0.85,meatballs:0.8,traybake:0.75,salmon:0.8,chicken:0.75,cod:0.85,prawns:0.8,tofu:0.9,pork:0.75,omelette:0.85,
+ pasta:2.3,stirveg:0.85,broccoli:1,greens:0.5,oats:1.2,tofuwrap:1,pancakes:1};
+// How a component is cooked, for grouping the batch by station (oven temp °C).
+const METHOD={roastveg:['oven',210],roastsweet:['oven',200],roastpot:['oven',210],chickpeas:['oven',210],meatballs:['oven',200],traybake:['oven',210],
+ dal:['pot'],chili:['pot'],vegchili:['pot'],tomsauce:['pot'],
+ quinoa:['boil'],rice:['boil'],boiledeggs:['boil'],pasta:['boil'],broccoli:['boil'],cod:['boil'],
+ salmon:['pan'],chicken:['pan'],prawns:['pan'],tofu:['pan'],pork:['pan'],omelette:['pan'],stirveg:['pan'],greens:['pan'],eggtoast:['pan'],pancakes:['pan'],tofuwrap:['pan'],
+ salad:['cold'],tuna:['cold'],oats:['cold'],yogbowl:['cold'],shake:['cold'],plantshake:['cold']};
 const AISLES=['Produce','Butcher & fish','Dairy & eggs','Grains & bread','Tins & jars','Frozen','Pantry'];
 const CONS=[['gluten','Gluten-free'],['lactose','Lactose-free'],['eggs','No eggs'],['nuts','No tree nuts'],['peanuts','No peanuts'],['soy','No soy'],['sesame','No sesame'],['fish','No fish'],['shellfish','No shellfish'],['pork','No pork'],['redmeat','No red meat'],['vegan','Vegan']];
 const C=(id,name,prep,keeps,freezes,mins,ing,steps,verb)=>({id,name,prep,keeps,freezes,mins,ing,steps,verb:verb||'Cook'});
@@ -129,7 +160,7 @@ const PRE={
  omelette:{t:'Slice the mushrooms and wash the spinach.',m:4,save:4,days:3},
  broccoli:{t:'Cut into florets.',m:3,save:2,days:4},
 };
-BUILTIN_COMPS.forEach(c=>{ if(AHEAD[c.id]) c.ahead=AHEAD[c.id]; if(PRE[c.id]) c.pre=PRE[c.id]; });
+BUILTIN_COMPS.forEach(c=>{ if(AHEAD[c.id]) c.ahead=AHEAD[c.id]; if(PRE[c.id]) c.pre=PRE[c.id]; if(YIELD[c.id]) c.yield=YIELD[c.id]; if(METHOD[c.id]){ c.method=METHOD[c.id][0]; if(METHOD[c.id][1]) c.temp=METHOD[c.id][1]; } });
 const M=(id,name,type,parts,finish,x)=>Object.assign({id,name,type,parts,finish:finish||[]},x||{});
 const BUILTIN=[
  M('m-salmonquinoa','Salmon quinoa bowl with roast veg','main',[['quinoa',1],['roastveg',1],['salmon',1]],[['lemon',15],['spinach',30]]),
@@ -161,7 +192,7 @@ const BUILTIN=[
  M('b-plantshake','Plant protein shake with banana','breakfast',[['plantshake',1]],[],{shake:true,fixed:true})
 ];
 
-  return { ING_ROWS, AISLES, CONS, COMPONENTS: BUILTIN_COMPS, RECIPES: BUILTIN };
+  return { ING_ROWS, PACK, AISLES, CONS, COMPONENTS: BUILTIN_COMPS, RECIPES: BUILTIN };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = { MEALS_DATA };

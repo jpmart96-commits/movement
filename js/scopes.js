@@ -45,6 +45,14 @@ const Scopes = {
     let target = this.last[id] || sc.first;
     // The live session tab is only there while a session runs.
     if (target === 'session' && !(typeof LiveSession !== 'undefined' && LiveSession.getSession && LiveSession.getSession())) target = sc.first;
+    // On a phone the new app's screen slides in from the side the bar moved
+    // towards, matching the icon row, instead of the generic fade-up.
+    const reduced = typeof Motion !== 'undefined' && Motion.reduced && Motion.reduced();
+    const nw = this._mainFor(target);
+    if (nw && !this._wide() && !reduced) {
+      nw.classList.remove('mv-swipe-in-l', 'mv-swipe-in-r');
+      nw.classList.add(this.index(id) > this.index(this.current) ? 'mv-swipe-in-r' : 'mv-swipe-in-l');
+    }
     if (typeof navTo === 'function') navTo(target);
     if (typeof window !== 'undefined' && window.scrollTo) { try { window.scrollTo(0, 0); } catch (e) {} }
   },
@@ -52,6 +60,9 @@ const Scopes = {
   entered(scope, screen) {
     this.current = scope;
     if (screen && screen !== 'generate') this.last[scope] = screen;
+    // A screen that slid in keeps its slide class while shown (see
+    // _initScreenSwipe); drop it once hidden so a later tap shows the usual fade.
+    if (typeof document !== 'undefined') this._clearSlide();
     this._paint();
   },
 
@@ -167,12 +178,41 @@ const Scopes = {
   // of the width, or flick, to open the next / previous tab of this app.
   // Vertical scrolling wins whenever the finger moves more up/down than
   // sideways. The very edges are left to the phone's own back gesture.
+  //
+  // Motion (29 Sep, v2):
+  //   · drag     — 1:1 with the finger from the moment it locks (no jump by
+  //                the dead zone); iOS-style resistance past the first/last tab.
+  //   · release  — the old tab keeps going at the finger's speed and fades;
+  //                the exit takes 70–160ms depending on how fast you let go.
+  //   · enter    — the new tab slides in from the side you swiped towards.
+  //                The slide class goes on BEFORE the screen is shown and stays
+  //                until the screen is hidden again (entered() clears it), so
+  //                the generic .screen fade-up (css/motion.css) never restarts
+  //                behind it — that restart was the few-px jump at the end.
+  //   · snap back — eases home over a time that scales with the distance.
+  _rubber(dx, w) {
+    const d = w * 0.55, x = Math.abs(dx);
+    return Math.sign(dx) * (1 - 1 / (x * 0.55 / d + 1)) * d;
+  },
+  _mainFor(screen) {
+    const sc = this.scopeOf(screen);
+    return document.getElementById('screen-' + (sc === 'train' ? screen : sc));
+  },
+  _clearSlide(except) {
+    document.querySelectorAll('.screen.mv-swipe-in-l, .screen.mv-swipe-in-r').forEach(m => {
+      if (m !== except && !m.classList.contains('active')) m.classList.remove('mv-swipe-in-l', 'mv-swipe-in-r');
+    });
+  },
+
   _initScreenSwipe() {
     if (document._screenSwipe) return;
     document._screenSwipe = true;
     const vel = this._tracker();
+    const LOCK = 12;
     let st = null, suppress = false;
+    const reduced = () => typeof Motion !== 'undefined' && Motion.reduced && Motion.reduced();
     const clear = el => { el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; el.classList.remove('is-swiping'); };
+    const fade = (off, w) => String(1 - Math.min(Math.abs(off) / w, 1) * 0.35);
 
     document.addEventListener('touchstart', e => {
       st = null;
@@ -187,7 +227,7 @@ const Scopes = {
       const i = list.indexOf(cur);
       if (i < 0 || list.length < 2) return;
       vel.reset(); vel.add(p.clientX, e.timeStamp);
-      st = { x0: p.clientX, y0: p.clientY, dx: 0, drag: false, scr, list, i, w: scr.offsetWidth || window.innerWidth || 1 };
+      st = { x0: p.clientX, y0: p.clientY, dx: 0, off: 0, drag: false, scr, list, i, w: scr.offsetWidth || window.innerWidth || 1 };
     }, { passive: true });
 
     document.addEventListener('touchmove', e => {
@@ -197,22 +237,25 @@ const Scopes = {
       vel.add(p.clientX, e.timeStamp);
       if (!st.drag) {
         if (Math.abs(dy) > 10 && Math.abs(dy) >= Math.abs(dx)) { st = null; return; }   // it's a scroll
-        if (Math.abs(dx) < 12 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
-        st.drag = true; st.scr.classList.add('is-swiping');
+        if (Math.abs(dx) < LOCK || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+        // Start from where the finger is now, so the page doesn't jump by the dead zone.
+        st.drag = true; st.x0 += Math.sign(dx) * LOCK; st.scr.classList.add('is-swiping');
       }
       if (e.cancelable) e.preventDefault();   // no vertical drift while swiping
-      st.dx = dx;
-      const edge = (st.i === 0 && dx > 0) || (st.i === st.list.length - 1 && dx < 0);
-      const off = edge ? dx / 3 : dx;       // rubber band at the first / last tab
-      st.scr.style.transform = `translateX(${off}px)`;
-      st.scr.style.opacity = String(1 - Math.min(Math.abs(off) / st.w, 1) * 0.4);
+      const d = p.clientX - st.x0;
+      st.dx = d;
+      const edge = (st.i === 0 && d > 0) || (st.i === st.list.length - 1 && d < 0);
+      st.off = edge ? this._rubber(d, st.w) : d;   // resistance at the first / last tab
+      st.scr.style.transform = `translate3d(${st.off}px,0,0)`;
+      st.scr.style.opacity = fade(st.off, st.w);
     }, { passive: false });
 
     const snapBack = s => {
       const el = s.scr;
-      el.style.transition = 'transform .22s var(--mv-out, ease-out), opacity .22s';
-      el.style.transform = ''; el.style.opacity = '';
-      setTimeout(() => { if (!el._swipeBusy) clear(el); }, 240);
+      const ms = Math.round(Math.max(160, Math.min(300, 140 + Math.abs(s.off) * 0.6)));
+      el.style.transition = `transform ${ms}ms cubic-bezier(.2,.9,.25,1), opacity ${ms}ms ease-out`;
+      el.style.transform = 'translate3d(0,0,0)'; el.style.opacity = '1';
+      setTimeout(() => { if (!el._swipeBusy) clear(el); }, ms + 20);
     };
 
     const end = () => {
@@ -222,24 +265,32 @@ const Scopes = {
       const v = vel.speed(), dir = s.dx < 0 ? 1 : -1, j = s.i + dir;
       const flick = Math.abs(v) > this.FLICK && Math.abs(s.dx) > 30 && Math.sign(v) === Math.sign(s.dx);
       if (j < 0 || j >= s.list.length || !(Math.abs(s.dx) > s.w * 0.25 || flick)) { snapBack(s); return; }
-      // Slide the old tab out a little, then bring the new one in from the
-      // side the finger came from.
-      const el = s.scr; el._swipeBusy = true;
-      const reduced = typeof Motion !== 'undefined' && Motion.reduced && Motion.reduced();
-      el.style.transition = 'transform .13s var(--mv-in, ease-in), opacity .13s';
-      el.style.transform = `translateX(${-dir * s.w * 0.35}px)`; el.style.opacity = '0';
+
+      const el = s.scr, next = s.list[j], rm = reduced();
+      el._swipeBusy = true;
+      // Keep the old tab moving at the finger's speed while it fades.
+      let target = -dir * s.w * 0.5;
+      if (Math.abs(s.off) >= Math.abs(target)) target = s.off - dir * 40;
+      const dist = Math.abs(target - s.off), speed = Math.max(Math.abs(v), 0.9);
+      const ms = rm ? 0 : Math.round(Math.max(70, Math.min(160, dist / speed)));
+      if (ms) {
+        el.style.transition = `transform ${ms}ms cubic-bezier(.3,.5,.6,1), opacity ${ms}ms linear`;
+        el.style.transform = `translate3d(${target}px,0,0)`; el.style.opacity = '0';
+      }
       setTimeout(() => {
-        el._swipeBusy = false; clear(el);
-        if (typeof navTo === 'function') navTo(s.list[j]);
+        el._swipeBusy = false;
+        const nw = this._mainFor(next);
+        const cls = dir > 0 ? 'mv-swipe-in-r' : 'mv-swipe-in-l';
+        const same = nw === el;
+        // A different <main>: arm the slide while it is still hidden, so it is
+        // the first and only animation it plays when shown.
+        if (nw && !same && !rm) { nw.classList.remove('mv-swipe-in-l', 'mv-swipe-in-r'); nw.classList.add(cls); }
+        if (typeof navTo === 'function') navTo(next);
+        clear(el);
         try { window.scrollTo(0, 0); } catch (e) {}
-        const nw = document.querySelector('main.screen.active');
-        if (nw && !reduced) {
-          nw.classList.remove('mv-swipe-in-l', 'mv-swipe-in-r'); void nw.offsetWidth;
-          const cls = dir > 0 ? 'mv-swipe-in-r' : 'mv-swipe-in-l';
-          nw.classList.add(cls);
-          setTimeout(() => nw.classList.remove(cls), 320);
-        }
-      }, reduced ? 0 : 130);
+        // Same <main> (Daily log / Meals tabs): restart the slide on it.
+        if (nw && same && !rm) { nw.classList.remove('mv-swipe-in-l', 'mv-swipe-in-r'); void nw.offsetWidth; nw.classList.add(cls); }
+      }, ms);
     };
     document.addEventListener('touchend', end);
     document.addEventListener('touchcancel', () => { const s = st; st = null; if (s && s.drag) snapBack(s); });

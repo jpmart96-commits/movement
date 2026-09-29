@@ -198,3 +198,46 @@
 .ml-gmeal:first-of-type { margin-top: 8px; }
 .ml-session--quiet { padding-top: 12px; padding-bottom: 8px; }
 .ml-session--quiet .ml-gmeal { padding: 6px 0; color: var(--text2); }
+
+/* ── packs, stock, cooked weights (29 Sep) ─────────────────── */
+.ml-buy { font-size: .78rem; font-weight: 600; color: var(--text2); white-space: nowrap; }
+.ml-spare { display: block; font-size: .74rem; color: var(--text2); margin-top: 2px; }
+.ml-spare::before { content: "↳ "; color: var(--text3); }
+.ml-spare.is-waste { color: var(--ml-hard); }
+.ml-item--stock { grid-template-columns: 28px minmax(0,1fr) auto; }
+.ml-dotw { width: 12px; height: 12px; border-radius: 4px; justify-self: center; background: var(--bg3); }
+.ml-w-freezer { background: color-mix(in srgb, var(--ml-easy) 45%, transparent); }
+.ml-w-fridge { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+.ml-w-cupboard { background: color-mix(in srgb, var(--ml-moderate) 40%, transparent); }
+.ml-yield { font-size: .8rem; color: var(--text2); margin-top: 4px; }
+.ml-yield b { color: var(--text); }
+.ml-boost { font-style: normal; font-size: .7rem; font-weight: 700; color: var(--accent); }
+.ml-box b { font-weight: 600; color: var(--text); }
+
+/* ── cook list by station (29 Sep, pm) ─────────────────────── */
+.ml-boxsum { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 10px 0 2px; font-size: .85rem; }
+.ml-cnt { font-size: .72rem; font-weight: 600; border-radius: 6px; padding: 1px 7px; background: color-mix(in srgb, var(--accent) 16%, transparent); white-space: nowrap; }
+.ml-cnt.is-frz { background: color-mix(in srgb, var(--ml-easy) 26%, transparent); }
+.ml-station { margin-top: 14px; }
+.ml-sth { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-bottom: 4px; border-bottom: 1px solid var(--border); }
+.ml-stn { font-family: var(--font-display); font-weight: 700; font-size: .95rem; display: inline-flex; align-items: center; gap: 7px; }
+.ml-stn::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--text3); }
+.ml-st-oven::before { background: var(--ml-hard); } .ml-st-pot::before { background: var(--ml-moderate); }
+.ml-st-boil::before { background: var(--ml-easy); } .ml-st-pan::before { background: var(--accent); }
+.ml-crow { border-bottom: 1px solid var(--border); }
+.ml-crow > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: minmax(0,1fr) auto 14px; gap: 4px 10px; align-items: center; padding: 9px 0; }
+.ml-crow > summary::-webkit-details-marker { display: none; }
+.ml-crow > summary::after { content: "›"; color: var(--text3); transition: transform .15s; justify-self: end; grid-row: 1; grid-column: 3; }
+.ml-crow[open] > summary::after { transform: rotate(90deg); }
+.ml-cn { font-weight: 600; font-size: .9rem; line-height: 1.25; }
+.ml-cm { font-size: .78rem; color: var(--text2); font-variant-numeric: tabular-nums; }
+.ml-cx { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.ml-cw { font-size: .74rem; color: var(--text2); }
+.ml-cbody { padding: 0 0 12px; }
+.ml-cbody .ml-store { margin: 4px 0 8px; }
+.ml-cbody .ml-how { margin-top: 8px; line-height: 1.5; }
+.ml-crow--pre .ml-cn { font-weight: 500; }
+.ml-packd { margin-top: 14px; }
+.ml-packd > summary { cursor: pointer; margin-top: 0; }
+.ml-nudge { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; width: 100%; text-align: left; margin: 0 0 .75rem;
+  padding: 11px 13px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--ml-easy) 45%, var(--border)); background: color-mix(in srgb, var(--ml-easy) 10%, var(--bg2)); font-size: .82rem; line-height: 1.4; color: var(--text); }

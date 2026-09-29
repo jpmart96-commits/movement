@@ -44,12 +44,15 @@ body[data-scope="daylog"] { --accent: #7A4E96; --on-accent: #FFFFFF; }
 
 /* ── screen swipe: next / previous tab inside the current app ── */
 /* While dragging, js/scopes.js moves the active screen with the finger.
-   After the switch the new tab slides in from the side the finger came from. */
+   After the switch the new tab slides in from the side the finger came from.
+   The class is set before the screen is shown and kept while it stays shown,
+   so it replaces the generic .screen fade-up (motion.css) instead of being
+   followed by it. */
 .screen.is-swiping { will-change: transform, opacity; }
-@keyframes mvSwipeInR { from { opacity: 0; transform: translateX(28%); } }
-@keyframes mvSwipeInL { from { opacity: 0; transform: translateX(-28%); } }
-.screen.mv-swipe-in-r { animation: mvSwipeInR .26s var(--mv-out, ease-out); }
-.screen.mv-swipe-in-l { animation: mvSwipeInL .26s var(--mv-out, ease-out); }
+@keyframes mvSwipeInR { from { opacity: 0; transform: translate3d(22%,0,0); } to { opacity: 1; transform: none; } }
+@keyframes mvSwipeInL { from { opacity: 0; transform: translate3d(-22%,0,0); } to { opacity: 1; transform: none; } }
+.screen.mv-swipe-in-r { animation: mvSwipeInR .3s cubic-bezier(.16,.84,.3,1); }
+.screen.mv-swipe-in-l { animation: mvSwipeInL .3s cubic-bezier(.16,.84,.3,1); }
 
 /* ── laptop sidebar ─────────────────────────────────────────── */
 @media (min-width: 900px) {
