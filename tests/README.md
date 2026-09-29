@@ -45,6 +45,10 @@ under "now passing"; remove the `todo` then.
   (accent and icons change, rubber band, short drags ignored), generate a week, eaten, shopping ticks, a second
   device pulls the plan, two-touch check-in seeding the training check-in, routine edits, laptop sidebar switch.
   `SHOTS=1` writes screenshots to /tmp. `node tests/browser/meals.js`
+- `tests/browser/screen-swipe.js` — sideways swipe on the page moves to the next / previous tab of the current
+  app in bar order (bar swipe still changes app): rubber band at the ends, never crosses apps, short slow drags and
+  vertical scrolls ignored, a quick flick counts, Live joins while a session runs, the week slider and open sheets
+  keep the gesture, laptop width does nothing, plus one real CDP touch. `node tests/browser/screen-swipe.js`
 - `tests/browser/settings.js` — Settings end to end: tabs, library tiles → category → subcategory, search,
   filters, the exercise sheet (state, 1RM tracking, Edit refreshes it), steppers saving, zone ceilings
   staying in order, equipment chips, theme, and the sync status line. `node tests/browser/settings.js`

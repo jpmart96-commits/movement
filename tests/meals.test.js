@@ -151,3 +151,65 @@ test('daily log: training ticks itself from a completed session, and can be unti
   assert.equal(app.DayLog.isDone(r, '2026-09-30').on, false);
   assert.deepEqual(app.DayLog.DEFAULT_ROUTINES.map(x => x.id), ['wake', 'med1', 'breakfast', 'train', 'med2', 'desk', 'offdesk', 'code', 'winddown']);
 });
+
+// ── hybrid: Sunday does more, weekday lunches are boxes (29 Sep) ──
+function hybridWeek(seed, cookDays) {
+  const app = freshContext({ quiet: true, now: '2026-09-30T20:00:00' });
+  if (app.MonthPlan.ensureSeeded) app.MonthPlan.ensureSeeded();
+  let s = seed; app.Meals._setRandom(() => (s = (s * 16807) % 2147483647) / 2147483647);
+  app.Meals.load(); app.Meals.ui.weekStart = null; app.Meals.ui.day = null; app.Meals.render();
+  setWeight(app, 74);
+  if (cookDays) { app.Meals.state.prefs.cookDays = cookDays; app.Meals.save(); }
+  assert.equal(app.Meals.generate(), '');
+  return app;
+}
+const dayMinsOf = x => x.pl.filter(p => !p.batch).reduce((a, p) => a + Math.max(1, p.c.mins - (p.pre != null && p.c.pre ? p.c.pre.save : 0)), 0);
+
+test('hybrid: weekday lunches need no real cooking, weekday evenings stay short, Sunday carries the load', () => {
+  [7, 31, 999, 12345, 4242].forEach(seed => {
+    const app = hybridWeek(seed); const act = app.Meals.activeSlots();
+    for (let d = 1; d <= 5; d++) {
+      const l = act.find(x => x.d === d && x.s === 'l');
+      assert.ok(dayMinsOf(l) <= 5, `seed ${seed} ${d} lunch ${l.r.id} needs ${dayMinsOf(l)} min`);
+      const all = act.filter(x => x.d === d && x.s !== 'b').reduce((a, x) => a + dayMinsOf(x), 0);
+      assert.ok(all <= 25, `seed ${seed} day ${d}: ${all} min on the day`);
+    }
+    const T = app.Meals.tasks();
+    const sunday = T.filter(t => t.day === 0 && t.batch && t.kind === 'cook' && !t.bf).reduce((a, t) => a + t.mins, 0);
+    assert.ok(sunday >= 150, `seed ${seed}: Sunday batch only ${sunday} min`);
+  });
+});
+
+test('hybrid: lunch and dinner on the same day share nothing but maybe a grain (no roast potatoes twice on Monday)', () => {
+  [7, 31, 999, 12345, 4242].forEach(seed => {
+    const app = hybridWeek(seed); const w = app.Meals.state.weeks[app.Meals.ui.weekStart];
+    for (let d = 0; d < 7; d++) {
+      const parts = s => new Set(app.Meals.activeSlots().find(x => x.d === d && x.s === s).r.parts.map(p => p[0]));
+      const L = parts('l'), D = parts('d');
+      const shared = [...L].filter(id => D.has(id) && !['rice', 'quinoa', 'pasta'].includes(id));
+      assert.deepEqual(shared, [], `seed ${seed} day ${d}: ${w.plan[d + '-l'].r} / ${w.plan[d + '-d'].r}`);
+    }
+  });
+});
+
+test('hybrid: a weekday batch day cooks in the evening, so that day\'s lunch comes from the earlier batch', () => {
+  const app = hybridWeek(7, [0, 3]);
+  app.Meals.activeSlots().filter(x => x.s !== 'b').forEach(x => x.pl.forEach(p => {
+    if (x.d === 3 && x.s === 'l' && p.batch) assert.equal(p.day, 0, 'Wed lunch from Sunday, not Wednesday');
+    if (p.batch) assert.ok(p.day <= x.d, 'made before it is eaten');
+  }));
+  assert.ok(app.Meals.tasks().some(t => t.day === 3 && t.batch && t.kind === 'cook'), 'something is batched on Wednesday');
+});
+
+test('prep-ahead tasks sit on the batch day, add no groceries, and shorten the day they serve', () => {
+  const app = hybridWeek(7);
+  const T = app.Meals.tasks(); const pre = T.filter(t => t.kind === 'pre');
+  assert.ok(pre.length, 'some chopping is moved to Sunday');
+  pre.forEach(t => { assert.equal(t.day, 0); t.uses.forEach(u => assert.ok(u.d > 0 && u.d <= t.c.pre.days)); });
+  const cooks = T.filter(t => t.kind === 'cook' && t.prepped);
+  cooks.forEach(t => assert.equal(t.mins, Math.max(1, t.c.mins - t.c.pre.save)));
+  const shop = {}; app.Meals.shoppingList().forEach(x => { shop[x.id] = x.q; });
+  // same list as counting every cook task once
+  const tot = {}; T.filter(t => t.kind === 'cook').forEach(t => t.c.ing.forEach(([id, q]) => { tot[id] = (tot[id] || 0) + q * t.q; }));
+  Object.keys(tot).forEach(id => assert.ok(shop[id] >= tot[id] - 1e-6, id));
+});
