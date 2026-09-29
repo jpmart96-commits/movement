@@ -25,6 +25,29 @@ const Meals = (() => {
   Object.entries(D.PACK || {}).forEach(([id, [pk, keep]]) => { if (ING[id]) { ING[id].pack = pk; ING[id].keep = keep; } });
   const AISLES = D.AISLES, CONS = D.CONS;
 
+  // ── content language ─────────────────────────────────────
+  // Built-in ingredient, component and recipe names (and the how-to text)
+  // switch between English and Portuguese with the account's S.lang. The
+  // English stays on each object (name_en…) so matching typed foods to
+  // avoid still works in either language. The app's own labels stay English.
+  const PT = D.PT || { ing: {}, aisle: {}, comp: {}, pre: {}, recipe: {} };
+  Object.values(ING).forEach(i => { i.name_en = i.name; });
+  D.COMPONENTS.forEach(c => { c.name_en = c.name; c.steps_en = c.steps; if (c.pre) c.pre.t_en = c.pre.t; });
+  D.RECIPES.forEach(r => { r.name_en = r.name; });
+  let langNow = 'en';
+  function applyLang(l) {
+    l = l === 'pt' ? 'pt' : 'en'; if (l === langNow) return; langNow = l;
+    const pt = l === 'pt';
+    Object.values(ING).forEach(i => { i.name = (pt && PT.ing[i.id]) || i.name_en; });
+    D.COMPONENTS.forEach(c => {
+      const t = pt && PT.comp[c.id];
+      c.name = (t && t[0]) || c.name_en; c.steps = (t && t[1]) || c.steps_en;
+      if (c.pre) c.pre.t = (pt && PT.pre[c.id]) || c.pre.t_en;
+    });
+    D.RECIPES.forEach(r => { r.name = (pt && PT.recipe[r.id]) || r.name_en; });
+  }
+  const aisleL = a => (langNow === 'pt' && PT.aisle[a]) || a;
+
   const KEY = 'meals';
   const KEEP_WEEKS = 12;
   const TIERS = ['rest', 'easy', 'moderate', 'hard'];
@@ -57,18 +80,19 @@ const Meals = (() => {
       v: 1,
       prof: { sex: 'm', age: '', height: '', weight: '', bf: '', goal: 'maintain', diet: 'both', cons: [], avoid: '' },
       prefs: { style: 'hybrid', cookDays: [0], meals: { b: true, l: true, d: true }, days: [1, 2, 3, 4, 5], breakfast: 'mix' },
-      budget: 250, custom: [], customComps: [], effort: {}, weeks: {},
+      budget: 250, custom: [], customComps: [], effort: {}, weeks: {}, lang: 'en',
     };
   }
   function load() {
     const v = (typeof DB !== 'undefined') ? DB.get(KEY) : null;
     const f = fresh();
-    if (!v || typeof v !== 'object' || v.v !== 1) { S = f; return S; }
+    if (!v || typeof v !== 'object' || v.v !== 1) { S = f; applyLang(S.lang); return S; }
     S = { ...f, ...v, prof: { ...f.prof, ...(v.prof || {}) }, prefs: { ...f.prefs, ...(v.prefs || {}), meals: { ...f.prefs.meals, ...((v.prefs || {}).meals || {}) } } };
     ['custom', 'customComps'].forEach(k => { if (!Array.isArray(S[k])) S[k] = []; });
     ['effort', 'weeks'].forEach(k => { if (!S[k] || typeof S[k] !== 'object') S[k] = {}; });
     if (!Array.isArray(S.prof.cons)) S.prof.cons = [];
     if (!Array.isArray(S.prefs.days)) S.prefs.days = f.prefs.days.slice();
+    applyLang(S.lang);
     return S;
   }
   function save() {
@@ -178,7 +202,7 @@ const Meals = (() => {
     if (cons.includes('redmeat') && hasIng(r, ['beef', 'pork'])) return 'contains red meat';
     if (cons.includes('vegan') && (c.has('dairy') || c.has('egg') || c.has('meat') || c.has('fish'))) return 'not vegan';
     const words = (p.avoid || '').toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
-    const hit = mealIng(r).find(([id]) => words.some(w => ING[id] && ING[id].name.toLowerCase().includes(w)));
+    const hit = mealIng(r).find(([id]) => words.some(w => ING[id] && (ING[id].name.toLowerCase().includes(w) || ING[id].name_en.toLowerCase().includes(w))));
     return hit ? 'has ' + ING[hit[0]].name.toLowerCase() : true;
   }
   // Weight in use: typed in Me, else the latest weigh-in. { v, src, date }
@@ -840,7 +864,7 @@ const Meals = (() => {
         Whole packs${kept >= .5 ? `; ${eur(kept)} of it stays in stock for next week` : ''}${lost >= .3 ? `; about ${eur(lost)} of fresh food would be left over` : ''}.</div></div>
       ${stockRows.length || off.length ? `<div class="card ml-aisle"><h3 class="ml-h3">Already at home</h3><p class="ml-small ml-muted" style="margin:2px 0 4px">Left from last week's packs, used first. Tap × if it's gone.</p>${stockRows.map(stockRow).join('')}
         ${off.length ? `<button class="ml-linkbtn ml-small" style="margin-top:6px" data-ml="stockreset">Count ${off.length} removed ${off.length === 1 ? 'item' : 'items'} again</button>` : ''}</div>` : ''}
-      ${AISLES.map(a => [a, toBuy.filter(x => x.i.aisle === a).sort((x, y) => x.by[0] - y.by[0] || x.i.name.localeCompare(y.i.name))]).filter(x => x[1].length).map(([a, xs]) => `<div class="card ml-aisle"><h3 class="ml-h3">${a}</h3>${xs.map(row).join('')}</div>`).join('')}
+      ${AISLES.map(a => [a, toBuy.filter(x => x.i.aisle === a).sort((x, y) => x.by[0] - y.by[0] || x.i.name.localeCompare(y.i.name))]).filter(x => x[1].length).map(([a, xs]) => `<div class="card ml-aisle"><h3 class="ml-h3">${aisleL(a)}</h3>${xs.map(row).join('')}</div>`).join('')}
       ${covered.length ? `<p class="ml-small ml-muted">Nothing to buy for ${covered.map(x => esc(x.i.name.toLowerCase())).join(', ')}: it's at home.</p>` : ''}
       <div class="card ml-aisle"><h3 class="ml-h3">Your own items</h3>${w.shop.extras.map(e => `<label class="ml-item ${e.done ? 'is-checked' : ''}"><input type="checkbox" data-ml-change="xcheck" data-v="${e.id}" ${e.done ? 'checked' : ''}><span class="ml-nm">${esc(e.text)}</span><button class="ml-iconbtn ml-iconbtn--sm" data-ml="xdel" data-v="${e.id}" aria-label="Remove">×</button></label>`).join('')}
         <div class="ml-row" style="margin-top:8px"><input class="ml-in" id="ml-xnew" placeholder="Add something else, e.g. coffee"><button class="ml-btn" data-ml="xadd">Add</button></div></div>
@@ -849,7 +873,7 @@ const Meals = (() => {
   }
   function vLib() {
     const q = ui.lib.toLowerCase();
-    const list = recipes().filter(r => (ui.libType === 'all' || r.type === ui.libType) && (!q || r.name.toLowerCase().includes(q) || mealIng(r).some(([id]) => ING[id]?.name.toLowerCase().includes(q)))).filter(r => !ui.fitOnly || fits(r) === true);
+    const list = recipes().filter(r => (ui.libType === 'all' || r.type === ui.libType) && (!q || r.name.toLowerCase().includes(q) || (r.name_en || '').toLowerCase().includes(q) || mealIng(r).some(([id]) => ING[id] && (ING[id].name.toLowerCase().includes(q) || ING[id].name_en.toLowerCase().includes(q))))).filter(r => !ui.fitOnly || fits(r) === true);
     return `<input class="ml-in ml-search" id="ml-libq" placeholder="Search recipes or ingredients" value="${esc(ui.lib)}" aria-label="Search recipes">
       <div class="ml-row ml-between ml-libbar"><div class="ml-chips">${[['all', 'All'], ['breakfast', 'Breakfast'], ['main', 'Lunch & dinner']].map(([k, l]) => `<button class="ml-chip" data-ml="libtype" data-v="${k}" aria-pressed="${ui.libType === k}">${l}</button>`).join('')}</div>
       <button class="ml-chip" data-ml="fitonly" aria-pressed="${ui.fitOnly}">Fits my diet</button></div>
@@ -868,7 +892,9 @@ const Meals = (() => {
     const tr = targetFor('rest'), th = targetFor('hard');
     const wph = (!num(p.weight) && w) ? String(w.v) : 'e.g. 74';
     const ks = weekKeys();
-    return `<div class="card"><h3 class="ml-h3">Diet</h3>
+    return `<div class="card"><h3 class="ml-h3">Recipe language</h3><p class="ml-small ml-muted" style="margin:4px 0 10px">Names, ingredients, how-to and the shopping list. Recipes you add keep what you typed.</p>
+      <div class="ml-seg">${[['en', 'English'], ['pt', 'Português']].map(([k, l]) => `<button data-ml="lang" data-v="${k}" aria-pressed="${(S.lang || 'en') === k}">${l}</button>`).join('')}</div></div>
+     <div class="card"><h3 class="ml-h3">Diet</h3>
       <div class="ml-seg" style="margin-top:10px">${[['veg', 'Vegetarian'], ['nonveg', 'Non-vegetarian'], ['both', 'Both']].map(([k, l]) => `<button data-ml="set" data-k="diet" data-v="${k}" aria-pressed="${p.diet === k}">${l}</button>`).join('')}</div>
       <label class="ml-f">Dietary constraints</label><div class="ml-chips">${CONS.map(([k, l]) => `<button class="ml-chip" data-ml="con" data-v="${k}" aria-pressed="${p.cons.includes(k)}">${l}</button>`).join('')}</div>
       ${f('avoid', 'Other foods to avoid', 'text', 'comma separated, e.g. mushrooms, coconut')}</div>
@@ -958,7 +984,7 @@ const Meals = (() => {
   }
   function shoppingText() {
     const L = shoppingList().filter(x => !x.i.staple && x.buy > 0);
-    return AISLES.map(a => { const xs = L.filter(x => x.i.aisle === a); return xs.length ? a + '\n' + xs.map(x => '- ' + x.i.name + ' ' + packTxt(x)).join('\n') : ''; }).filter(Boolean).join('\n\n');
+    return AISLES.map(a => { const xs = L.filter(x => x.i.aisle === a); return xs.length ? aisleL(a) + '\n' + xs.map(x => '- ' + x.i.name + ' ' + packTxt(x)).join('\n') : ''; }).filter(Boolean).join('\n\n');
   }
 
 
@@ -1021,6 +1047,7 @@ const Meals = (() => {
       case 'libtype': ui.libType = v; render(); return;
       case 'fitonly': ui.fitOnly = !ui.fitOnly; render(); return;
       case 'set': p[t.dataset.k] = v; rerender(); return;
+      case 'lang': S.lang = v === 'pt' ? 'pt' : 'en'; applyLang(S.lang); rerender(); return;
       case 'con': p.cons = p.cons.includes(v) ? p.cons.filter(x => x !== v) : p.cons.concat(v); rerender(); return;
       case 'dtype': {
         // plan → next tier … → hard → back to the plan

@@ -192,7 +192,75 @@ const BUILTIN=[
  M('b-plantshake','Plant protein shake with banana','breakfast',[['plantshake',1]],[],{shake:true,fixed:true})
 ];
 
-  return { ING_ROWS, PACK, AISLES, CONS, COMPONENTS: BUILTIN_COMPS, RECIPES: BUILTIN };
+// Portuguese (Portugal) for the built-in content: ingredients, aisles,
+// components (name, how, batch-day prep) and recipes. The account's
+// language setting in Food picks it; recipes and components you make
+// yourself keep the words you typed. Missing entries fall back to English.
+const PT={
+ ing:{chicken:'Peito de frango',thigh:'Sobrecoxas de frango, desossadas',beef:'Carne picada de novilho 5%',turkey:'Carne picada de peru',
+  pork:'Lombo de porco',salmon:'Filete de salmão',cod:'Lombo de bacalhau',shrimp:'Camarão descascado',tuna:'Atum ao natural (escorrido)',
+  sardines:'Sardinhas em azeite',eggs:'Ovos',greek:'Iogurte grego 2%',skyr:'Skyr',cottage:'Queijo cottage',feta:'Queijo feta',
+  parmesan:'Parmesão',whey:'Proteína whey em pó',peaprot:'Proteína de ervilha em pó',milk:'Leite meio-gordo',oatmilk:'Bebida de aveia',
+  tofu:'Tofu firme',chickpeas:'Grão-de-bico (lata, escorrido)',blackbeans:'Feijão preto (lata, escorrido)',lentils:'Lentilhas vermelhas, secas',
+  rice:'Arroz basmati, cru',quinoa:'Quinoa, crua',pasta:'Massa, crua',oats:'Flocos de aveia',bread:'Pão integral',wrap:'Tortilhas (wraps)',
+  potato:'Batatas',sweetpot:'Batata-doce',onion:'Cebola',garlic:'Alho',tomato:'Tomate',tintom:'Tomate pelado picado (lata)',
+  pepper:'Pimento',zucchini:'Curgete',broccoli:'Brócolos',spinach:'Espinafres',carrot:'Cenoura',cucumber:'Pepino',
+  leaves:'Mistura de folhas para salada',mushroom:'Cogumelos',cabbage:'Couve',avocado:'Abacate',lemon:'Limão',banana:'Banana',
+  berries:'Frutos vermelhos (congelados)',peas:'Ervilhas (congeladas)',pb:'Manteiga de amendoim',almonds:'Amêndoas',walnuts:'Nozes',
+  honey:'Mel',soy:'Molho de soja',coconut:'Leite de coco (lata)',pesto:'Pesto',oil:'Azeite',spices:'Especiarias e ervas secas'},
+ aisle:{'Produce':'Frutas e legumes','Butcher & fish':'Talho e peixaria','Dairy & eggs':'Laticínios e ovos','Grains & bread':'Cereais, massas e pão',
+  'Tins & jars':'Conservas e frascos','Frozen':'Congelados','Pantry':'Mercearia'},
+ // [name, how]
+ comp:{
+  quinoa:['Quinoa','Passar por água, cozer 12 min em duas vezes o volume de água, repousar 5 min tapada e espalhar para arrefecer.'],
+  rice:['Arroz basmati','Passar por água, cozer 10 min e repousar 5 min. Arrefecer depressa e pôr no frigorífico dentro de uma hora.'],
+  roastveg:['Curgete e pimento assados','Cortar, envolver em azeite e especiarias, assar 25 min a 210 °C.'],
+  roastsweet:['Batata-doce assada','Cortar em gomos, assar 30 min a 200 °C.'],
+  roastpot:['Batatas assadas no forno','Cortar, dar uma pré-cozedura de 6 min em água, assar 30 min a 210 °C.'],
+  boiledeggs:['Ovos cozidos','Cozer 8 min, arrefecer em água fria, guardar com a casca.'],
+  chickpeas:['Grão-de-bico assado com especiarias','Escorrer, secar bem, envolver em azeite e especiarias, assar 20 min a 210 °C.'],
+  dal:['Dal de lentilhas vermelhas','Alourar a cebola e o alho, juntar as especiarias, as lentilhas, o tomate, o leite de coco e água. Cozinhar 20 min em lume brando.'],
+  chili:['Chili de carne','Alourar a carne picada com a cebola e o pimento, juntar as especiarias, o tomate e o feijão. Cozinhar 25 min em lume brando.'],
+  vegchili:['Chili de batata-doce e feijão','Cozinhar 30 min em lume brando a batata-doce aos cubos com a cebola, o pimento, as especiarias, o tomate e o feijão.'],
+  tomsauce:['Molho de tomate','Refogar a cebola e o alho em azeite, juntar o tomate e cozinhar 20 min em lume brando.'],
+  meatballs:['Almôndegas de peru','Misturar, fazer bolinhas e levar ao forno 18 min a 200 °C.'],
+  traybake:['Frango no tabuleiro (sobrecoxas)','Envolver em azeite e especiarias, assar 40 min a 210 °C, virando uma vez.'],
+  salmon:['Salmão grelhado','Temperar, grelhar ou fazer na frigideira com a pele para baixo 5 min, virar e mais 3 min.'],
+  chicken:['Frango com soja e alho','Cortar aos cubos, alourar em azeite 6 min, juntar o alho e o molho de soja no último minuto.'],
+  cod:['Bacalhau escalfado','Escalfar 8 min em água a fervilhar, terminar com azeite e alho.'],
+  prawns:['Camarão ao alho','Saltear em azeite com alho 3–4 min, até ficar rosado.'],
+  tofu:['Tofu crocante','Prensar, cortar aos cubos, fritar até dourar, um pouco de molho de soja no fim.'],
+  pork:['Lombo de porco alourado','Alourar de todos os lados, acabar 8 min no forno ou na frigideira tapada, repousar 5 min.'],
+  omelette:['Omelete de cogumelos e espinafres','Saltear os cogumelos, murchar os espinafres, deitar os ovos batidos por cima e dobrar.'],
+  pasta:['Massa','Cozer em água com sal durante o tempo indicado na embalagem.'],
+  stirveg:['Legumes salteados','Saltear em lume forte 5 min.'],
+  broccoli:['Brócolos ao vapor','Cozer a vapor 5 min.'],
+  greens:['Espinafres com alho','Murchar em azeite com alho, 2 min.'],
+  salad:['Salada','Cortar e temperar mesmo antes de comer.'],
+  tuna:['Atum','Escorrer.'],
+  oats:['Overnight oats','Misturar a aveia e o skyr com um pouco de água, pôr por cima os frutos vermelhos, as nozes e o mel. Dividir por frascos.'],
+  eggtoast:['Ovos com torrada','Murchar os espinafres, estrelar ou mexer os ovos, servir na torrada com tomate.'],
+  yogbowl:['Taça de iogurte','Fazer camadas de iogurte, banana e aveia, e pôr manteiga de amendoim por cima.'],
+  tofuwrap:['Wraps de tofu mexido','Desfazer o tofu em azeite quente com o pimento e as especiarias, juntar os espinafres, enrolar nas tortilhas.'],
+  pancakes:['Panquecas de banana e aveia','Triturar os ovos, a aveia e a banana, fazer panquecas pequenas. Servir com skyr.'],
+  shake:['Batido de whey','Triturar 20 segundos.'],
+  plantshake:['Batido de proteína vegetal','Triturar 20 segundos.']},
+ pre:{stirveg:'Lavar e cortar os brócolos, o pimento e a cenoura para uma só caixa.',
+  salad:'Lavar e centrifugar as folhas, fatiar o pepino; guardar numa caixa com papel de cozinha. O tomate fica inteiro.',
+  omelette:'Fatiar os cogumelos e lavar os espinafres.',broccoli:'Separar em floretes.'},
+ recipe:{'m-salmonquinoa':'Taça de quinoa com salmão e legumes assados','m-chickrice':'Frango com soja e alho, arroz e brócolos',
+  'm-chickquinoa':'Taça de frango, quinoa e grão-de-bico','m-chili':'Chili de carne com arroz','m-dal':'Dal de lentilhas vermelhas com arroz e espinafres',
+  'm-vegchili':'Chili de batata-doce e feijão preto','m-cod':'Bacalhau com batatas assadas, ovo e espinafres',
+  'm-meatballs':'Almôndegas de peru com massa e molho de tomate','m-tofustir':'Tofu salteado com legumes e arroz','m-prawnpasta':'Massa com camarão e pesto',
+  'm-pork':'Lombo de porco, batatas assadas e salada','m-tunasalad':'Salada de atum, grão-de-bico e ovo','m-traybake':'Frango no tabuleiro com batatas',
+  'm-omelette':'Omelete de cogumelos, batatas e salada','m-sweetbowl':'Taça de batata-doce, grão-de-bico e ovo','m-salmonsweet':'Salmão, batata-doce e espinafres',
+  'm-tofuquinoa':'Taça de quinoa com tofu crocante','m-chickpeaquinoa':'Taça de quinoa e grão-de-bico com feta','m-chickroast':'Frango, batata-doce e legumes assados',
+  'm-porkrice':'Lombo de porco, arroz e brócolos','b-oats':'Overnight oats com skyr e frutos vermelhos','b-eggtoast':'Ovos com torrada, espinafres e tomate',
+  'b-yogbowl':'Taça de iogurte grego com banana','b-tofuwrap':'Wraps de tofu mexido','b-pancakes':'Panquecas de banana e aveia',
+  'b-shake':'Batido de whey com banana e aveia','b-plantshake':'Batido de proteína vegetal com banana'}
+};
+
+  return { ING_ROWS, PACK, AISLES, CONS, COMPONENTS: BUILTIN_COMPS, RECIPES: BUILTIN, PT };
 })();
 
 if (typeof module !== 'undefined' && module.exports) module.exports = { MEALS_DATA };
