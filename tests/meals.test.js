@@ -297,3 +297,30 @@ test('weekends off: no lunch or dinner on Saturday and Sunday, and the Sunday ba
   const w2 = app.Meals.state.weeks[app.Meals.ui.weekStart];
   assert.ok(w2.plan['6-l'] && w2.plan['6-d'] && !w2.plan['0-l']);
 });
+
+test('Portuguese: built-in content switches with the account language, English still matches foods to avoid', () => {
+  const app = hybridWeek(7); const D = app.MEALS_DATA;
+  // every built-in has a translation
+  D.ING_ROWS.forEach(r => assert.ok(D.PT.ing[r[0]], 'ingredient ' + r[0]));
+  D.AISLES.forEach(a => assert.ok(D.PT.aisle[a], 'aisle ' + a));
+  D.COMPONENTS.forEach(c => { assert.ok(D.PT.comp[c.id], 'component ' + c.id); if (c.pre) assert.ok(D.PT.pre[c.id], 'prep ' + c.id); });
+  D.RECIPES.forEach(r => assert.ok(D.PT.recipe[r.id], 'recipe ' + r.id));
+  const rp = id => D.RECIPES.find(r => r.id === id), cp = id => D.COMPONENTS.find(c => c.id === id);
+  assert.equal(rp('m-pork').name, 'Pork loin, roast potatoes and salad');
+  const planned = JSON.stringify(app.Meals.state.weeks[app.Meals.ui.weekStart].plan);
+  app.Meals.state.lang = 'pt'; app.Meals.save(); app.Meals.load();
+  assert.equal(rp('m-pork').name, 'Lombo de porco, batatas assadas e salada');
+  assert.equal(cp('roastpot').name, 'Batatas assadas no forno');
+  assert.match(cp('roastpot').steps, /210 °C/);
+  assert.equal(app.Meals.ING.salmon.name, 'Filete de salmão');
+  assert.match(app.Meals.shoppingText(), /Frutas e legumes\n- /);
+  assert.equal(JSON.stringify(app.Meals.state.weeks[app.Meals.ui.weekStart].plan), planned, 'the plan is untouched');
+  // "mushroom" typed in English still rules out the omelette in Portuguese
+  app.Meals.state.prof.avoid = 'mushroom';
+  assert.match(String(app.Meals.fits(rp('m-omelette'))), /cogumelos/);
+  app.Meals.state.prof.avoid = '';
+  app.Meals.state.lang = 'en'; app.Meals.save(); app.Meals.load();
+  assert.equal(rp('m-pork').name, 'Pork loin, roast potatoes and salad');
+  assert.equal(app.Meals.ING.salmon.name, 'Salmon fillet');
+  assert.match(app.Meals.shoppingText(), /Produce\n- /);
+});

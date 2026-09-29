@@ -93,6 +93,24 @@ async function swipe(p,dx){
   await p.fill('#ml-libq','salmon'); await W(200);
   ok(await p.locator('.ml-rcard').count()>=2 && await p.evaluate(()=>document.activeElement.id)==='ml-libq','search filters and keeps focus');
 
+  // Portuguese content: Food → Recipe language
+  await p.click('.nav-btn[data-screen="meals-me"]'); await W(200);
+  await p.click('[data-ml="lang"][data-v="pt"]'); await W(200);
+  await p.click('.nav-btn[data-screen="meals-recipes"]'); await W(200);
+  await p.fill('#ml-libq',''); await W(150);
+  const pt=await p.evaluate(()=>[...document.querySelectorAll('.ml-rcard .ml-h3')].map(e=>e.textContent));
+  ok(pt.includes('Lombo de porco, batatas assadas e salada')&&!pt.includes('Pork loin, roast potatoes and salad'),'recipe names in Portuguese',pt.slice(0,4));
+  await p.fill('#ml-libq','salmão'); await W(150); const nPt=await p.locator('.ml-rcard').count();
+  await p.fill('#ml-libq','salmon'); await W(150); const nEn=await p.locator('.ml-rcard').count();
+  ok(nPt>=2&&nPt===nEn,'search works in either language',{nPt,nEn});
+  await p.fill('#ml-libq',''); await W(100);
+  await p.click('.nav-btn[data-screen="meals-shop"]'); await W(200);
+  const aisles=await p.evaluate(()=>[...document.querySelectorAll('.ml-aisle .ml-h3')].map(e=>e.textContent));
+  ok(aisles.includes('Frutas e legumes')&&!aisles.includes('Produce'),'shopping list aisles in Portuguese',aisles);
+  await shot(p,'6b-shop-pt');
+  await p.click('.nav-btn[data-screen="meals-week"]'); await W(200);
+  await shot(p,'6c-week-pt');
+
   // sync: second device pulls the same week
   await settle(p,3000);
   ok(sb.rows('overrides').some(r=>r.store_key==='meals'),'meals row on the server');
@@ -101,6 +119,8 @@ async function swipe(p,dx){
   await B.page.evaluate(()=>navTo('meals-week')); await W(300);
   const bw=await B.page.evaluate(()=>({slots:document.querySelectorAll('.ml-slot').length, eaten:document.querySelectorAll('.ml-pchip--done').length}));
   ok(bw.slots===3&&bw.eaten===1,'second device sees the plan and the eaten lunch',bw);
+  await B.page.evaluate(()=>navTo('meals-recipes')); await W(300);
+  ok(await B.page.evaluate(()=>[...document.querySelectorAll('.ml-rcard .ml-h3')].some(e=>e.textContent==='Lombo de porco, batatas assadas e salada')),'the language setting syncs with the account');
   await B.ctx.close();
 
   // Daily log
