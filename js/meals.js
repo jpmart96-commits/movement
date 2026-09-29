@@ -56,7 +56,7 @@ const Meals = (() => {
     return {
       v: 1,
       prof: { sex: 'm', age: '', height: '', weight: '', bf: '', goal: 'maintain', diet: 'both', cons: [], avoid: '' },
-      prefs: { style: 'hybrid', cookDays: [0], meals: { b: true, l: true, d: true }, breakfast: 'mix' },
+      prefs: { style: 'hybrid', cookDays: [0], meals: { b: true, l: true, d: true }, days: [1, 2, 3, 4, 5], breakfast: 'mix' },
       budget: 250, custom: [], customComps: [], effort: {}, weeks: {},
     };
   }
@@ -68,6 +68,7 @@ const Meals = (() => {
     ['custom', 'customComps'].forEach(k => { if (!Array.isArray(S[k])) S[k] = []; });
     ['effort', 'weeks'].forEach(k => { if (!S[k] || typeof S[k] !== 'object') S[k] = {}; });
     if (!Array.isArray(S.prof.cons)) S.prof.cons = [];
+    if (!Array.isArray(S.prefs.days)) S.prefs.days = f.prefs.days.slice();
     return S;
   }
   function save() {
@@ -234,11 +235,14 @@ const Meals = (() => {
   let rnd = Math.random;
   let fitOn = true, lastFit = null;
   function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-  function mainSlots(meals) { const out = []; for (let d = 0; d < 7; d++) ['l', 'd'].forEach(s => { if (meals[s]) out.push({ d, s }); }); return out; }
+  // Days that get a planned lunch and dinner (a week planned before this
+  // setting existed planned all seven).
+  const eatDays = pp => (pp && Array.isArray(pp.days)) ? pp.days : [0, 1, 2, 3, 4, 5, 6];
+  function mainSlots(meals, days) { const on = new Set(days || [0, 1, 2, 3, 4, 5, 6]); const out = []; for (let d = 0; d < 7; d++) if (on.has(d)) ['l', 'd'].forEach(s => { if (meals[s]) out.push({ d, s }); }); return out; }
   // whole-meal sessions (Sunday batch, Every day): Sunday cooks at midday, other days in the evening
-  function sessions(cookDays, meals) {
+  function sessions(cookDays, meals, days) {
     const cds = [...new Set(cookDays)].sort((a, b) => a - b); const start = c => c * 2 + (c === 0 ? 0 : 1); const out = cds.map(c => ({ c, slots: [] }));
-    mainSlots(meals).forEach(({ d, s }) => {
+    mainSlots(meals, days).forEach(({ d, s }) => {
       const t = d * 2 + (s === 'l' ? 0 : 1); let own = null; for (const x of out) if (start(x.c) <= t) own = x; let off;
       if (own) off = d - own.c; else { own = out[out.length - 1]; off = d + 7 - own.c; } own.slots.push({ d, s, off });
     });
@@ -247,13 +251,19 @@ const Meals = (() => {
   function pickBreakfast(d, cooked) {
     const pref = S.prefs.breakfast, t = tierOf(d); const shakes = recipes().filter(r => r.shake && fits(r) === true);
     if (pref === 'shake' || (pref === 'mix' && training(t))) if (shakes.length) return shakes[0];
+    // a day off cooking gets a breakfast with nothing to cook either
+    if (!eatDays(S.prefs).includes(d)) {
+      const noCook = recipes().filter(r => r.type === 'breakfast' && fits(r) === true && r.parts.every(([cid]) => { const c = CP(cid); return c && c.prep === 'assemble'; }));
+      const easy = noCook.filter(r => !r.shake);
+      if (easy.length || noCook.length) return (easy.length ? easy : noCook)[d % (easy.length || noCook.length)];
+    }
     return cooked.length ? cooked[d % cooked.length] : shakes[0];
   }
   // Returns an error string, or '' on success.
   function generate() {
     const pr = S.prefs, plan = {};
     const mains = shuffle(recipes().filter(r => r.type === 'main' && fits(r) === true));
-    if ((pr.meals.l || pr.meals.d) && !mains.length) return 'No lunch or dinner recipe fits your food settings';
+    if ((pr.meals.l || pr.meals.d) && eatDays(pr).length && !mains.length) return 'No lunch or dinner recipe fits your food settings';
     if (pr.style === 'hybrid') {
       /* Slot by slot, score every fitting main:
          - weekday lunches are boxes: anything cooked on the day costs a lot
@@ -264,7 +274,7 @@ const Meals = (() => {
            most), a recipe
            never follows itself and is used at most ~twice */
       const bdays = [...new Set(pr.cookDays)].sort((a, b) => a - b);
-      const slots = mainSlots(pr.meals);
+      const slots = mainSlots(pr.meals, eatDays(pr));
       const cap = Math.min(6, Math.max(3, Math.round(slots.length / 2.8)));
       const inBatch = new Set(), count = {}, placed = {}, cUse = {};
       const GRAIN = new Set(['rice', 'quinoa', 'pasta']);
@@ -285,7 +295,7 @@ const Meals = (() => {
           const newB = [...new Set(pl.filter(p => p.batch && !inBatch.has(p.c.id)).map(p => p.c.id))];
           sc += 2.5 * pl.filter(p => p.batch && inBatch.has(p.c.id)).length;
           sc -= newB.length * (inBatch.size + newB.length > cap ? 20 : 1);
-          sc -= (count[r.id] || 0) * 8; if (count[r.id] >= 2) sc -= 20;
+          sc -= (count[r.id] || 0) * (s === 'd' ? 16 : 8); if (count[r.id] >= 2) sc -= 20;   // lunch boxes may repeat; dinners want variety
           if (r.id === last) sc -= 40;
           if (placed[sk(d - 1, 'l')] === r.id || placed[sk(d - 1, 'd')] === r.id) sc -= 10;
           if (sameDay) { const oi = ids(R(sameDay)); ids(r).forEach(id => { if (oi.has(id)) sc -= GRAIN.has(id) ? 6 : 25; }); }
@@ -303,7 +313,7 @@ const Meals = (() => {
       });
     } else {
       const used = new Set();
-      sessions(pr.style === 'daily' ? STYLES.daily.d : [0], pr.meals).forEach(sess => {
+      sessions(pr.style === 'daily' ? STYLES.daily.d : [0], pr.meals, eatDays(pr)).forEach(sess => {
         const n = pr.style === 'daily' ? 1 : Math.max(1, Math.min(4, Math.round(sess.slots.length / 3.5))); const size = Math.ceil(sess.slots.length / n); let prev = null;
         for (let j = 0; j * size < sess.slots.length; j++) {
           const chunk = sess.slots.slice(j * size, (j + 1) * size); const maxOff = Math.max(...chunk.map(x => x.off));
@@ -495,7 +505,7 @@ const Meals = (() => {
       const b0 = batchN();
       let cur = wasteOf(ledger(stock)), swaps = 0, tops = 0;
       const mains = recipes().filter(r => r.type === 'main' && fits(r) === true);
-      const slots = mainSlots(pp.meals).filter(({ d, s }) => { const o = w.plan[sk(d, s)]; return o && R(o.r) && !o.done && !o.skip && !o.fresh; });
+      const slots = mainSlots(pp.meals, eatDays(pp)).filter(({ d, s }) => { const o = w.plan[sk(d, s)]; return o && R(o.r) && !o.done && !o.skip && !o.fresh; });
       for (let round = 0; round < 4; round++) {
         const spareIds = new Set(ledger(stock).filter(x => x.q > 0 && x.spareBuy > 1e-6 && (WASTE_W[x.keep] || 0) > 0).map(x => x.id));
         if (!spareIds.size) break;
@@ -578,7 +588,8 @@ const Meals = (() => {
   function howCook(p) {
     const days = [...new Set(p.cookDays)].sort((a, b) => a - b).map(d => WD[d]).join(' + ');
     const main = p.style === 'hybrid' ? `Hybrid: bases on ${days}, fresh parts on the day.` : p.style === 'sunday' ? 'Sunday batch: everything on Sunday.' : 'Every day: cook each evening, leftovers for lunch.';
-    return main + ' ' + (p.meals.b ? BFST[p.breakfast] + '.' : 'No breakfast planned.');
+    const ed = eatDays(p), dl = ed.length === 7 ? 'every day' : ed.join() === '1,2,3,4,5' ? 'Mon–Fri' : ed.length ? ed.slice().sort((a, b) => a - b).map(x => WD[x]).join(', ') : 'no days';
+    return main + ' Lunch and dinner ' + dl + '. ' + (p.meals.b ? BFST[p.breakfast] + '.' : 'No breakfast planned.');
   }
   // ── the day, as a guide ─────────────────────────────────
   const SL = s => SLOTS.find(x => x[0] === s)[1];
@@ -648,11 +659,12 @@ const Meals = (() => {
       return `<button class="ml-day ${k === today ? 'is-today' : ''}" data-ml="day" data-v="${i}" aria-pressed="${i === d}" aria-label="${WDL[i]} ${parse(k).getDate()}, ${tier} day${heavy ? ', batch day' : m ? ', ' + m + ' min cooking' : ''}">
         <span class="ml-bar ml-t-${tier}"></span><div class="ml-dn">${WD[i]}</div><div class="ml-dd">${parse(k).getDate()}</div><div class="ml-ck">${heavy ? svg('pot') : m ? `<span class="ml-mins">${m}′</span>` : ''}</div></button>`;
     }).join('')}</div>`;
-    const rows = SLOTS.filter(([s]) => planPrefs().meals[s] || slotObj(d, s)).map(([s, label]) => {
+    const offDay = !eatDays(planPrefs()).includes(d);
+    const rows = SLOTS.filter(([s]) => slotObj(d, s) || (planPrefs().meals[s] && !(offDay && s !== 'b'))).map(([s, label]) => {
       const o = slotObj(d, s), r = o && R(o.r); const x = act.find(y => y.d === d && y.s === s);
       return `<button class="ml-slot ${o?.skip ? 'is-skip' : ''}" data-ml="slot" data-v="${s}"><span class="ml-sl">${label}</span>
         <span>${r ? `<div class="ml-rn">${esc(r.name)}</div><div class="ml-src">${o.skip ? '<span class="ml-small ml-muted">Eating out</span>' : `<span class="ml-pchip">×${x.m.toFixed(1)}</span>${mealKind(x)}${o.done ? '<span class="ml-pchip ml-pchip--done">Eaten</span>' : ''}`}</div>${x && !r.shake ? `<div class="ml-guide">${guideLines(x)}</div>` : ''}` : '<span class="ml-muted">Add a meal</span>'}</span><span class="ml-muted">›</span></button>`;
-    }).join('');
+    }).join('') + (offDay && !slotObj(d, 'l') && !slotObj(d, 'd') ? `<div class="ml-offday"><span>No lunch or dinner planned on ${WDL[d]}s.</span><span><button class="ml-linkbtn ml-small" data-ml="slot" data-v="l">Add lunch</button> · <button class="ml-linkbtn ml-small" data-ml="slot" data-v="d">Add dinner</button></span></div>` : '');
     const batchHere = isBatchDay(T, d), bm = batchMinsOf(T, d);
     const dayMins = act.filter(x => x.d === d && x.s !== 'b').reduce((a, x) => a + mealParts(x).mins, 0);
     const nComp = T.filter(t => t.day === d && t.batch && t.kind === 'cook' && !t.bf).length;
@@ -673,13 +685,15 @@ const Meals = (() => {
     const max = Math.max(t.kcal, pl.kcal) * 1.08;
     return `<div class="card ml-nut"><div class="ml-row ml-between"><h3 class="ml-h3">Day totals</h3><span class="ml-small ml-muted">${Math.round(ea.kcal)} eaten · ${Math.round(pl.kcal)} planned / ${t.kcal} kcal</span></div>
       <div class="ml-meter" role="img" aria-label="${Math.round(ea.kcal)} of ${t.kcal} kcal eaten, ${Math.round(pl.kcal)} planned"><span class="ml-fill" style="width:${pl.kcal / max * 100}%"></span><span class="ml-eat" style="width:${ea.kcal / max * 100}%"></span><span class="ml-tgt" style="left:${t.kcal / max * 100}%"></span></div>
-      <div class="ml-macros"><div><b>${Math.round(pl.p)}g</b><span class="ml-muted">protein / ${t.p}</span></div><div><b>${Math.round(pl.c)}g</b><span class="ml-muted">carbs / ${t.c}</span></div><div><b>${Math.round(pl.f)}g</b><span class="ml-muted">fat / ${t.f}</span></div><div><b>${Math.max(0, Math.round(t.kcal - pl.kcal))}</b><span class="ml-muted">kcal for snacks</span></div></div></div>`;
+      <div class="ml-macros"><div><b>${Math.round(pl.p)}g</b><span class="ml-muted">protein / ${t.p}</span></div><div><b>${Math.round(pl.c)}g</b><span class="ml-muted">carbs / ${t.c}</span></div><div><b>${Math.round(pl.f)}g</b><span class="ml-muted">fat / ${t.f}</span></div><div><b>${Math.max(0, Math.round(t.kcal - pl.kcal))}</b><span class="ml-muted">${!eatDays(planPrefs()).includes(d) && !slotObj(d, 'l') && !slotObj(d, 'd') ? 'kcal left for the day' : 'kcal for snacks'}</span></div></div></div>`;
   }
   function planForm() {
     const p = S.prefs;
     return `<div class="card"><label class="ml-f" style="margin-top:0">How do you want to cook this week?</label>
       <div class="ml-seg">${Object.entries(STYLES).map(([k, v]) => `<button data-ml="style" data-v="${k}" aria-pressed="${p.style === k}">${v.l}<small>${v.s}</small></button>`).join('')}</div>
       ${p.style === 'hybrid' ? `<label class="ml-f">Batch days</label><div class="ml-week7">${WD.map((w, i) => `<button data-ml="cookday" data-v="${i}" aria-pressed="${p.cookDays.includes(i)}">${w}</button>`).join('')}</div><div class="ml-small ml-muted" style="margin-top:6px">Sunday alone covers the week: whatever is eaten after Wednesday goes in the freezer. A second day only helps if you'd rather not freeze.</div>` : ''}
+      <label class="ml-f">Days with lunch and dinner</label><div class="ml-week7">${WD.map((w, i) => `<button data-ml="eatday" data-v="${i}" aria-pressed="${eatDays(p).includes(i)}">${w}</button>`).join('')}</div>
+      <div class="ml-small ml-muted" style="margin-top:6px">Days left off get no lunch or dinner, and the batch doesn't cook for them. Breakfast follows the setting below.</div>
       <label class="ml-f">Meals to plan</label><div class="ml-chips">${SLOTS.map(([s, l]) => `<button class="ml-chip" data-ml="mealon" data-v="${s}" aria-pressed="${!!p.meals[s]}">${l}</button>`).join('')}</div>
       ${p.meals.b ? `<label class="ml-f">Breakfast</label><div class="ml-seg">${[['shake', 'Shake', 'every morning'], ['cooked', 'Cooked', 'every morning'], ['mix', 'Mix', 'shake on training days']].map(([k, l, s]) => `<button data-ml="bfst" data-v="${k}" aria-pressed="${p.breakfast === k}">${l}<small>${s}</small></button>`).join('')}</div>` : ''}
       <div class="ml-note">${p.style === 'sunday' ? 'Every component is cooked on Sunday. Anything eaten after its fridge life goes in the freezer; the rest is marked to cook fresh.' : p.style === 'hybrid' ? 'Grains, roasts, stews and the meat or tofu that reheats well are cooked on the batch day, so weekday lunches are boxes. Fish, eggs, pasta and greens are cooked on the day, usually 5–20 min. Veg for those is chopped on the batch day.' : 'Cook each evening; the extra portion is tomorrow\'s lunch.'}</div>
@@ -970,6 +984,7 @@ const Meals = (() => {
       case 'planform': openSheet('<h2 class="ml-h2">How you cook</h2>' + planForm()); return;
       case 'style': pr.style = v; pr.cookDays = STYLES[v].d.slice(); refreshForm(); return;
       case 'cookday': { const i = +v; pr.cookDays = pr.cookDays.includes(i) ? pr.cookDays.filter(x => x !== i) : pr.cookDays.concat(i); if (!pr.cookDays.length) pr.cookDays = [0]; refreshForm(); return; }
+      case 'eatday': { const i = +v, cur = eatDays(pr); pr.days = cur.includes(i) ? cur.filter(x => x !== i) : cur.concat(i).sort((a, b) => a - b); refreshForm(); return; }
       case 'mealon': pr.meals[v] = !pr.meals[v]; refreshForm(); return;
       case 'bfst': pr.breakfast = v; refreshForm(); return;
       case 'generate': { const err = generate(); if (err) { toast(err); return; } closeSheet(); render(); toast('Week generated' + fitMsg(lastFit)); return; }

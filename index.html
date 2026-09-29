@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="css/scopes.css">
 <link rel="stylesheet" href="css/meals.css">
 <link rel="stylesheet" href="css/daylog.css">
+<link rel="stylesheet" href="css/shade.css">
 </head>
 <body>
 
@@ -554,6 +555,7 @@ function setTheme(t) {
 <script src="js/meals.js"></script>
 <script src="js/daylog.js"></script>
 <script src="js/scopes.js"></script>
+<script src="js/shade.js"></script>
 <script>
 
 // ─────────────────────────────────────────────────────────────
@@ -562,6 +564,8 @@ function setTheme(t) {
 function navTo(screen) {
   // Daily log and Meals screens are 'daylog-<tab>' / 'meals-<tab>': one
   // <main> per scope, the tab rendered inside it (js/scopes.js).
+  // An app switched off in the top shade can't be opened: go to the first one on.
+  if (typeof Scopes !== 'undefined' && !Scopes.isOn(Scopes.scopeOf(screen))) screen = Scopes.firstScreen();
   const scope = (typeof Scopes !== 'undefined') ? Scopes.scopeOf(screen) : 'train';
   const main = scope === 'train' ? screen : scope;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));

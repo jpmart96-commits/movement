@@ -1079,6 +1079,9 @@ async function boot() {
   const restored = LiveSession.restore(s => { App.session = s; if (App.screen === 'session') renderSessionScreen(); });
   if (restored) App.session = restored;
   renderHome();
+  // Apps switched off in the top shade (js/shade.js): hide them, and leave
+  // Training if it is one of them.
+  if (typeof Scopes !== 'undefined') Scopes.applyModules();
 }
 
 // ── MANUAL SYNC ────────────────────────────────────────────────
@@ -1090,6 +1093,7 @@ async function manualSync() {
     clearTimeout(DB._flushTimer);
     const pulled = await _syncAndSeed();   // push pending writes, pull, reseed
     App.profile = Profile.load();
+    if (typeof Scopes !== 'undefined') Scopes.applyModules();   // another device may have switched apps on/off
     // Seeding/merging may have queued more uploads — send them now so the
     // message below describes the real state.
     const flushed = await DB._flush();

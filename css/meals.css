@@ -241,3 +241,4 @@
 .ml-packd > summary { cursor: pointer; margin-top: 0; }
 .ml-nudge { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; width: 100%; text-align: left; margin: 0 0 .75rem;
   padding: 11px 13px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--ml-easy) 45%, var(--border)); background: color-mix(in srgb, var(--ml-easy) 10%, var(--bg2)); font-size: .82rem; line-height: 1.4; color: var(--text); }
+.ml-offday { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; padding: 12px 0 4px; border-top: 1px solid var(--border); font-size: .82rem; color: var(--text2); }

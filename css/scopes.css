@@ -21,9 +21,14 @@ body[data-scope="daylog"] { --accent: #7A4E96; --on-accent: #FFFFFF; }
 
 #nav { flex-direction: column; align-items: stretch; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
 .nav-viewport { overflow: hidden; width: 100%; max-width: 620px; margin: 0 auto; flex: 1; display: flex; }
-.nav-track { display: flex; flex: none; width: 300%; transition: transform .32s cubic-bezier(.3,.7,.2,1); }
+.nav-track { display: flex; flex: none; width: calc(var(--scopes, 3) * 100%); transition: transform .32s cubic-bezier(.3,.7,.2,1); }
 .nav-track.is-drag { transition: none; }
-.nav-group { width: calc(100% / 3); flex: none; min-width: 0; display: flex; align-items: center; }
+.nav-group { width: calc(100% / var(--scopes, 3)); flex: none; min-width: 0; display: flex; align-items: center; }
+/* an app switched off in the top shade (js/shade.js) */
+.nav-group[hidden], .nav-scopes button[hidden] { display: none !important; }
+/* only one app on: no dots, the bar drops back to its old height */
+body.one-scope { --nav-h: 64px; }
+body.one-scope .nav-scopebar { display: none; }
 .nav-group .nav-btn { min-width: 0; }
 .nav-scopes { display: none; }
 
@@ -69,6 +74,7 @@ body[data-scope="daylog"] { --accent: #7A4E96; --on-accent: #FFFFFF; }
     flex: 1; border: none; background: none; border-radius: 8px; padding: .4rem .2rem;
     font-family: var(--font-body); font-size: .68rem; font-weight: 600; color: var(--text2); cursor: pointer; white-space: nowrap;
   }
+  body.one-scope .nav-scopes { display: none; }
   .nav-scopes button.on { background: var(--bg2); color: var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
   .nav-viewport { flex: 1; min-height: 0; }
 }
