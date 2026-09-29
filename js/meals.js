@@ -21,7 +21,8 @@
 const Meals = (() => {
   const D = (typeof MEALS_DATA !== 'undefined') ? MEALS_DATA : { ING_ROWS: [], AISLES: [], CONS: [], COMPONENTS: [], RECIPES: [] };
   const ING = {};
-  D.ING_ROWS.forEach(r => { ING[r[0]] = { id: r[0], name: r[1], cls: r[2], aisle: r[3], kcal: r[4], p: r[5], c: r[6], f: r[7], fib: r[8], price: r[9], al: r[10] ? r[10].split(' ') : [], pc: r[11], staple: !!r[12] }; });
+  D.ING_ROWS.forEach(r => { ING[r[0]] = { id: r[0], name: r[1], cls: r[2], aisle: r[3], kcal: r[4], p: r[5], c: r[6], f: r[7], fib: r[8], price: r[9], al: r[10] ? r[10].split(' ') : [], pc: r[11], staple: !!r[12], pack: 0, keep: 'fresh' }; });
+  Object.entries(D.PACK || {}).forEach(([id, [pk, keep]]) => { if (ING[id]) { ING[id].pack = pk; ING[id].keep = keep; } });
   const AISLES = D.AISLES, CONS = D.CONS;
 
   const KEY = 'meals';
@@ -112,7 +113,9 @@ const Meals = (() => {
     return (s && s.fuel) || '';
   }
   // { tier, type, label, src: 'you'|'today'|'plan'|'week'|'none', lighter }
+  let effMemo = null;   // set while fitting packs: the plan is re-read hundreds of times
   function effortFor(key) {
+    if (effMemo && effMemo[key]) return effMemo[key];
     let type = null, src = 'none', lighter = false;
     const inst = (typeof DB !== 'undefined') ? DB.get('daily_instance_' + key) : null;
     if (inst && (inst.dayKind || inst.dayType)) {
@@ -130,7 +133,9 @@ const Meals = (() => {
     let tier = TIER_OF_TYPE[type] || 'rest';
     if (lighter) tier = TIERS[Math.max(0, TIERS.indexOf(tier) - 1)];
     const own = S && S.effort[key];
-    return { tier: own || tier, planTier: tier, type, label: typeLabel(type), src: own ? 'you' : src, lighter };
+    const res = { tier: own || tier, planTier: tier, type, label: typeLabel(type), src: own ? 'you' : src, lighter };
+    if (effMemo) effMemo[key] = res;
+    return res;
   }
   const tierOf = d => effortFor(dateOf(d)).tier;
   const training = t => t === 'hard' || t === 'moderate';
@@ -211,6 +216,13 @@ const Meals = (() => {
     if (q >= 1000) return (Math.round(q / 100) / 10) + ' kg';
     return (q < 20 ? Math.round(q) : Math.round(q / 5) * 5) + ' g';
   }
+  // Cooked weight of q portions of a component, for splitting a pot by weight.
+  function cookedLabel(c, q) {
+    if (c.ing.every(([id]) => ING[id] && ING[id].pc)) { const [id, n] = c.ing[0]; return fmtQ(id, n * q); }
+    if (!c.yield) return '';
+    const g = c.ing.reduce((a, [id, n]) => a + grams(id, n), 0) * q * c.yield;
+    return g >= 1000 ? (Math.round(g / 100) / 10) + ' kg' : Math.round(g / 10) * 10 + ' g';
+  }
   const eur = v => '€' + v.toFixed(v < 10 ? 2 : 0);
   const mealKeeps = r => Math.min(...r.parts.map(([cid]) => { const c = CP(cid); return !c || c.prep === 'assemble' || c.freezes ? 99 : c.keeps; }));
   const batchParts = r => r.parts.map(([cid]) => CP(cid)).filter(c => c && c.prep === 'batch');
@@ -220,6 +232,7 @@ const Meals = (() => {
 
   // ── planning ─────────────────────────────────────────────
   let rnd = Math.random;
+  let fitOn = true, lastFit = null;
   function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
   function mainSlots(meals) { const out = []; for (let d = 0; d < 7; d++) ['l', 'd'].forEach(s => { if (meals[s]) out.push({ d, s }); }); return out; }
   // whole-meal sessions (Sunday batch, Every day): Sunday cooks at midday, other days in the evening
@@ -309,6 +322,7 @@ const Meals = (() => {
     Object.entries(w.plan).forEach(([k, o]) => { if (o && o.done) plan[k] = o; });
     w.plan = plan; w.planPrefs = JSON.parse(JSON.stringify(pr)); w.shop.checked = {};
     save();
+    lastFit = fitOn ? fitPacks() : null;
     return '';
   }
 
@@ -346,7 +360,7 @@ const Meals = (() => {
   function placeSlot(d, s, o, r, m) {
     const style = plannedStyle(), bdays = batchDays();
     return r.parts.map(([cid, cm]) => {
-      const c = CP(cid); if (!c) return null; const q = m * cm;
+      const c = CP(cid); if (!c) return null; const bst = (o.boost && o.boost[cid]) || 1; const q = m * cm * bst;
       if (c.prep === 'assemble' && style !== 'hybrid') return { c, q, day: d, batch: false, frz: false };
       if (o.fresh) return { c, q, day: d, batch: false, frz: false };
       if (s === 'b') return style === 'daily' ? { c, q, day: d, batch: false, frz: false } : { c, q, ...hyPlace(c, d, bdays, s) };
@@ -357,7 +371,7 @@ const Meals = (() => {
         return { c, q, day: cook, batch: cook !== d, frz };
       }
       return { c, q, ...hyPlace(c, d, bdays, s) };
-    }).filter(Boolean);
+    }).filter(Boolean).map(p => (bst => bst > 1 ? { ...p, boost: bst } : p)((o.boost && o.boost[p.c.id]) || 1));
   }
   function activeSlots() {
     const out = [];
@@ -391,17 +405,133 @@ const Meals = (() => {
       return t;
     });
   }
-  function shoppingList() {
+  /* ── packs, stock, the shopping ledger ─────────────────────
+     need:  what the week's meals use (raw)
+     have:  what's left from earlier weeks (stockFor) and used first
+     buy:   whole packs for packed items, the exact amount for loose ones
+     spare: buy − (need − have), plus stock this week doesn't touch.
+            Where it goes follows the ingredient's keep class. */
+  const TOL = pk => Math.min(25, pk * 0.05);          // a pack stretches this far (portions are estimates)
+  const unitCost = i => i.pc ? i.price : i.price / 1000;
+  const WHERE = i => i.keep === 'freeze' || (i.keep === 'shelf' && i.aisle === 'Frozen') ? 'freezer' : i.keep === 'fridge' ? 'fridge' : 'cupboard';
+  function needs() {
     const tot = {};
-    tasks().filter(t => t.kind === 'cook').forEach(t => t.c.ing.forEach(([id, q]) => { const e = tot[id] = tot[id] || { q: 0, by: new Set() }; e.q += q * t.q; e.by.add(t.day); }));
-    activeSlots().forEach(x => (x.r.finish || []).forEach(([id, q]) => { const e = tot[id] = tot[id] || { q: 0, by: new Set() }; e.q += q * x.m; e.by.add(x.d); }));
+    const add = (id, q, day) => { const e = tot[id] = tot[id] || { q: 0, by: new Set() }; e.q += q; e.by.add(day); };
+    tasks().filter(t => t.kind === 'cook').forEach(t => t.c.ing.forEach(([id, q]) => add(id, q * t.q, t.day)));
+    activeSlots().forEach(x => (x.r.finish || []).forEach(([id, q]) => add(id, q * x.m, x.d)));
+    return tot;
+  }
+  function ledger(stock) {
+    if (stock === undefined) stock = stockFor(ui.weekStart);
+    const tot = needs(); Object.keys(stock).forEach(id => { if (!tot[id]) tot[id] = { q: 0, by: new Set() }; });
     return Object.entries(tot).filter(([id]) => ING[id]).map(([id, t]) => {
-      const i = ING[id]; return { id, q: t.q, by: [...t.by].sort(), cost: i.pc ? i.price * Math.ceil(t.q - .05) : i.price * t.q / 1000, i };
+      const i = ING[id], st = stock[id], need = t.q;
+      const have = st ? Math.min(st.q, need) : 0, want = need - have;
+      let buy, packs = 0;
+      if (i.pack && !i.staple) { packs = want > TOL(i.pack) ? Math.ceil((want - TOL(i.pack)) / i.pack) : 0; buy = packs * i.pack; }
+      else buy = i.pc ? Math.ceil(want - .05) : want;
+      const spareBuy = Math.max(0, buy - want), spareOld = st ? st.q - have : 0;
+      return { id, i, q: need, need, have, st, want, buy, packs, spareBuy, spareOld, spare: spareBuy + spareOld, keep: i.keep, where: WHERE(i),
+        cost: buy * unitCost(i), by: [...t.by].sort() };
     });
   }
+  function shoppingList(stock) { return ledger(stock).filter(x => x.q > 0); }
+  function withWeek(k, fn) { const was = ui.weekStart; ui.weekStart = k; try { return fn(); } finally { ui.weekStart = was; } }
+  // What's left over from last week that this week can use. Chains back up
+  // to three weeks; fridge items only carry what was bought last week.
+  function stockFor(k, depth = 3) {
+    const prev = addDays(k, -7), pw = S.weeks[prev];
+    if (!depth || !pw || !Object.keys(pw.plan || {}).length) return {};
+    const rows = withWeek(prev, () => ledger(stockFor(prev, depth - 1)));
+    const off = (S.weeks[k] && S.weeks[k].shop && S.weeks[k].shop.nostock) || {};
+    const out = {};
+    rows.forEach(x => {
+      if (off[x.id] || !x.i.pack || x.i.staple || x.keep === 'fresh') return;
+      const q = x.keep === 'fridge' ? x.spareBuy + (x.st && x.st.age < 1 ? x.spareOld : 0) : x.spare;
+      if (q > (x.i.pc ? .5 : Math.max(15, x.i.pack * 0.05))) out[x.id] = { q, where: x.where, age: x.spareOld > x.spareBuy ? ((x.st && x.st.age) || 0) + 1 : 0 };
+    });
+    return out;
+  }
+  // € of spare that is likely thrown away (fresh), or parked (freezer/fridge).
+  const WASTE_W = { fresh: 1, freeze: 0.25, fridge: 0.15, shelf: 0 };
+  const wasteOf = rows => rows.reduce((a, x) => a + (x.q > 0 && x.i.pack ? x.spareBuy * unitCost(x.i) * (WASTE_W[x.keep] || 0) : 0), 0);
+
+  /* ── fit to packs ────────────────────────────────────────
+     After a plan is made: (1) swap a few meals for ones that use up an
+     opened or perishable pack, keeping the plan's rules (no back-to-back
+     repeats, no shared component with the other meal that day, weekday
+     lunches stay boxes, dinners stay quick, a recipe at most twice);
+     (2) top up the main protein or veg of the meals that already use a
+     pack, up to +30%, so the pack is finished rather than left over.
+     Freezer items are only topped up when that finishes the pack. */
+  const GRAINS = ['rice', 'quinoa', 'pasta'];
+  function domIng(c) { let b = null, bg = -1; c.ing.forEach(([id, q]) => { const g = grams(id, q); if (g > bg) { bg = g; b = id; } }); return b; }
+  const toppable = id => { const i = ING[id]; return i && !i.pc && (i.cls === 'meat' || i.cls === 'fish' || id === 'tofu' || i.aisle === 'Produce'); };
+  function slotMins(r, d, s, bdays, style) {
+    if (style !== 'hybrid') return 0;
+    return r.parts.map(([cid]) => CP(cid)).filter(Boolean).reduce((a, c) => a + onDayMins({ c, ...hyPlace(c, d, bdays, s) }), 0);
+  }
+  function swapOk(plan, d, s, r, style, bdays) {
+    const at = (dd, ss) => plan[sk(dd, ss)] && plan[sk(dd, ss)].r;
+    const prev = s === 'd' ? at(d, 'l') : at(d - 1, 'd'), next = s === 'l' ? at(d, 'd') : at(d + 1, 'l');
+    if (r.id === prev || r.id === next) return false;
+    const other = at(d, s === 'l' ? 'd' : 'l'); const oR = other && R(other);
+    if (oR) { const oi = new Set(oR.parts.map(p => p[0])); if (r.parts.some(([cid]) => oi.has(cid) && !GRAINS.includes(cid))) return false; }
+    const n = Object.entries(plan).filter(([k, o]) => !k.endsWith('-b') && k !== sk(d, s) && o.r === r.id).length; if (n >= 2) return false;
+    const o = plan[sk(d, s)];
+    if (style === 'hybrid') {
+      const cur = R(o.r), m = slotMins(r, d, s, bdays, style), m0 = cur ? slotMins(cur, d, s, bdays, style) : 0;
+      if (s === 'l' && d >= 1 && d <= 5) { if (m > Math.max(5, m0)) return false; }
+      else if (m > Math.max(20, m0)) return false;
+    } else if (mealKeeps(r) < d - (o.cook ?? d)) return false;
+    return true;
+  }
+  function fitPacks() {
+    const w = wk(true); if (!Object.keys(w.plan).length) return { swaps: 0, tops: 0 };
+    const stock = stockFor(ui.weekStart); const pp = planPrefs(), style = pp.style, bdays = batchDays();
+    effMemo = {};
+    try {
+      const batchN = () => new Set(activeSlots().flatMap(x => x.pl.filter(p => p.batch).map(p => p.c.id + '@' + p.day))).size;
+      const b0 = batchN();
+      let cur = wasteOf(ledger(stock)), swaps = 0, tops = 0;
+      const mains = recipes().filter(r => r.type === 'main' && fits(r) === true);
+      const slots = mainSlots(pp.meals).filter(({ d, s }) => { const o = w.plan[sk(d, s)]; return o && R(o.r) && !o.done && !o.skip && !o.fresh; });
+      for (let round = 0; round < 4; round++) {
+        const spareIds = new Set(ledger(stock).filter(x => x.q > 0 && x.spareBuy > 1e-6 && (WASTE_W[x.keep] || 0) > 0).map(x => x.id));
+        if (!spareIds.size) break;
+        let best = null, bestSc = cur - 0.4;
+        slots.forEach(({ d, s }) => {
+          const k = sk(d, s), old = w.plan[k];
+          mains.forEach(r => {
+            if (r.id === old.r || !mealIng(r).some(([id]) => spareIds.has(id)) || !swapOk(w.plan, d, s, r, style, bdays)) return;
+            const nu = style === 'hybrid' ? { r: r.id } : { r: r.id, cook: old.cook };
+            w.plan[k] = nu; const sc = wasteOf(ledger(stock)); const ok = sc < bestSc && batchN() <= b0 + 1; w.plan[k] = old;
+            if (ok) { bestSc = sc; best = { k, nu }; }
+          });
+        });
+        if (!best) break;
+        w.plan[best.k] = best.nu; cur = bestSc; swaps++;
+      }
+      // top-ups
+      ledger(stock).forEach(x => {
+        if (!x.i.pack || x.spareBuy <= 1e-6 || !(WASTE_W[x.keep] > 0) || !toppable(x.id)) return;
+        const hits = activeSlots().filter(a => a.s !== 'b' && !a.o.done && !a.o.skip).flatMap(a => a.pl.filter(p => domIng(p.c) === x.id).map(p => ({ a, p })));
+        const inComps = hits.reduce((acc, { p }) => acc + (p.c.ing.find(([id]) => id === x.id)[1]) * p.q, 0); if (!inComps) return;
+        const room = x.spareBuy - 2; if (room <= 0) return;
+        if (x.keep !== 'fresh' && room > 0.3 * inComps) return;
+        const f = Math.min(1.3, 1 + room / inComps); if (f < 1.05) return;
+        hits.forEach(({ a }) => { const o = w.plan[sk(a.d, a.s)]; o.boost = o.boost || {}; });
+        hits.forEach(({ a, p }) => { const o = w.plan[sk(a.d, a.s)]; o.boost[p.c.id] = Math.floor((o.boost[p.c.id] || 1) * f * 100) / 100; });
+        tops++;
+      });
+      save();
+      return { swaps, tops, waste: wasteOf(ledger(stock)) };
+    } finally { effMemo = null; }
+  }
+  const slotNutr = x => nutrIng(x.pl.flatMap(p => p.c.ing.map(([id, q]) => [id, q * p.q])).concat((x.r.finish || []).map(([id, q]) => [id, q * x.m])));
   function dayTotals(d) {
     const pl = { kcal: 0, p: 0, c: 0, f: 0 }, ea = { kcal: 0, p: 0 };
-    activeSlots().filter(x => x.d === d).forEach(x => { const n = nutr(x.r, x.m); ['kcal', 'p', 'c', 'f'].forEach(k => pl[k] += n[k]); if (x.o.done) { ea.kcal += n.kcal; ea.p += n.p; } });
+    activeSlots().filter(x => x.d === d).forEach(x => { const n = slotNutr(x); ['kcal', 'p', 'c', 'f'].forEach(k => pl[k] += n[k]); if (x.o.done) { ea.kcal += n.kcal; ea.p += n.p; } });
     return { planned: pl, eaten: ea };
   }
 
@@ -454,8 +584,9 @@ const Meals = (() => {
   const SL = s => SLOTS.find(x => x[0] === s)[1];
   const SL1 = { b: 'B', l: 'L', d: 'D' };
   const cname = c => esc(c.name.charAt(0).toLowerCase() + c.name.slice(1));
-  const namesOf = ps => ps.map(p => cname(p.c)).join(', ');
-  const minsList = ps => ps.map(p => `${cname(p.c)} <i>${onDayMins(p)}′</i>`).join(', ');
+  const boostTxt = p => p.boost ? ` <i class="ml-boost" title="A bit more to finish the pack">+${Math.round((p.boost - 1) * 100)}%</i>` : '';
+  const namesOf = ps => ps.map(p => cname(p.c) + boostTxt(p)).join(', ');
+  const minsList = ps => ps.map(p => `${cname(p.c)}${boostTxt(p)} <i>${onDayMins(p)}′</i>`).join(', ');
   // Batch minutes for a day: cooking runs in parallel (oven + hob), prep doesn't.
   function batchMinsOf(T, d) {
     const b = T.filter(t => t.day === d && t.batch && t.kind === 'cook' && !t.bf), pre = T.filter(t => t.day === d && t.kind === 'pre');
@@ -526,7 +657,9 @@ const Meals = (() => {
     const dayMins = act.filter(x => x.d === d && x.s !== 'b').reduce((a, x) => a + mealParts(x).mins, 0);
     const nComp = T.filter(t => t.day === d && t.batch && t.kind === 'cook' && !t.bf).length;
     const e = effortFor(dateOf(d)), fuel = fuelNote(e.type);
-    return `<div class="card ml-howcook"><span class="ml-small">${howCook(planPrefs())}<br><span class="ml-muted">${loadLine(T)}</span></span><button class="ml-linkbtn ml-small" data-ml="planform">Change</button></div>` + board +
+    const midBatch = planPrefs().style === 'hybrid' ? [1, 2, 3, 4, 5].filter(x => isBatchDay(T, x)) : [];
+    const nudge = midBatch.length ? `<button class="ml-nudge" data-ml="onebatch"><span><b>Do ${midBatch.map(x => WD[x]).join(' and ')}'s batch on Sunday instead?</b> The later boxes go in the freezer on Sunday, so ${midBatch.length === 1 ? WD[midBatch[0]] : 'those days'} only cook${midBatch.length === 1 ? 's' : ''} the quick fresh parts.</span><span>›</span></button>` : '';
+    return `<div class="card ml-howcook"><span class="ml-small">${howCook(planPrefs())}<br><span class="ml-muted">${loadLine(T)}</span></span><button class="ml-linkbtn ml-small" data-ml="planform">Change</button></div>` + nudge + board +
       `<div class="card"><div class="ml-row ml-between ml-dayhead"><h2 class="ml-h2">${WDL[d]} ${parse(dateOf(d)).getDate()}</h2>${batchHere ? `<span class="ml-small ml-muted">batch about ${mins(bm)}</span>` : dayMins ? `<span class="ml-small ml-muted">about ${mins(dayMins)} cooking</span>` : '<span class="ml-small ml-muted">no cooking</span>'}</div>
        <div class="ml-small ml-muted ml-effort">${effortLine(d)}${fuel ? ` — ${esc(fuel)}` : ''}</div>
        ${batchHere ? `<button class="ml-batchbar" data-ml="gotoprep" data-v="${d}">${svg('pot')}<span><b>Batch day.</b> ${nComp} ${nComp === 1 ? 'thing' : 'things'} to cook for the week — see what goes where</span><span>›</span></button>` : ''}
@@ -546,29 +679,16 @@ const Meals = (() => {
     const p = S.prefs;
     return `<div class="card"><label class="ml-f" style="margin-top:0">How do you want to cook this week?</label>
       <div class="ml-seg">${Object.entries(STYLES).map(([k, v]) => `<button data-ml="style" data-v="${k}" aria-pressed="${p.style === k}">${v.l}<small>${v.s}</small></button>`).join('')}</div>
-      ${p.style === 'hybrid' ? `<label class="ml-f">Batch days for the bases</label><div class="ml-week7">${WD.map((w, i) => `<button data-ml="cookday" data-v="${i}" aria-pressed="${p.cookDays.includes(i)}">${w}</button>`).join('')}</div>` : ''}
+      ${p.style === 'hybrid' ? `<label class="ml-f">Batch days</label><div class="ml-week7">${WD.map((w, i) => `<button data-ml="cookday" data-v="${i}" aria-pressed="${p.cookDays.includes(i)}">${w}</button>`).join('')}</div><div class="ml-small ml-muted" style="margin-top:6px">Sunday alone covers the week: whatever is eaten after Wednesday goes in the freezer. A second day only helps if you'd rather not freeze.</div>` : ''}
       <label class="ml-f">Meals to plan</label><div class="ml-chips">${SLOTS.map(([s, l]) => `<button class="ml-chip" data-ml="mealon" data-v="${s}" aria-pressed="${!!p.meals[s]}">${l}</button>`).join('')}</div>
       ${p.meals.b ? `<label class="ml-f">Breakfast</label><div class="ml-seg">${[['shake', 'Shake', 'every morning'], ['cooked', 'Cooked', 'every morning'], ['mix', 'Mix', 'shake on training days']].map(([k, l, s]) => `<button data-ml="bfst" data-v="${k}" aria-pressed="${p.breakfast === k}">${l}<small>${s}</small></button>`).join('')}</div>` : ''}
-      <div class="ml-note">${p.style === 'sunday' ? 'Every component is cooked on Sunday. Anything eaten after its fridge life goes in the freezer; the rest is marked to cook fresh.' : p.style === 'hybrid' ? 'Grains, roast veg, eggs, beans and sauces are batched on your batch days. Fish, meat, pasta, greens and salads are cooked or put together on the day, usually 5–20 min. The week is built to reuse the same few bases.' : 'Cook each evening; the extra portion is tomorrow\'s lunch.'}</div>
+      <div class="ml-note">${p.style === 'sunday' ? 'Every component is cooked on Sunday. Anything eaten after its fridge life goes in the freezer; the rest is marked to cook fresh.' : p.style === 'hybrid' ? 'Grains, roasts, stews and the meat or tofu that reheats well are cooked on the batch day, so weekday lunches are boxes. Fish, eggs, pasta and greens are cooked on the day, usually 5–20 min. Veg for those is chopped on the batch day.' : 'Cook each evening; the extra portion is tomorrow\'s lunch.'}</div>
       <button class="ml-btn ml-block" style="margin-top:12px" data-ml="generate">${hasPlan() ? 'Regenerate the week' : 'Generate the week'}</button>
       ${hasPlan() ? '<div class="ml-small ml-muted" style="margin-top:6px">Meals already marked eaten are kept.</div>' : ''}</div>`;
   }
   const useLabel = u => WD[u.d] + ' ' + SL(u.s).toLowerCase();
-  const useChip = u => `<span class="ml-use ${u.frz ? 'is-frz' : ''}" title="${esc(useLabel(u))}${u.frz ? ', frozen' : ''}">${WD[u.d]} ${SL1[u.s]}${u.q ? ` <i>×${u.q.toFixed(1)}</i>` : ''}</span>`;
+  const useChip = (u, c) => { const w = c && u.q ? cookedLabel(c, u.q) : ''; return `<span class="ml-use ${u.frz ? 'is-frz' : ''}" title="${esc(useLabel(u))}${u.frz ? ', frozen' : ''}">${WD[u.d]} ${SL1[u.s]}${w ? ` <i>${w}</i>` : u.q ? ` <i>×${u.q.toFixed(1)}</i>` : ''}</span>`; };
   function ingList(t) { return t.c.ing.map(([id, q]) => `<div class="ml-ing"><span>${esc(ING[id]?.name || id)}</span><span>${fmtQ(id, q * t.q)}</span></div>`).join(''); }
-  function taskBlock(t) {
-    const uses = t.uses.slice().sort((a, b) => a.d - b.d || 'bld'.indexOf(a.s) - 'bld'.indexOf(b.s));
-    return `<div class="ml-cook"><div class="ml-row ml-between"><h3 class="ml-h3">${esc(t.c.name)}</h3><span class="ml-small ml-muted">${t.mins} min</span></div>
-      <div class="ml-store"><span class="ml-small ml-muted">${t.batch ? `${t.q.toFixed(1)} portions for` : 'For'}</span>${uses.map(useChip).join('')}</div>
-      ${ingList(t)}
-      <details class="ml-how"><summary class="ml-small ml-muted">How</summary><p class="ml-small">${esc(t.c.steps)}</p></details></div>`;
-  }
-  function preBlock(t) {
-    const uses = t.uses.slice().sort((a, b) => a.d - b.d);
-    return `<div class="ml-cook ml-cook--pre"><div class="ml-row ml-between"><h3 class="ml-h3">${esc(t.c.name)}</h3><span class="ml-small ml-muted">${t.mins} min</span></div>
-      <div class="ml-store"><span class="ml-small ml-muted">For</span>${uses.map(u => useChip({ ...u, q: 0 })).join('')}</div>
-      <p class="ml-small" style="margin:2px 0 0">${esc(t.c.pre.t)} Saves ${t.c.pre.save} min on the day.</p></div>`;
-  }
   // Components × days: which meal each batch box feeds.
   function whereGrid(rows, from) {
     const days = []; for (let d = from; d < 7; d++) days.push(d);
@@ -582,6 +702,14 @@ const Meals = (() => {
       }).join('')}</div>`).join('')}</div>
       <div class="ml-legend"><span><i class="ml-sw"></i>fridge</span><span><i class="ml-sw is-frz"></i>freezer</span><span>B breakfast · L lunch · D dinner</span></div>`;
   }
+  // "13 boxes: 9 fridge, 4 freezer" — one box per later meal fed by this batch.
+  function boxesLine(act, c) {
+    const bx = act.filter(x => x.s !== 'b' && x.d > c && x.pl.some(p => p.batch && p.day === c));
+    if (!bx.length) return '';
+    const fz = bx.filter(x => x.pl.some(p => p.batch && p.day === c && p.frz)).length, fr = bx.length - fz;
+    const lastFr = Math.max(-1, ...bx.filter(x => !x.pl.some(p => p.batch && p.day === c && p.frz)).map(x => x.d));
+    return `<div class="ml-boxsum"><b>${bx.length} boxes</b><span class="ml-cnt">${fr} fridge</span>${fz ? `<span class="ml-cnt is-frz">${fz} freezer</span>` : ''}<span class="ml-small ml-muted">${lastFr >= 0 ? 'fridge boxes up to ' + WD[lastFr] : ''}${fz ? (lastFr >= 0 ? ', ' : '') + 'freezer after' : ''}</span></div>`;
+  }
   // The boxes to fill after the batch: one per later meal that draws on it.
   function packList(act, c) {
     const boxes = act.filter(x => x.s !== 'b' && x.d > c && x.pl.some(p => p.batch && p.day === c));
@@ -591,7 +719,7 @@ const Meals = (() => {
       const later = rest.filter(p => !p.batch);
       return `<div class="ml-box ${frz ? 'is-frz' : ''}"><div class="ml-row ml-between"><span class="ml-boxl">${WD[x.d]} ${SL(x.s).toLowerCase()}</span><span class="ml-pchip ${frz ? 'ml-pchip--frz' : ''}">${frz ? 'Freezer' : 'Fridge'}</span></div>
         <div class="ml-boxr">${esc(x.r.name)}</div>
-        <div class="ml-small ml-muted">${mine.map(p => `${cname(p.c)} ×${p.q.toFixed(1)}`).join(', ')}${later.length ? ` · on the day: ${namesOf(later)}` : ''}</div></div>`;
+        <div class="ml-small ml-muted">${mine.map(p => `${cname(p.c)} <b>${cookedLabel(p.c, p.q) || '×' + p.q.toFixed(1)}</b>`).join(', ')}${later.length ? ` · on the day: ${namesOf(later)}` : ''}</div></div>`;
     }).join('');
   }
   function emptyPlan() { return `<div class="card ml-empty"><h2 class="ml-h2">No plan for this week</h2><p class="ml-muted">Prep and shopping are built from the week's plan.</p><button class="ml-btn" data-ml="goweek">Plan the week</button></div>`; }
@@ -612,14 +740,14 @@ const Meals = (() => {
       if (bday) {
         return `<div class="card ml-session" id="ml-prep-${d}"><div class="ml-row ml-between"><h2 class="ml-h2">${WDL[d]} ${parse(dateOf(d)).getDate()} · batch</h2><span class="ml-small ml-muted">about ${mins(batchMinsOf(T, d))}${fm ? ` + ${fm} min for today's meals` : ''}</span></div>
           <div class="ml-subh">What goes where</div>${whereGrid(b.concat(pre), d)}
-          ${b.length ? `<div class="ml-subh">Cook ${b.length} ${b.length === 1 ? 'thing' : 'things'} <span class="ml-muted ml-small">(longest first; the oven ones run together)</span></div>${b.map(taskBlock).join('')}` : ''}
-          ${pre.length ? `<div class="ml-subh">Prep ahead</div>${pre.map(preBlock).join('')}` : ''}
-          ${packList(act, d) ? `<div class="ml-subh">Pack the boxes <span class="ml-muted ml-small">(label them with the day)</span></div><div class="ml-boxes">${packList(act, d)}</div>` : ''}
-          ${f.length ? `<div class="ml-subh">For today's meals</div>${f.map(taskBlock).join('')}` : ''}${thaw}</div>`;
+          ${boxesLine(act, d)}
+          ${stations(b.concat(pre))}
+          ${packList(act, d) ? `<details class="ml-packd"><summary class="ml-subh">Pack the boxes <span class="ml-muted ml-small">(label them with the day)</span></summary><div class="ml-boxes">${packList(act, d)}</div></details>` : ''}
+          ${f.length ? `<div class="ml-subh">For today's meals</div>${f.map(crow).join('')}` : ''}${thaw}</div>`;
       }
       return `<div class="card ml-session" id="ml-prep-${d}"><div class="ml-row ml-between"><h2 class="ml-h2">${WDL[d]} ${parse(dateOf(d)).getDate()}</h2><span class="ml-small ml-muted">${fm ? `about ${mins(fm)}` : 'no cooking'}</span></div>
         ${meals.map(x => `<div class="ml-gmeal"><span class="ml-boxl">${SL(x.s)}</span><span><span class="ml-rn">${esc(x.r.name)}</span><div class="ml-guide">${guideLines(x)}</div></span></div>`).join('')}
-        ${b.concat(f).map(taskBlock).join('')}${thaw}</div>`;
+        ${b.concat(f).length ? `<div class="ml-subh">Cook</div>${b.concat(f).map(crow).join('')}` : ''}${thaw}</div>`;
     }).join('');
     const bf = act.filter(x => x.s === 'b'); const byR = {};
     bf.forEach(x => { (byR[x.r.id] = byR[x.r.id] || { r: x.r, xs: [], m: 0 }).xs.push(x); byR[x.r.id].m += x.m; });
@@ -631,20 +759,79 @@ const Meals = (() => {
         ${mealIng(it.r).map(([id, q]) => `<div class="ml-ing"><span>${esc(ING[id]?.name || id)}</span><span>${fmtQ(id, q * it.m)}</span></div>`).join('')}</div>`;
     }).join('')}</div>` : '');
   }
+  // ── the cook list, by station ───────────────────────────
+  const METH = [['oven', 'Oven', 'Start these first; the trays go in together'], ['pot', 'Pots on the hob', 'Simmer while the oven works'],
+    ['boil', 'Boil and steam', ''], ['pan', 'Pan', ''], ['cold', 'No heat', 'Chop, mix and pack']];
+  function methodOf(c) {
+    if (c.method) return c.method;
+    const v = (c.verb || '').toLowerCase();
+    return /roast|bake/.test(v) ? 'oven' : /simmer/.test(v) ? 'pot' : /boil|steam|poach/.test(v) ? 'boil' : /mix|toss|blend|open/.test(v) || c.prep === 'assemble' ? 'cold' : 'pan';
+  }
+  const sortUses = us => us.slice().sort((a, b) => a.d - b.d || 'bld'.indexOf(a.s) - 'bld'.indexOf(b.s));
+  // One line per thing to cook; tap it for the split, the ingredients and the how.
+  function crow(t) {
+    const uses = sortUses(t.uses);
+    if (t.kind === 'pre') {
+      return `<details class="ml-crow ml-crow--pre"><summary><span class="ml-cn">Chop for ${esc(t.c.name.toLowerCase())}</span><span class="ml-cm">${t.mins} min</span>
+        <span class="ml-cx">${uses.map(u => useChip({ ...u, q: 0 })).join('')}</span></summary>
+        <div class="ml-cbody"><p class="ml-small">${esc(t.c.pre.t)} Saves ${t.c.pre.save} min on the day.</p></div></details>`;
+    }
+    const today = uses.filter(u => u.d === t.day && !u.frz).length, fr = uses.filter(u => u.d !== t.day && !u.frz).length, fz = uses.filter(u => u.frz).length;
+    const cw = cookedLabel(t.c, t.q);
+    const chips = t.batch
+      ? [today ? `<span class="ml-cnt">${today} today</span>` : '', fr ? `<span class="ml-cnt">${fr} fridge</span>` : '', fz ? `<span class="ml-cnt is-frz">${fz} freezer</span>` : ''].join('')
+      : uses.map(u => useChip(u)).join('');
+    return `<details class="ml-crow"><summary><span class="ml-cn">${esc(t.c.name)}</span><span class="ml-cm">${t.mins} min</span>
+        <span class="ml-cx">${chips}${cw && t.batch ? `<span class="ml-cw">${cw} cooked</span>` : ''}</span></summary>
+      <div class="ml-cbody">
+        ${t.batch ? `<div class="ml-small ml-muted">${cw ? 'Split by weight:' : `${t.q.toFixed(1)} portions:`}</div><div class="ml-store">${uses.map(u => useChip(u, t.c)).join('')}</div>` : ''}
+        ${ingList(t)}<p class="ml-small ml-how">${esc(t.c.steps)}</p></div></details>`;
+  }
+  function stations(list) {
+    return METH.map(([k, label, hint]) => {
+      const xs = list.filter(t => (t.kind === 'pre' ? 'cold' : methodOf(t.c)) === k).sort((a, b) => (a.kind === 'pre') - (b.kind === 'pre') || b.mins - a.mins);
+      if (!xs.length) return '';
+      const temps = [...new Set(xs.map(t => t.c.temp).filter(Boolean))].sort((a, b) => a - b);
+      const tt = temps.length ? ` · ${temps[0]}${temps.length > 1 ? '–' + temps[temps.length - 1] : ''} °C` : '';
+      return `<div class="ml-station"><div class="ml-sth"><span class="ml-stn ml-st-${k}">${label}${tt}</span>${hint ? `<span class="ml-small ml-muted">${hint}</span>` : ''}</div>${xs.map(crow).join('')}</div>`;
+    }).join('');
+  }
+  const qty = (id, q) => fmtQ(id, q);
+  const packTxt = x => { const i = x.i; return x.packs ? `${x.packs} × ${i.pc ? i.pack + ' pcs' : fmtQ(x.id, i.pack)}` : fmtQ(x.id, x.buy); };
+  const WHERE_L = { freezer: 'freezer', fridge: 'fridge', cupboard: 'cupboard' };
+  function spareTxt(x) {
+    if (x.spareBuy <= (x.i.pc ? .5 : Math.max(15, x.i.pack * 0.05))) return '';
+    const q = qty(x.id, x.spareBuy);
+    if (x.keep === 'fresh') return `<span class="ml-spare is-waste">${q} spare, use it up</span>`;
+    return `<span class="ml-spare">${q} left for next week (${WHERE_L[x.where]}${x.keep === 'freeze' ? ', freeze it' : ''})</span>`;
+  }
   function vShop() {
     if (!hasPlan()) return emptyPlan();
-    const w = wk(), list = shoppingList(), ck = w.shop.checked, freshL = list.filter(x => !x.i.staple), staples = list.filter(x => x.i.staple);
-    const total = freshL.reduce((a, x) => a + x.cost, 0), wkBudget = S.budget * 12 / 52, left = freshL.filter(x => !ck[x.id]).length;
+    const w = wk(), all = ledger(), list = all.filter(x => x.q > 0), ck = w.shop.checked;
+    const freshL = list.filter(x => !x.i.staple), staples = list.filter(x => x.i.staple);
+    const toBuy = freshL.filter(x => x.buy > 0), covered = freshL.filter(x => x.buy <= 0);
+    const total = toBuy.reduce((a, x) => a + x.cost, 0), wkBudget = S.budget * 12 / 52, left = toBuy.filter(x => !ck[x.id]).length;
+    const kept = freshL.filter(x => x.keep !== 'fresh').reduce((a, x) => a + x.spareBuy * unitCost(x.i), 0);
+    const lost = freshL.filter(x => x.keep === 'fresh').reduce((a, x) => a + x.spareBuy * unitCost(x.i), 0);
+    const stockRows = all.filter(x => x.st);
     const row = x => `<label class="ml-item ${ck[x.id] ? 'is-checked' : ''}"><input type="checkbox" data-ml-change="check" data-v="${x.id}" ${ck[x.id] ? 'checked' : ''}>
-      <span><span class="ml-nm">${esc(x.i.name)}</span><br><span class="ml-q">${fmtQ(x.id, x.q)}, first needed ${WD[x.by[0]]}</span></span><span class="ml-c">${eur(x.cost)}</span></label>`;
+      <span><span class="ml-nm">${esc(x.i.name)}</span> <span class="ml-buy">${packTxt(x)}</span><br><span class="ml-q">${x.packs || x.have ? `needs ${qty(x.id, x.need)}${x.have ? `, ${qty(x.id, x.have)} from your ${WHERE_L[x.st.where]}` : ''} · ` : ''}first needed ${WD[x.by[0]]}</span>${spareTxt(x)}</span><span class="ml-c">${eur(x.cost)}</span></label>`;
+    const stockRow = x => `<div class="ml-item ml-item--stock"><span class="ml-dotw ml-w-${x.st.where}"></span>
+      <span><span class="ml-nm">${esc(x.i.name)}</span> <span class="ml-buy">${qty(x.id, x.st.q)}</span><br><span class="ml-q">${x.have ? `this week uses ${qty(x.id, x.have)}${x.spareOld > 1 ? `, ${qty(x.id, x.spareOld)} stays` : ''}` : 'not needed this week, stays'} · ${WHERE_L[x.st.where]}</span></span>
+      <button class="ml-iconbtn ml-iconbtn--sm" data-ml="nostock" data-v="${x.id}" aria-label="I don't have this any more">×</button></div>`;
+    const off = Object.keys(w.shop.nostock || {});
     return `<div class="card"><div class="ml-row ml-between"><div class="ml-budget"><span class="ml-big">${eur(total)}</span><span class="ml-muted">this week</span></div><span class="ml-small ml-muted">${left} to buy</span></div>
       <div class="ml-track ${total > wkBudget ? 'is-over' : ''}"><span style="width:${wkBudget ? Math.min(100, total / wkBudget * 100) : 100}%"></span></div>
-      <div class="ml-small ml-muted">${eur(wkBudget)} weekly share of your ${eur(S.budget)} monthly budget, ${total > wkBudget ? eur(total - wkBudget) + ' over' : eur(wkBudget - total) + ' spare'}</div></div>
-      ${AISLES.map(a => [a, freshL.filter(x => x.i.aisle === a).sort((x, y) => x.by[0] - y.by[0] || x.i.name.localeCompare(y.i.name))]).filter(x => x[1].length).map(([a, xs]) => `<div class="card ml-aisle"><h3 class="ml-h3">${a}</h3>${xs.map(row).join('')}</div>`).join('')}
+      <div class="ml-small ml-muted">${eur(wkBudget)} weekly share of your ${eur(S.budget)} monthly budget, ${total > wkBudget ? eur(total - wkBudget) + ' over' : eur(wkBudget - total) + ' spare'}.
+        Whole packs${kept >= .5 ? `; ${eur(kept)} of it stays in stock for next week` : ''}${lost >= .3 ? `; about ${eur(lost)} of fresh food would be left over` : ''}.</div></div>
+      ${stockRows.length || off.length ? `<div class="card ml-aisle"><h3 class="ml-h3">Already at home</h3><p class="ml-small ml-muted" style="margin:2px 0 4px">Left from last week's packs, used first. Tap × if it's gone.</p>${stockRows.map(stockRow).join('')}
+        ${off.length ? `<button class="ml-linkbtn ml-small" style="margin-top:6px" data-ml="stockreset">Count ${off.length} removed ${off.length === 1 ? 'item' : 'items'} again</button>` : ''}</div>` : ''}
+      ${AISLES.map(a => [a, toBuy.filter(x => x.i.aisle === a).sort((x, y) => x.by[0] - y.by[0] || x.i.name.localeCompare(y.i.name))]).filter(x => x[1].length).map(([a, xs]) => `<div class="card ml-aisle"><h3 class="ml-h3">${a}</h3>${xs.map(row).join('')}</div>`).join('')}
+      ${covered.length ? `<p class="ml-small ml-muted">Nothing to buy for ${covered.map(x => esc(x.i.name.toLowerCase())).join(', ')}: it's at home.</p>` : ''}
       <div class="card ml-aisle"><h3 class="ml-h3">Your own items</h3>${w.shop.extras.map(e => `<label class="ml-item ${e.done ? 'is-checked' : ''}"><input type="checkbox" data-ml-change="xcheck" data-v="${e.id}" ${e.done ? 'checked' : ''}><span class="ml-nm">${esc(e.text)}</span><button class="ml-iconbtn ml-iconbtn--sm" data-ml="xdel" data-v="${e.id}" aria-label="Remove">×</button></label>`).join('')}
         <div class="ml-row" style="margin-top:8px"><input class="ml-in" id="ml-xnew" placeholder="Add something else, e.g. coffee"><button class="ml-btn" data-ml="xadd">Add</button></div></div>
       <div class="card ml-aisle"><button class="ml-row ml-between ml-plain" data-ml="pantry"><h3 class="ml-h3">Pantry check</h3><span class="ml-muted">${w.shop.pantry ? 'Hide' : 'Show'} ${staples.length}</span></button>${w.shop.pantry ? staples.map(row).join('') : ''}</div>
-      <p class="ml-small ml-muted">Prices are rough supermarket estimates. "First needed" lets you buy fish and fresh greens midweek.</p>`;
+      <p class="ml-small ml-muted">Prices are rough supermarket estimates for the usual pack size. "First needed" lets you buy fish and fresh greens midweek.</p>`;
   }
   function vLib() {
     const q = ui.lib.toLowerCase();
@@ -751,13 +938,15 @@ const Meals = (() => {
   function menuSheet() {
     openSheet(`<h2 class="ml-h2">${ui.weekStart === sundayOf(todayKey()) ? 'This week' : 'Week of ' + fmtD(ui.weekStart)}</h2>
       <button class="ml-pick" data-ml="planform"><span><span class="ml-rn">Change how I cook</span><br><span class="ml-small ml-muted">${esc(howCook(planPrefs()))}</span></span></button>
+      <button class="ml-pick" data-ml="fitpacks"><span><span class="ml-rn">Fit to packs again</span><br><span class="ml-small ml-muted">Swap or top up meals so opened packs get finished</span></span></button>
       <button class="ml-pick" data-ml="copylist"><span><span class="ml-rn">Copy shopping list</span><br><span class="ml-small ml-muted">As plain text</span></span></button>
       <button class="ml-pick" data-ml="clearweek"><span><span class="ml-rn">Clear this week's plan</span><br><span class="ml-small ml-muted">Removes every meal, eaten ones too</span></span></button>`);
   }
   function shoppingText() {
-    const L = shoppingList().filter(x => !x.i.staple);
-    return AISLES.map(a => { const xs = L.filter(x => x.i.aisle === a); return xs.length ? a + '\n' + xs.map(x => '- ' + x.i.name + ' ' + fmtQ(x.id, x.q)).join('\n') : ''; }).filter(Boolean).join('\n\n');
+    const L = shoppingList().filter(x => !x.i.staple && x.buy > 0);
+    return AISLES.map(a => { const xs = L.filter(x => x.i.aisle === a); return xs.length ? a + '\n' + xs.map(x => '- ' + x.i.name + ' ' + packTxt(x)).join('\n') : ''; }).filter(Boolean).join('\n\n');
   }
+
 
   // ── events ───────────────────────────────────────────────
   function toast(t) {
@@ -765,6 +954,7 @@ const Meals = (() => {
     e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 1800);
   }
   const rerender = () => { save(); render(); };
+  const fitMsg = f => { if (!f) return ''; const p = []; if (f.swaps) p.push(f.swaps + (f.swaps === 1 ? ' meal swapped' : ' meals swapped')); if (f.tops) p.push(f.tops + (f.tops === 1 ? ' pack topped up' : ' packs topped up')); return p.length ? ' · ' + p.join(', ') + ' to finish packs' : ''; };
   function refreshForm() { save(); if (sheetOpen) openSheet('<h2 class="ml-h2">How you cook</h2>' + planForm()); else render(); }
 
   function onClick(e) {
@@ -782,7 +972,14 @@ const Meals = (() => {
       case 'cookday': { const i = +v; pr.cookDays = pr.cookDays.includes(i) ? pr.cookDays.filter(x => x !== i) : pr.cookDays.concat(i); if (!pr.cookDays.length) pr.cookDays = [0]; refreshForm(); return; }
       case 'mealon': pr.meals[v] = !pr.meals[v]; refreshForm(); return;
       case 'bfst': pr.breakfast = v; refreshForm(); return;
-      case 'generate': { const err = generate(); if (err) { toast(err); return; } closeSheet(); render(); toast('Week generated'); return; }
+      case 'generate': { const err = generate(); if (err) { toast(err); return; } closeSheet(); render(); toast('Week generated' + fitMsg(lastFit)); return; }
+      case 'onebatch': {
+        if (!confirm('Regenerate this week with Sunday as the only batch day? Meals already eaten are kept.')) return;
+        pr.style = 'hybrid'; pr.cookDays = [0]; const err = generate(); if (err) { toast(err); return; } render(); toast('One Sunday batch' + fitMsg(lastFit)); return;
+      }
+      case 'fitpacks': { const f = fitPacks(); closeSheet(); render(); toast(fitMsg(f) ? 'Fitted' + fitMsg(f) : 'Packs already fit'); return; }
+      case 'nostock': { const w = wk(true); w.shop.nostock = w.shop.nostock || {}; w.shop.nostock[v] = true; rerender(); return; }
+      case 'stockreset': wk(true).shop.nostock = {}; rerender(); return;
       case 'menu': menuSheet(); return;
       case 'clearweek': if (!confirm('Clear every meal planned for this week?')) return; delete S.weeks[ui.weekStart]; closeSheet(); rerender(); return;
       case 'copylist': {
@@ -887,11 +1084,13 @@ const Meals = (() => {
   }
 
   return {
-    render, init, load, save, generate, effortFor, targetFor, weight, tasks, shoppingList, shoppingText, dayTotals, activeSlots, fits,
+    render, init, load, save, generate, fitPacks, ledger, stockFor, cookedLabel, effortFor, targetFor, weight, tasks, shoppingList, shoppingText, dayTotals, activeSlots, fits,
     ING, TIERS,
     get state() { return S; },
     ui,
     _setRandom(f) { rnd = f || Math.random; },
+    _setFit(on) { fitOn = !!on; },
+    get lastFit() { return lastFit; },
   };
 })();
 

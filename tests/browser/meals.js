@@ -15,9 +15,11 @@ async function swipe(p,dx){
   const t=(x)=>({identifier:1,clientX:x,clientY:y});
   await p.evaluate(({x0,dx,y})=>{
     const nav=document.getElementById('nav');
-    const mk=(type,x)=>{const e=new Event(type,{bubbles:true}); e.touches=[{clientX:x,clientY:y}]; return e;};
-    nav.dispatchEvent(mk('touchstart',x0));
-    for(let i=1;i<=6;i++) nav.dispatchEvent(mk('touchmove',x0+dx*i/6));
+    // 30ms between moves (event timestamps are set, so flick speed is realistic)
+    const T0=performance.now();
+    const mk=(type,x,i)=>{const e=new Event(type,{bubbles:true}); e.touches=[{clientX:x,clientY:y}]; Object.defineProperty(e,'timeStamp',{value:T0+i*30}); return e;};
+    nav.dispatchEvent(mk('touchstart',x0,0));
+    for(let i=1;i<=6;i++) nav.dispatchEvent(mk('touchmove',x0+dx*i/6,i));
     const end=new Event('touchend',{bubbles:true}); end.touches=[]; nav.dispatchEvent(end);
   },{x0,dx,y});
   await W(450);
@@ -76,11 +78,15 @@ async function swipe(p,dx){
   ok(await p.locator('.ml-session').count()>=2,'prep sessions listed');
   const prep=await p.evaluate(()=>({rows:document.querySelectorAll('#ml-prep-0 .ml-wr:not(.ml-wh)').length, cells:document.querySelectorAll('#ml-prep-0 .ml-wr span.is-on').length, boxes:document.querySelectorAll('#ml-prep-0 .ml-box').length, uses:document.querySelectorAll('#ml-prep-0 .ml-use').length}));
   ok(prep.rows>=4&&prep.cells>=8&&prep.boxes>=6&&prep.uses>=8,'Sunday shows what goes where, which meals each pot feeds, and the boxes to pack',prep);
+  const st=await p.evaluate(()=>({stations:[...document.querySelectorAll('#ml-prep-0 .ml-stn')].map(e=>e.textContent), rows:document.querySelectorAll('#ml-prep-0 .ml-crow').length, open:document.querySelectorAll('#ml-prep-0 .ml-crow[open]').length, sum:document.querySelector('#ml-prep-0 .ml-boxsum')?.textContent||''}));
+  ok(st.stations.length>=2&&/Oven/.test(st.stations[0])&&st.rows>=4&&st.open===0&&/fridge/.test(st.sum),'batch grouped by oven/hob/pan, rows closed, fridge/freezer counts up top',st);
   await shot(p,'5-prep');
   await p.click('.nav-btn[data-screen="meals-shop"]'); await W(200);
   const n0=await p.locator('.ml-item.is-checked').count();
   await p.locator('.ml-item input[data-ml-change="check"]').first().check(); await W(200);
   ok(await p.locator('.ml-item.is-checked').count()===n0+1,'shopping tick sticks');
+  const packs=await p.evaluate(()=>[...document.querySelectorAll('.ml-buy')].map(e=>e.textContent).filter(t=>/ × /.test(t)).length);
+  ok(packs>=5,'packed items are bought in whole packs',packs);
   await shot(p,'6-shop');
   await p.click('.nav-btn[data-screen="meals-recipes"]'); await W(200);
   ok(await p.locator('.ml-rcard').count()>15,'recipe library');

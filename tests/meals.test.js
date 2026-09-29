@@ -213,3 +213,71 @@ test('prep-ahead tasks sit on the batch day, add no groceries, and shorten the d
   const tot = {}; T.filter(t => t.kind === 'cook').forEach(t => t.c.ing.forEach(([id, q]) => { tot[id] = (tot[id] || 0) + q * t.q; }));
   Object.keys(tot).forEach(id => assert.ok(shop[id] >= tot[id] - 1e-6, id));
 });
+
+// ── packs, stock carry-over, fit to packs, cooked weights (29 Sep) ──
+test('shopping buys whole packs, prices what you pay, and says what is left', () => {
+  const app = hybridWeek(7);
+  const L = app.Meals.shoppingList();
+  const chicken = L.filter(x => x.i.pack && !x.i.staple);
+  assert.ok(chicken.length > 10);
+  chicken.forEach(x => {
+    assert.equal(x.buy, x.packs * x.i.pack, x.id);
+    assert.ok(x.buy >= x.want - Math.min(25, x.i.pack * 0.05) - 1e-9, x.id + ' covers the need');
+    assert.ok(Math.abs(x.cost - x.buy * (x.i.pc ? x.i.price : x.i.price / 1000)) < 1e-9, x.id + ' priced by pack');
+    assert.ok(Math.abs(x.spareBuy - Math.max(0, x.buy - x.want)) < 1e-9);
+  });
+  L.filter(x => !x.i.pack).forEach(x => assert.equal(x.spareBuy, 0, x.id + ' loose: no spare'));
+  assert.match(app.Meals.shoppingText(), / \d+ × /);
+});
+
+test('fit to packs cuts the leftovers without breaking the week\'s rules', () => {
+  const waste = app => app.Meals.ledger().reduce((a, x) => a + (x.i.pack ? x.spareBuy * (x.i.pc ? x.i.price : x.i.price / 1000) * ({ fresh: 1, freeze: 0.25, fridge: 0.15 }[x.keep] || 0) : 0), 0);
+  let better = 0;
+  [7, 31, 999, 12345].forEach(seed => {
+    const mk = fit => { const app = freshContext({ quiet: true, now: '2026-09-30T20:00:00' }); app.MonthPlan.ensureSeeded && app.MonthPlan.ensureSeeded();
+      let s = seed; app.Meals._setRandom(() => (s = (s * 16807) % 2147483647) / 2147483647); app.Meals.load(); app.Meals.ui.weekStart = null; app.Meals.ui.day = null; app.Meals.render();
+      setWeight(app, 74); app.Meals._setFit(fit); app.Meals.generate(); return app; };
+    const raw = mk(false), fit = mk(true);
+    assert.ok(waste(fit) <= waste(raw) + 1e-9, `seed ${seed}: ${waste(fit)} vs ${waste(raw)}`);
+    if (waste(fit) < waste(raw) - 0.5) better++;
+    const w = fit.Meals.state.weeks[fit.Meals.ui.weekStart];
+    Object.values(w.plan).forEach(o => Object.values(o.boost || {}).forEach(b => assert.ok(b > 1 && b <= 1.3)));
+    const seq = []; for (let d = 0; d < 7; d++) ['l', 'd'].forEach(s => seq.push(w.plan[d + '-' + s].r));
+    for (let i = 1; i < seq.length; i++) assert.notEqual(seq[i], seq[i - 1]);
+  });
+  assert.ok(better >= 2, 'fitting helps most weeks');
+});
+
+test('a top-up shows in the day totals', () => {
+  const app = hybridWeek(7); const ws = app.Meals.ui.weekStart, w = app.Meals.state.weeks[ws];
+  const k = Object.keys(w.plan).find(k => !k.endsWith('-b')); const d = +k[0];
+  Object.values(w.plan).forEach(o => delete o.boost);
+  const before = app.Meals.dayTotals(d).planned.kcal;
+  const r = app.Meals.activeSlots().find(x => x.d === d && x.s === k[2]).r;
+  w.plan[k].boost = { [r.parts[0][0]]: 1.3 };
+  assert.ok(app.Meals.dayTotals(d).planned.kcal > before);
+});
+
+test('what is left of a pack counts next week, and can be ticked off as gone', () => {
+  const app = hybridWeek(7);
+  app.Meals.ui.weekStart = '2026-10-04'; app.Meals.generate();
+  const st = app.Meals.stockFor('2026-10-04');
+  assert.ok(Object.keys(st).length >= 3, JSON.stringify(st));
+  Object.entries(st).forEach(([id, v]) => { assert.notEqual(app.Meals.ING[id].keep, 'fresh'); assert.ok(['freezer', 'fridge', 'cupboard'].includes(v.where)); });
+  const L = app.Meals.ledger(); const used = L.find(x => x.st && x.have > 0);
+  assert.ok(used, 'this week uses some stock');
+  assert.ok(used.want <= used.need - used.have + 1e-9);
+  app.Meals.state.weeks['2026-10-04'].shop.nostock = { [used.id]: true };
+  assert.ok(!app.Meals.stockFor('2026-10-04')[used.id]);
+});
+
+test('cooked weights: a batch pot splits into boxes that add up', () => {
+  const app = hybridWeek(7);
+  const rice = app.Meals.tasks().find(t => t.c.id === 'rice' && t.batch && t.kind === 'cook');
+  const g = s => { const m = /([\d.]+) (kg|g)/.exec(s); return m[2] === 'kg' ? +m[1] * 1000 : +m[1]; };
+  const whole = g(app.Meals.cookedLabel(rice.c, rice.q));
+  const parts = rice.uses.reduce((a, u) => a + g(app.Meals.cookedLabel(rice.c, u.q)), 0);
+  assert.ok(Math.abs(whole - parts) <= 20 * rice.uses.length, `${whole} vs ${parts}`);
+  const dry = rice.c.ing[0][1] * rice.q;
+  assert.ok(whole > dry * 2.5, 'rice about triples');
+});

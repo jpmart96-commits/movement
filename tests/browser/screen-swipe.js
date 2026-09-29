@@ -128,10 +128,32 @@ const act='main.screen.active';
   ok(s.screen==='progress','real touch swipe: Today → Progress',s);
   ok(await p.evaluate(()=>scrollY)===0,'new tab opens at the top');
 
+  // motion: exactly one enter animation per swipe — the slide — and the
+  // generic fade-up never restarts after it (that restart was a few-px jump)
+  await p.evaluate(()=>{window.__an=[];document.addEventListener('animationstart',e=>{if(e.target.matches&&e.target.matches('main.screen'))__an.push(e.target.id+':'+e.animationName)},true);});
+  await drag(p,act,220); await W(700); await p.clock.runFor(500); await W(200);
+  let an=await p.evaluate(()=>__an.splice(0));
+  ok(JSON.stringify(an)==='["screen-today:mvSwipeInL"]','swipe right: one slide-in from the left, no fade-up after it',an);
+  await p.click('.nav-btn[data-screen="home"]'); await W(500);
+  an=await p.evaluate(()=>({an:__an.splice(0), cls:document.getElementById('screen-today').className}));
+  ok(JSON.stringify(an.an)==='["screen-home:mvScreenIn"]'&&an.cls==='screen','a tap still uses the usual fade; the old slide class is cleared',an);
+  await p.evaluate(()=>Scopes.go('daylog')); await W(500);
+  an=await p.evaluate(()=>__an.splice(0));
+  ok(JSON.stringify(an)==='["screen-daylog:mvSwipeInR"]','changing app slides the new app in from the right',an);
+  await p.evaluate(()=>Scopes.go('train')); await W(500); await p.evaluate(()=>__an.splice(0));
+  // drag starts from the finger, not jumped by the 12px dead zone
+  const offs=await p.evaluate(()=>{const el=document.querySelector('main.screen.active');const T0=performance.now();const r=[];
+    const mk=(t,x,i)=>{const e=new Event(t,{bubbles:true,cancelable:true});e.touches=[{clientX:x,clientY:300}];Object.defineProperty(e,'timeStamp',{value:T0+i*30});return e;};
+    el.dispatchEvent(mk('touchstart',210,0)); for(const x of [195,190]){el.dispatchEvent(mk('touchmove',x,1)); r.push(el.style.transform);}
+    document.dispatchEvent(new Event('touchcancel',{bubbles:true})); return r;});
+  ok(/\(-3px/.test(offs[0])&&/\(-8px/.test(offs[1]),'drag follows the finger from the lock point',offs);
+  await p.clock.runFor(500); await W(150);
+
   // laptop: no screen swipe
   await p.setViewportSize({width:1280,height:900}); await W(200);
+  const before=(await st()).screen;
   await drag(p,act,-300); s=await st();
-  ok(s.screen==='progress','laptop width: swipe does nothing',s);
+  ok(s.screen===before,'laptop width: swipe does nothing',{before,s});
 
   const errs=[...(p._errors||[])];
   ok(errs.length===0,'no page errors',errs);
