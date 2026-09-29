@@ -18,6 +18,12 @@
 // Both follow the finger, rubber-band at the ends, and take either a drag
 // past a share of the width or a quick flick. Phone only; a laptop keeps
 // the sidebar.
+//
+// Modules (29 Sep): each app can be switched off from the top shade
+// (js/shade.js). The choice lives in the profile (settings.modules, synced
+// per account). An app that is off loses its bar group, dot and sidebar
+// switch, and navTo() sends its screens to the first app still on. At least
+// one app always stays on.
 // ─────────────────────────────────────────────────────────────
 
 const Scopes = {
@@ -28,6 +34,58 @@ const Scopes = {
   ],
   current: 'train',
   last: {},
+  _mods: null,   // { train, daylog, meals } → false when switched off
+
+  // ── modules ──
+  _readMods() {
+    let m = null;
+    try { const p = (typeof App !== 'undefined' && App.profile) ? App.profile : (typeof DB !== 'undefined' ? DB.get('profile') : null); m = p && p.settings && p.settings.modules; } catch (e) {}
+    return (m && typeof m === 'object') ? m : {};
+  },
+  on() {
+    const m = this._mods || this._readMods();
+    const l = this.LIST.filter(x => m[x.id] !== false);
+    return l.length ? l : [this.LIST[0]];   // never none: bad data falls back to Training
+  },
+  isOn(id) { return this.on().some(x => x.id === id); },
+  firstScreen() { const sc = this.on()[0]; return this.last[sc.id] || sc.first; },
+
+  // Switch an app on or off (saved to the profile, synced). The last one on
+  // can't be switched off.
+  setModule(id, on) {
+    if (!this.LIST.some(x => x.id === id)) return false;
+    const m = { ...this._readMods() };
+    if (!on && this.on().filter(x => x.id !== id).length === 0) return false;
+    m[id] = !!on;
+    if (typeof App !== 'undefined' && App.profile) {
+      App.profile.settings = App.profile.settings || {};
+      App.profile.settings.modules = m;
+      if (typeof Profile !== 'undefined') Profile.save(App.profile);
+    }
+    this._mods = m;
+    this.applyModules();
+    return true;
+  },
+
+  // Re-read the choice (after boot, a pull, or a change) and repaint. If the
+  // app on screen was switched off, move to the first one still on.
+  // nav=false (at page load, before sign-in) only repaints the bar.
+  applyModules(nav = true) {
+    if (typeof document === 'undefined') return;
+    this._mods = this._readMods();
+    const list = this.on();
+    const track = document.getElementById('nav-track');
+    if (track) track.style.setProperty('--scopes', String(list.length));
+    document.body.classList.toggle('one-scope', list.length < 2);
+    document.querySelectorAll('.nav-group').forEach(g => { g.hidden = !this.isOn(g.dataset.scope); });
+    document.querySelectorAll('[data-scope-go]').forEach(b => { b.hidden = !this.isOn(b.dataset.scopeGo); });
+    if (!this.isOn(this.current)) {
+      if (nav && typeof navTo === 'function') this.go(list[0].id);
+      else this.current = list[0].id;
+    }
+    this._paint();
+    if (typeof Shade !== 'undefined' && Shade.refresh) Shade.refresh();
+  },
 
   scopeOf(screen) {
     const s = String(screen || '');
@@ -35,11 +93,12 @@ const Scopes = {
     if (s.startsWith('daylog-')) return 'daylog';
     return 'train';
   },
-  index(id) { return Math.max(0, this.LIST.findIndex(x => x.id === id)); },
+  // Position among the apps that are on (the bar only holds those).
+  index(id) { return Math.max(0, this.on().findIndex(x => x.id === id)); },
 
   // Change scope, opening the tab last used in it.
   go(id) {
-    if (!this.LIST.some(x => x.id === id)) return;
+    if (!this.LIST.some(x => x.id === id) || !this.isOn(id)) return;
     if (id === this.current) { this._paint(); return; }
     const sc = this.LIST.find(x => x.id === id);
     let target = this.last[id] || sc.first;
@@ -68,10 +127,10 @@ const Scopes = {
 
   _paint() {
     if (typeof document === 'undefined') return;
-    const i = this.index(this.current);
+    const list = this.on(), i = this.index(this.current);
     document.body.dataset.scope = this.current;
     const track = document.getElementById('nav-track');
-    if (track) track.style.transform = `translateX(${-i * 100 / this.LIST.length}%)`;
+    if (track) track.style.transform = `translateX(${-i * 100 / list.length}%)`;
     document.querySelectorAll('.nav-group').forEach(g => {
       const on = g.dataset.scope === this.current;
       g.classList.toggle('on', on);
@@ -81,8 +140,8 @@ const Scopes = {
     });
     const bar = document.getElementById('nav-scopebar');
     if (bar) {
-      bar.innerHTML = this.LIST.map(x => `<button type="button" class="${x.id === this.current ? 'on' : ''}" data-scope-dot="${x.id}" aria-label="${x.label}"${x.id === this.current ? ' aria-current="true"' : ''}></button>`).join('')
-        + `<span>${this.LIST[i].label}</span>`;
+      bar.innerHTML = list.map(x => `<button type="button" class="${x.id === this.current ? 'on' : ''}" data-scope-dot="${x.id}" aria-label="${x.label}"${x.id === this.current ? ' aria-current="true"' : ''}></button>`).join('')
+        + `<span>${(list[i] || list[0]).label}</span>`;
     }
     document.querySelectorAll('[data-scope-go]').forEach(b => {
       const on = b.dataset.scopeGo === this.current;
@@ -112,12 +171,12 @@ const Scopes = {
     if (!nav || !track || nav._scopeSwipe) return;
     nav._scopeSwipe = true;
     let x0 = null, y0 = 0, dx = 0, dragging = false, w = 1, suppress = false;
-    const n = this.LIST.length, vel = this._tracker();
+    const vel = this._tracker();
     const down = (x, y, t) => { if (this._wide()) return; x0 = x; y0 = y; dx = 0; dragging = false; vel.reset(); vel.add(x, t); w = (nav.querySelector('.nav-viewport') || nav).offsetWidth || 1; };
     const move = (x, y, t) => {
       if (x0 == null) return; dx = x - x0; vel.add(x, t);
       if (!dragging) { if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(y - y0)) { dragging = true; track.classList.add('is-drag'); } else return; }
-      const i = this.index(this.current); let off = dx;
+      const n = this.on().length, i = this.index(this.current); let off = dx;
       if ((i === 0 && dx > 0) || (i === n - 1 && dx < 0)) off = dx / 3;   // rubber band at the ends
       track.style.transform = `translateX(calc(${-i * 100 / n}% + ${off}px))`;
     };
@@ -125,11 +184,11 @@ const Scopes = {
       if (x0 == null) return; track.classList.remove('is-drag');
       if (dragging) {
         suppress = true; setTimeout(() => { suppress = false; }, 60);
-        const i = this.index(this.current); let j = i;
+        const list = this.on(), n = list.length, i = this.index(this.current); let j = i;
         const v = vel.speed();
         const flick = Math.abs(v) > this.FLICK && Math.abs(dx) > 24 && Math.sign(v) === Math.sign(dx);
         if (Math.abs(dx) > w * 0.18 || flick) j = Math.max(0, Math.min(n - 1, i + (dx < 0 ? 1 : -1)));
-        if (j !== i) this.go(this.LIST[j].id); else this._paint();
+        if (j !== i) this.go(list[j].id); else this._paint();
       }
       x0 = null; dragging = false;
     };
@@ -304,7 +363,7 @@ const Scopes = {
     if (typeof document === 'undefined') return;
     this._initSwipe();
     this._initScreenSwipe();
-    this._paint();
+    this.applyModules(false);
   },
 };
 

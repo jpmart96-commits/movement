@@ -65,9 +65,10 @@ test('generate (hybrid): every slot filled, no dinner repeats lunch back to back
   const app = ctx(); setWeight(app, 74);
   assert.equal(app.Meals.generate(), '');
   const w = app.Meals.state.weeks[app.Meals.ui.weekStart];
-  assert.equal(Object.keys(w.plan).length, 21);
+  // default: lunch and dinner Mon–Fri, breakfast every day
+  assert.equal(Object.keys(w.plan).length, 7 + 10);
   const seq = [];
-  for (let d = 0; d < 7; d++) ['l', 'd'].forEach(s => seq.push(w.plan[d + '-' + s].r));
+  for (let d = 1; d <= 5; d++) ['l', 'd'].forEach(s => seq.push(w.plan[d + '-' + s].r));
   for (let i = 1; i < seq.length; i++) assert.notEqual(seq[i], seq[i - 1], 'back-to-back repeat at ' + i);
   for (let d = 0; d < 7; d++) {
     const tier = app.Meals.effortFor(addDays(app.Meals.ui.weekStart, d)).tier;
@@ -79,6 +80,7 @@ test('generate (hybrid): every slot filled, no dinner repeats lunch back to back
 
 test('portions follow the day: the same meal is bigger on a hard day than an easy one', () => {
   const app = ctx(); setWeight(app, 74);
+  app.Meals.state.prefs.days = [0, 1, 2, 3, 4, 5, 6]; app.Meals.save();
   app.Meals.generate();
   const w = app.Meals.state.weeks[app.Meals.ui.weekStart];
   Object.keys(w.plan).forEach(k => { if (k.endsWith('-d')) w.plan[k] = { r: 'm-chili' }; });
@@ -183,7 +185,7 @@ test('hybrid: weekday lunches need no real cooking, weekday evenings stay short,
 test('hybrid: lunch and dinner on the same day share nothing but maybe a grain (no roast potatoes twice on Monday)', () => {
   [7, 31, 999, 12345, 4242].forEach(seed => {
     const app = hybridWeek(seed); const w = app.Meals.state.weeks[app.Meals.ui.weekStart];
-    for (let d = 0; d < 7; d++) {
+    for (let d = 1; d <= 5; d++) {
       const parts = s => new Set(app.Meals.activeSlots().find(x => x.d === d && x.s === s).r.parts.map(p => p[0]));
       const L = parts('l'), D = parts('d');
       const shared = [...L].filter(id => D.has(id) && !['rice', 'quinoa', 'pasta'].includes(id));
@@ -242,7 +244,7 @@ test('fit to packs cuts the leftovers without breaking the week\'s rules', () =>
     if (waste(fit) < waste(raw) - 0.5) better++;
     const w = fit.Meals.state.weeks[fit.Meals.ui.weekStart];
     Object.values(w.plan).forEach(o => Object.values(o.boost || {}).forEach(b => assert.ok(b > 1 && b <= 1.3)));
-    const seq = []; for (let d = 0; d < 7; d++) ['l', 'd'].forEach(s => seq.push(w.plan[d + '-' + s].r));
+    const seq = []; for (let d = 1; d <= 5; d++) ['l', 'd'].forEach(s => seq.push(w.plan[d + '-' + s].r));
     for (let i = 1; i < seq.length; i++) assert.notEqual(seq[i], seq[i - 1]);
   });
   assert.ok(better >= 2, 'fitting helps most weeks');
@@ -280,4 +282,18 @@ test('cooked weights: a batch pot splits into boxes that add up', () => {
   assert.ok(Math.abs(whole - parts) <= 20 * rice.uses.length, `${whole} vs ${parts}`);
   const dry = rice.c.ing[0][1] * rice.q;
   assert.ok(whole > dry * 2.5, 'rice about triples');
+});
+
+test('weekends off: no lunch or dinner on Saturday and Sunday, and the Sunday batch cooks only for Mon–Fri', () => {
+  const app = hybridWeek(7); const w = app.Meals.state.weeks[app.Meals.ui.weekStart];
+  ['0-l', '0-d', '6-l', '6-d'].forEach(k => assert.ok(!w.plan[k], k + ' left empty'));
+  ['0-b', '6-b'].forEach(k => assert.ok(w.plan[k], k + ' breakfast still planned'));
+  ['0-b', '6-b'].forEach(k => { const x = app.Meals.activeSlots().find(y => y.d === +k[0] && y.s === 'b'); assert.ok(x.pl.every(p => p.c.prep === 'assemble'), k + ': nothing to cook (' + x.r.id + ')'); });
+  const T = app.Meals.tasks().filter(t => t.day === 0 && !t.bf);
+  assert.ok(T.length >= 4, 'Sunday still batches');
+  T.forEach(t => t.uses.forEach(u => assert.ok(u.d >= 1 && u.d <= 5, `${t.c.id} feeds day ${u.d}`)));
+  // turning a day back on plans it
+  app.Meals.state.prefs.days = [1, 2, 3, 4, 5, 6]; app.Meals.save(); app.Meals.generate();
+  const w2 = app.Meals.state.weeks[app.Meals.ui.weekStart];
+  assert.ok(w2.plan['6-l'] && w2.plan['6-d'] && !w2.plan['0-l']);
 });

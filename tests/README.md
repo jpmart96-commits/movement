@@ -49,6 +49,11 @@ under "now passing"; remove the `todo` then.
   app in bar order (bar swipe still changes app): rubber band at the ends, never crosses apps, short slow drags and
   vertical scrolls ignored, a quick flick counts, Live joins while a session runs, the week slider and open sheets
   keep the gesture, laptop width does nothing, plus one real CDP touch. `node tests/browser/screen-swipe.js`
+- `tests/browser/shade.js` — the top shade (app-wide settings): opens only on a pull from just below the top edge
+  (taps, mid-screen and sideways drags ignored), follows the finger, short pulls spring back, a flick opens, push up /
+  tap outside / Escape close. Apps on/off: bar, dots, bar swipe, navTo and the laptop switch follow; switching off the
+  app on screen leaves it; the last app stays on; the choice syncs to a second device; theme; mouse drag on a laptop.
+  `node tests/browser/shade.js`
 - `tests/browser/settings.js` — Settings end to end: tabs, library tiles → category → subcategory, search,
   filters, the exercise sheet (state, 1RM tracking, Edit refreshes it), steppers saving, zone ceilings
   staying in order, equipment chips, theme, and the sync status line. `node tests/browser/settings.js`
