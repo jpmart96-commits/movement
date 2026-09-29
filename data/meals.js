@@ -12,6 +12,12 @@
 //        'fresh'    quick and better fresh, cooked on the day in hybrid mode
 //        'assemble' no cooking, put together on the day
 //   keeps: fridge days once cooked · freezes · mins: active time per batch
+//   ahead (fresh only): in hybrid mode, cook it on the batch day too when it
+//     is eaten within this many days (reheats well: chicken, pork, tofu…);
+//     later uses are frozen if it freezes. 0/absent = always on the day.
+//   pre: the prep that can be done on the batch day for something still
+//     cooked on the day (washing, chopping). m: mins on the batch day,
+//     save: mins it takes off the day, days: how long the prepped veg keeps.
 // Recipes combine components (portions of each) plus finishing ingredients.
 // ─────────────────────────────────────────────────────────────
 const MEALS_DATA = (() => {
@@ -102,8 +108,8 @@ const BUILTIN_COMPS=[
  C('omelette','Mushroom and spinach omelette','fresh',1,false,10,[['eggs',3],['mushroom',80],['spinach',40],['oil',5]],'Fry mushrooms, wilt spinach, pour over beaten eggs, fold.','Make'),
  C('pasta','Pasta','fresh',3,false,12,[['pasta',85]],'Boil in salted water to the time on the pack.','Boil'),
  C('stirveg','Stir-fried vegetables','fresh',2,false,8,[['broccoli',100],['pepper',80],['carrot',60],['oil',5]],'Stir-fry on high heat 5 min.','Stir-fry'),
- C('broccoli','Steamed broccoli','fresh',3,false,8,[['broccoli',150]],'Steam 5 min.','Steam'),
- C('greens','Garlic greens','fresh',1,false,4,[['spinach',80],['garlic',2],['oil',4]],'Wilt in oil with garlic, 2 min.','Wilt'),
+ C('broccoli','Steamed broccoli','fresh',4,false,8,[['broccoli',150]],'Steam 5 min.','Steam'),
+ C('greens','Garlic greens','fresh',3,false,4,[['spinach',80],['garlic',2],['oil',4]],'Wilt in oil with garlic, 2 min.','Wilt'),
  C('salad','Side salad','assemble',1,false,5,[['leaves',60],['tomato',100],['cucumber',80],['oil',8]],'Chop and dress just before eating.','Toss'),
  C('tuna','Tuna','assemble',2,false,1,[['tuna',120]],'Drain.','Open'),
  // breakfasts
@@ -115,6 +121,15 @@ const BUILTIN_COMPS=[
  C('shake','Whey shake','assemble',0,false,2,[['whey',30],['milk',300],['banana',100],['oats',40]],'Blend 20 seconds.','Blend'),
  C('plantshake','Plant protein shake','assemble',0,false,2,[['peaprot',30],['oatmilk',300],['banana',100],['pb',10]],'Blend 20 seconds.','Blend')
 ];
+// What can move to the batch day in hybrid mode (see header).
+const AHEAD={chicken:3,pork:3,tofu:3,broccoli:4,greens:3};
+const PRE={
+ stirveg:{t:'Wash and chop the broccoli, pepper and carrot into one box.',m:6,save:4,days:3},
+ salad:{t:'Wash and spin the leaves, slice the cucumber; box them with kitchen paper. Keep tomatoes whole.',m:5,save:3,days:3},
+ omelette:{t:'Slice the mushrooms and wash the spinach.',m:4,save:4,days:3},
+ broccoli:{t:'Cut into florets.',m:3,save:2,days:4},
+};
+BUILTIN_COMPS.forEach(c=>{ if(AHEAD[c.id]) c.ahead=AHEAD[c.id]; if(PRE[c.id]) c.pre=PRE[c.id]; });
 const M=(id,name,type,parts,finish,x)=>Object.assign({id,name,type,parts,finish:finish||[]},x||{});
 const BUILTIN=[
  M('m-salmonquinoa','Salmon quinoa bowl with roast veg','main',[['quinoa',1],['roastveg',1],['salmon',1]],[['lemon',15],['spinach',30]]),
@@ -135,6 +150,8 @@ const BUILTIN=[
  M('m-salmonsweet','Salmon, sweet potato and greens','main',[['roastsweet',1],['salmon',1],['greens',1]],[['lemon',15]]),
  M('m-tofuquinoa','Crispy tofu quinoa bowl','main',[['quinoa',1],['roastveg',1],['tofu',0.8]]),
  M('m-chickpeaquinoa','Chickpea quinoa bowl with feta','main',[['quinoa',0.9],['roastveg',1],['chickpeas',1]],[['feta',40],['lemon',15]]),
+ M('m-chickroast','Chicken, sweet potato and roast veg','main',[['roastsweet',0.8],['roastveg',1],['chicken',1]],[['lemon',10]]),
+ M('m-porkrice','Pork loin, rice and broccoli','main',[['rice',0.9],['pork',1],['broccoli',1]],[['soy',6]]),
  M('b-oats','Overnight oats with skyr and berries','breakfast',[['oats',1]]),
  M('b-eggtoast','Eggs on toast with spinach and tomato','breakfast',[['eggtoast',1]]),
  M('b-yogbowl','Greek yoghurt bowl with banana','breakfast',[['yogbowl',1]]),

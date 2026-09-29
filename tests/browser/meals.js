@@ -62,6 +62,8 @@ async function swipe(p,dx){
   const wk=await p.evaluate(()=>({slots:document.querySelectorAll('.ml-slot').length, days:document.querySelectorAll('.ml-day').length, today:document.querySelector('.ml-day.is-today .ml-dd')?.textContent, effort:document.querySelector('.ml-effort')?.textContent}));
   ok(wk.slots===3&&wk.days===7&&wk.today==='30','week board with today (Wed 30)',wk);
   ok(/Plyo|Power|moderate|hard|easy/i.test(wk.effort||''),'day shows its training and tier',wk.effort);
+  const guide=await p.evaluate(()=>[...document.querySelectorAll('.ml-slot[data-v="l"] .ml-gl b')].map(b=>b.textContent));
+  ok(guide.length&&guide.includes('Ready'),'weekday lunch reads as a box from Sunday',guide);
   await shot(p,'3-week');
   // mark lunch eaten via the slot sheet
   await p.click('.ml-slot[data-v="l"]'); await W(250);
@@ -72,6 +74,8 @@ async function swipe(p,dx){
   // prep + shop
   await p.click('.nav-btn[data-screen="meals-prep"]'); await W(200);
   ok(await p.locator('.ml-session').count()>=2,'prep sessions listed');
+  const prep=await p.evaluate(()=>({rows:document.querySelectorAll('#ml-prep-0 .ml-wr:not(.ml-wh)').length, cells:document.querySelectorAll('#ml-prep-0 .ml-wr span.is-on').length, boxes:document.querySelectorAll('#ml-prep-0 .ml-box').length, uses:document.querySelectorAll('#ml-prep-0 .ml-use').length}));
+  ok(prep.rows>=4&&prep.cells>=8&&prep.boxes>=6&&prep.uses>=8,'Sunday shows what goes where, which meals each pot feeds, and the boxes to pack',prep);
   await shot(p,'5-prep');
   await p.click('.nav-btn[data-screen="meals-shop"]'); await W(200);
   const n0=await p.locator('.ml-item.is-checked').count();

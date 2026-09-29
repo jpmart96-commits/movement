@@ -42,6 +42,15 @@ body[data-scope="daylog"] { --accent: #7A4E96; --on-accent: #FFFFFF; }
 
 @media (prefers-reduced-motion: reduce) { .nav-track { transition: none; } }
 
+/* ── screen swipe: next / previous tab inside the current app ── */
+/* While dragging, js/scopes.js moves the active screen with the finger.
+   After the switch the new tab slides in from the side the finger came from. */
+.screen.is-swiping { will-change: transform, opacity; }
+@keyframes mvSwipeInR { from { opacity: 0; transform: translateX(28%); } }
+@keyframes mvSwipeInL { from { opacity: 0; transform: translateX(-28%); } }
+.screen.mv-swipe-in-r { animation: mvSwipeInR .26s var(--mv-out, ease-out); }
+.screen.mv-swipe-in-l { animation: mvSwipeInL .26s var(--mv-out, ease-out); }
+
 /* ── laptop sidebar ─────────────────────────────────────────── */
 @media (min-width: 900px) {
   .nav-scopebar { display: none; }
