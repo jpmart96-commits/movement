@@ -7,3 +7,6 @@ samples/workout_*
 export.zip
 apple_health_export/
 vitals*.json
+
+# Personal receipts (supermarket invoices) - never commit
+Fatura_*.pdf
