@@ -141,7 +141,10 @@ const Profile = {
   },
 
   getExerciseState(profile, id) {
-    return profile.exerciseStates[id] || 'active';
+    // 'hist-…' exercises come from the Oct 2026 history import (JEFIT/Garmin
+    // lifts with no library equivalent): history only, never generated,
+    // unless the user turns one on.
+    return profile.exerciseStates[id] || (String(id).startsWith('hist-') ? 'excluded' : 'active');
   },
 
   setExerciseState(profile, id, state) {
@@ -416,7 +419,8 @@ const History = {
 
   // Best estimated 1RM ever logged for this exercise, from completed
   // session history, with the set that produced it.
-  getBestEstimate(exerciseId, limit = 50) {
+  // All of history by default: the best set may be years back (imported logs).
+  getBestEstimate(exerciseId, limit = Infinity) {
     const hist = this.getExerciseHistory(exerciseId, limit);
     let best = null;
     hist.forEach(h => {
@@ -526,9 +530,9 @@ const History = {
     const curStart = now - days * DAY;
     const prevStart = now - days * 2 * DAY;
 
-    // session_index is capped at 200 entries (see saveSession) — plenty
-    // for any realistic 30/60/90-day comparison window.
-    const index = this.getIndex(200);
+    // By date, not by count: with imported history and several watch
+    // workouts a day, 200 entries no longer reach back 2 × 90 days.
+    const index = this.getIndex(Infinity).filter(e => new Date(e.date).getTime() >= prevStart);
     index.forEach(entry => {
       const t = new Date(entry.date).getTime();
       const which = t >= curStart ? 'current' : (t >= prevStart ? 'previous' : null);
@@ -3622,7 +3626,10 @@ const Utils = {
     if (!iso) return '';
     // 'YYYY-MM-DD' is a local date; new Date() would read it as UTC midnight.
     const d = (typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso)) ? new Date(iso + 'T12:00:00') : new Date(iso);
-    return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    // A date more than ~10 months back carries its year — imported history
+    // spans years, and "Mon 4 May" alone could be any of them.
+    const old = Math.abs(Date.now() - d.getTime()) > 300 * 86400000;
+    return d.toLocaleDateString('en-GB', old ? { day: 'numeric', month: 'short', year: 'numeric' } : { weekday: 'short', day: 'numeric', month: 'short' });
   },
 
   // Format duration in seconds to "Xm Ys"

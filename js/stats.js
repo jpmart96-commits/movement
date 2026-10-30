@@ -245,9 +245,13 @@ const Stats = {
     return { ...p, fam, total: 0, sessions: 0, zones: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, zoneTotal: 0, hrSessions: 0 };
   },
 
-  // One read of the log per call; the index is capped at 200 sessions.
+  // One read of the log per call. The charts span at most 12 weeks / 6
+  // months, so only sessions from the last ~7 months are read — a count cap
+  // (it was 200) cut the window short once years of imported history and
+  // several watch workouts a day were in the index.
   _sessions() {
-    const rows = (typeof History !== 'undefined') ? History.getIndex(200) : [];
+    const since = Date.now() - 215 * 86400000;
+    const rows = (typeof History !== 'undefined') ? History.getIndex(Infinity).filter(r => !r.date || new Date(r.date).getTime() >= since) : [];
     const out = [];
     rows.forEach(r => {
       const s = History.getSession(r.id);

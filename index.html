@@ -3214,7 +3214,7 @@ function buildExerciseEl(ex, bIdx, eIdx, blockColor) {
   } else if (ex.logType==='cardio') {
     const c=ex.cardioLog;
     logHtml=`<div class="cardio-row">${c
-      ?`<div class="cardio-result">${c.distanceKm?c.distanceKm+'km · ':''}${Utils.formatDuration(c.duration)}${c.avgHr?' · avg '+c.avgHr+' bpm':''}${_safeUrl(c.appleFitnessLink)?' · <a href="'+escAttr(_safeUrl(c.appleFitnessLink))+'" target="_blank" rel="noopener">Apple Fitness ↗</a>':''}${c.series?'':` <button type="button" class="mv-linkbtn" onclick="editCardio(${bIdx},${eIdx})">change</button>`}</div>`
+      ?`<div class="cardio-result">${c.distanceKm?c.distanceKm+'km · ':''}${Utils.formatDuration(c.duration)}${(c.avgHr||c.avgHR)?' · avg '+(c.avgHr||c.avgHR)+' bpm':''}${_safeUrl(c.appleFitnessLink)?' · <a href="'+escAttr(_safeUrl(c.appleFitnessLink))+'" target="_blank" rel="noopener">Apple Fitness ↗</a>':''}${c.series?'':` <button type="button" class="mv-linkbtn" onclick="editCardio(${bIdx},${eIdx})">change</button>`}</div>`
       :`<div class="cardio-inputs"><input type="number" class="num-in sm" id="cd-m-${bIdx}-${eIdx}" placeholder="min" value="${ex.target&&ex.target.durationSec?Math.round(ex.target.durationSec/60):''}"><span>:</span><input type="number" class="num-in sm" id="cd-s-${bIdx}-${eIdx}" placeholder="ss" max="59"><input type="number" class="num-in sm" id="cd-km-${bIdx}-${eIdx}" placeholder="km" step="0.01" min="0"><input type="number" class="num-in sm" id="cd-hr-${bIdx}-${eIdx}" placeholder="avg HR" min="60" max="220"><input type="text" class="text-in-sm" id="cd-link-${bIdx}-${eIdx}" placeholder="Apple Fitness link"><button class="log-btn" onclick="logCardio(${bIdx},${eIdx})">Log</button></div>`
     }</div>`;
   }
@@ -4037,7 +4037,8 @@ let _calSelected = null;
 
 function _logCalendar() {
   const y = _calYear, m = _calMonth;
-  const index = History.getIndex(200);
+  // The whole index (entries only — cheap), so imported history back to 2013 can be browsed.
+  const index = History.getIndex(Infinity);
   const byDay = {};
   index.forEach(s => {
     const d = new Date(s.date);
@@ -4092,7 +4093,7 @@ function calNext() { if (_calMonth === 11) { _calMonth = 0; _calYear++; } else _
 function _logDetail() {
   if (!_calSelected) return '';
   const d = _calSelected;
-  const ss = History.getIndex(200).filter(s => {
+  const ss = History.getIndex(Infinity).filter(s => {
     const x = new Date(s.date);
     return x.getFullYear() === _calYear && x.getMonth() === _calMonth && x.getDate() === d;
   });
@@ -4229,7 +4230,7 @@ function openLiftHistory(id) {
   const ex = allEx.find(e => e.id === id);
   if (!ex) return;
 
-  const hist = History.getExerciseHistory(id, 100); // most recent first
+  const hist = History.getExerciseHistory(id, Infinity); // most recent first, all of history
   const best = History.getBestEstimate(id);
 
   let html = `<div class="modal-title">${ex.name}</div>`;
@@ -4273,7 +4274,7 @@ function openSessionModal(id) {
       ex.sets?.forEach(s=>{html+=`<div class="modal-set">${s.weight?s.weight+'kg ':''} ${s.reps?'× '+s.reps:''} ${s.duration?Utils.formatMMSS(s.duration):''} ${s.distance?s.distance+'km':''}${s.rpe?' · RPE '+s.rpe:''}</div>`;});
       if(ex.cardioLog){
         const c=ex.cardioLog;
-        html+=`<div class="modal-set">${c.distanceKm?c.distanceKm+'km · ':''}${Utils.formatDuration(c.duration)}${c.avgHr?' · avg '+c.avgHr:''}</div>`;
+        html+=`<div class="modal-set">${c.distanceKm?c.distanceKm+'km · ':''}${Utils.formatDuration(c.duration)}${(c.avgHr||c.avgHR)?' · avg '+(c.avgHr||c.avgHR)+' bpm':''}</div>`;
         // Engine check on any run/ride with a heart-rate series (imported).
         if(typeof Insights!=='undefined'&&c.series){try{const a=Insights.aerobic(c,{kind:/cycl|bike/.test(ex.id)?'bike':undefined});
           if(a&&a.valid){html+=`<div class="modal-set" style="color:var(--text2)">${a.speedAtHr?`${a.speedAtHr.paceSecPerKm&&a.kind==='run'?Utils.formatMMSS(Math.round(a.speedAtHr.paceSecPerKm))+'/km':a.speedAtHr.kmh+' km/h'} at ${a.speedAtHr.hrLo}–${a.speedAtHr.hrHi} bpm · `:''}${a.decoupling!=null?'drift '+a.decoupling+'%':''}</div>`;}}catch(err){}}
