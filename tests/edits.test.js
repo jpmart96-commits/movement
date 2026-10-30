@@ -122,15 +122,16 @@ test('lighter scales Main Focus: loads ~90%, one set fewer; intervals become eas
 });
 
 test('after the written plan: every day type carries forward its latest non-test day', () => {
+  // Thursday 31 Dec is Strength B in the Nov–Dec order. The Christmas week
+  // is all tests, so 17 Dec is what carries forward.
   const s = generateDay(app, '2026-12-31');
   assert.equal(s.planSource.kind, 'carry-forward');
-  // 17 Dec (the 10 km) is a test, so the week-11 long run with its
-  // fixed-HR check is what carries forward.
-  assert.equal(s.planSource.from, '2026-12-10');
-  assert.match(mf(s).exercises[0].target.text, /30 min at avg ~148.*15 min easy under 153/);
-  const b = generateDay(app, '2027-01-01');
-  assert.equal(mf(b).exercises.find(e => e.id === 'deadlift').target.loadKg, 92.5);   // 18 Dec, not the 26 Dec test
-  assert.doesNotMatch(mf(b).note, /RETEST/);   // that morning's framing doesn't carry
+  assert.equal(s.planSource.from, '2026-12-17');
+  assert.equal(mf(s).exercises.find(e => e.id === 'deadlift').target.loadKg, 100);
+  assert.doesNotMatch(mf(s).note, /RETEST/);   // that morning's framing doesn't carry
+  const b = generateDay(app, '2027-01-02');    // Saturday: the 19 Dec 5x4
+  assert.equal(b.planSource.from, '2026-12-19');
+  assert.equal(mf(b).exercises[0].target.protocol.reps, 5);
 });
 
 test('one-tap: as prescribed writes the target as sets; RPE stamps them; complete clears the live session', () => {
@@ -163,7 +164,7 @@ test('block draft: 3 weeks from 28 Dec (after the written plan), one step per li
   assert.equal(d.to, '2027-01-17');
   assert.equal(d.days.length, 21);
   const sq = day => d.days.find(x => x.date === day).mainFocusPlan.exercises.find(e => e.id === 'squat').loadKg;
-  assert.deepEqual([sq('2026-12-28'), sq('2027-01-04'), sq('2027-01-11')], [65, 67.5, 67.5]);
+  assert.deepEqual([sq('2026-12-28'), sq('2027-01-04'), sq('2027-01-11')], [67.5, 70, 70]);
   assert.equal(d.days.find(x => x.date === '2027-01-13').dayType, 'aerobic-test');
   assert.ok(d.days.every(x => x.source === 'draft'));
   // adopting appends and survives a newer shipped seed

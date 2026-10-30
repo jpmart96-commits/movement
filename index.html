@@ -2181,6 +2181,7 @@ function renderToday() {
   h += _readinessBanner(session);
   if (typeof TrainingLoad !== 'undefined') h += TrainingLoad.todayBanner(session);
   if (typeof Backup !== 'undefined') h += Backup.reminder();
+  h += _skillWeekStrip();
   h += _editsStrip(session);
 
   // the timeline
@@ -2231,6 +2232,24 @@ function renderToday() {
   </div>`;
 
   el.innerHTML = h;
+}
+
+// This week's pushed skills, counted from logged sessions (Nov–Dec plan):
+// the order of the days is free, the count is what the week is for.
+function _skillWeekStrip() {
+  if (typeof MonthPlan === 'undefined' || !MonthPlan.weekSkills) return '';
+  const now = new Date();
+  const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0, 0, 0, 0);
+  const sessions = History.getIndex(Infinity)
+    .filter(e => e && e.date && new Date(e.date) >= mon && (e.status || 'completed') === 'completed')
+    .map(e => History.getSession(e.id)).filter(Boolean);
+  const wk = MonthPlan.weekSkills(now, sessions);
+  if (!wk || !wk.rows.length) return '';
+  const pills = wk.rows.map(r => {
+    const ok = r.done >= r.target;
+    return `<span class="mv-skillwk ${ok ? 'ok' : ''}" title="${escAttr(r.label)}: ${r.done} of ${r.target} sessions this week">${escAttr(r.label)} <b>${Math.min(r.done, r.target)}/${r.target}</b></span>`;
+  }).join('');
+  return `<div class="mv-skillwk-row" aria-label="Skills this week"><span class="mv-skillwk-k">This week</span>${pills}</div>`;
 }
 
 function sessionRow(s) {

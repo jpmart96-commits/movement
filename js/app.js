@@ -1230,7 +1230,10 @@ const Generator = {
     }
 
     const variant   = slot.variant || 'standard';
-    const durations = this._scaffoldBlockDurations(variant);
+    // A plan day can size its own blocks (Nov–Dec 2026: ~75–90 min days with
+    // one skill given real time) — minutes per block key, 0 drops a block.
+    // Unnamed blocks keep the skeleton's length.
+    const durations = { ...this._scaffoldBlockDurations(variant), ...((planDay && planDay.blockMinutes) || {}) };
     const tier      = this.getTier(this._skeletonTotalMinutes(variant));
     const lowEnergy = (sleep > 0 && sleep < 3) || (energy > 0 && energy < 3);
     const useExt    = tier >= 3 && !lowEnergy;
@@ -1384,11 +1387,22 @@ const Generator = {
     } else if (durations['accessory'] > 0 && skillLine) {
       // Rung-driven lines practise the rung you are on (data/goals.js).
       const steps = (hasGoals && Goals.skillSteps(skillLineKey, profile)) || skillLine.steps;
-      blocks.push(bank(this._buildRecipeBlock({
+      // A plan day can end the skill block with a short second skill
+      // (Nov–Dec light days: pancake, then 5 min of wall handstand).
+      const finisher = planDay && planDay.skillFinisher && hasGoals
+        ? this._skillFinisher(planDay.skillFinisher, profile, resolveEx, used) : null;
+      const finMin = finisher ? finisher.allocatedMinutes : 0;
+      const acc = this._buildRecipeBlock({
         key: 'accessory', label: 'Accessory & Skill — ' + skillLine.label, icon: 'star', color: '#185FA5', bg: '#E4EEF9',
-        note: hasGoals ? Goals.lineNote(skillLineKey, profile) : '', steps, duration: durations['accessory'], recipeKey: skillLineKey, recipeKind: 'skill',
+        note: hasGoals ? Goals.lineNote(skillLineKey, profile) : '', steps, duration: durations['accessory'] - finMin, recipeKey: skillLineKey, recipeKind: 'skill',
         resolveEx, lastSeenMap, used, painCaution, seed: Math.floor(dayIdx / 3), boost,
-      })));
+      });
+      if (finisher) {
+        acc.exercises.push(finisher);
+        acc.duration = durations['accessory'];
+        acc.alsoSkills = [planDay.skillFinisher];
+      }
+      blocks.push(bank(acc));
     } else if (durations['accessory'] > 0) {
       const accTags = (slot.accessory && slot.accessory.tags) || ['calisthenics'];
       const accPool = fresh([...new Set(accTags.flatMap(t => this._poolForTag(t)))]);
@@ -1402,10 +1416,15 @@ const Generator = {
 
     // ── CLOSE — down-regulation. Cool-down pools of the day's main tags,
     // falling back to a body scan on days with no main focus.
+    // A plan day's blockMinutes can drop Close (0); otherwise it never
+    // goes below the skeleton's 10.
+    const closeDropped = !!(planDay && planDay.blockMinutes && planDay.blockMinutes.close === 0);
     const coolDur = durations['close'] || 10;
     const closeKey = slot.close || null;
     const closeRecipe = hasRecipes && closeKey && typeof CLOSE_RECIPES !== 'undefined' ? CLOSE_RECIPES[closeKey] : null;
-    if (closeRecipe) {
+    if (closeDropped) {
+      // nothing: the day's last block (usually the skill) is the cool-down
+    } else if (closeRecipe) {
       blocks.push(bank(this._buildRecipeBlock({
         key: 'close', label: 'Close', icon: 'moon', color: '#5F5E5A', bg: '#F1EFE8',
         note: 'Down-regulate. Finish calm.', steps: closeRecipe, duration: coolDur,
@@ -1708,6 +1727,27 @@ const Generator = {
       recipeKey, recipeKind,
       exercises: this._fitBlockDoses(picked, duration),
     };
+  },
+
+  // One exercise for a second skill at the end of the skill block: the
+  // first exercise of the rung you are on, as a fixed 5-minute practice.
+  _skillFinisher(lineKey, profile, resolveEx, used) {
+    const line = (typeof SKILL_LINES !== 'undefined') ? SKILL_LINES[lineKey] : null;
+    if (!line || !line.goalId || typeof Goals === 'undefined') return null;
+    const r = Goals.rung(line.goalId, profile);
+    const def = Goals.rungDef(line.goalId, r.idx);
+    const cands = ((def && def.work) || []).flatMap(st => st.ids || []);
+    const exId = cands.find(x => !(used && used.has(x))) || cands[0];
+    const lib = id => { const l = LIBRARY.find(e => e.id === id); return l ? JSON.parse(JSON.stringify(l)) : null; };
+    const ex = (exId && (resolveEx(exId) || lib(exId))) || null;
+    if (!ex) return null;
+    if (used) used.add(ex.id);
+    ex.role = 'finisher';
+    ex.name = line.label + ' — ' + ex.name;
+    ex.target = { sets: 1, durationSec: 300, text: '5 min — ' + (r.name || 'your rung'), fixed: true };
+    ex.notes = 'Easy reps of the rung you are on. Stop while it still looks clean.';
+    ex.allocatedMinutes = 5;
+    return ex;
   },
 
   _buildOpenBlock(dayType, durationMin, resolveEx) {

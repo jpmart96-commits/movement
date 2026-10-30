@@ -36,6 +36,8 @@ under "now passing"; remove the `todo` then.
 - `tests/browser/motion.js` — keep-awake (lock held while a session is live, dropped when hidden,
   re-taken on return, released on finish) and motion (new set / completed check tagged, sheets
   animate out, re-open mid-exit stays open).
+- `tests/browser/skill-week.js` — the Nov–Dec plan on Today: a day of 90 min or less, the day's skill block, and the
+  weekly skill counter (handstand / pancake / hang) filling from logged sessions in any order. `node tests/browser/skill-week.js`
 - `tests/browser/today-flow.js` — the Today edit flow end to end (run → bike, remove a
   block, reload, one-tap logging with RPE, finish with rows open).
 - `tests/browser/notes.js` — Notes tab end to end: write from the tab, quick add from Today

@@ -545,9 +545,13 @@ const Goals = {
     const plan = this._plan();
     const list = (plan && plan.goalTargets && plan.goalTargets[id]) || [];
     const c = CAPACITIES.find(x => x.id === id);
-    const base = c ? this.baseline(id) : null;
+    const base0 = c ? this.baseline(id) : null;
     return list.map(t => {
       let value = t.value != null ? t.value : null;
+      // A target can name its own baseline window (Nov–Dec: measured 2–8
+      // Nov); until something is measured there, the quarter's baseline.
+      const r = t.baseFrom && c ? this.results(id).find(x => x.date >= t.baseFrom) : null;
+      const base = r || base0;
       if (c && value == null && base && (t.delta != null || t.pct != null)) {
         const sgn = c.better === 'lower' ? -1 : 1;
         const inc = t.delta != null ? Math.abs(t.delta) : Math.abs(base.value) * Math.abs(t.pct) / 100;

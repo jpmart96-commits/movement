@@ -22,6 +22,8 @@ const KNOWN = [
     reason: 'z2-bike Open variant doses ~11.4 min into 10.' },
   { id: 'complementary-fixed-doses', check: 'time', block: 'complementary',
     reason: 'Stick, objects and balance days: four fixed-dose items reach ~28 min in the 25-min Complementary slot.' },
+  { id: 'hang-project-fixed-dose', check: 'time', block: 'accessory',
+    reason: 'Nov–Dec strength days: the hang project\'s fixed 5 x 45s dead hang runs ~18 min into the 15-min skill slot.' },
   { id: 'develop-mobility', check: 'time', block: 'mobility',
     reason: 'Range-day recipes (long holds) and the plyo prep recipe run ~22–23 min into 20.' },
 ];
@@ -80,8 +82,16 @@ function checkDay(date) {
   // minutes add up, and each block's work fits its minutes
   const sum = s.blocks.reduce((a, b) => a + (b.duration || 0), 0);
   if (sum !== s.duration) add('minutes', '-', `blocks sum ${sum} != day total ${s.duration}`);
-  const skeleton = G._skeletonTotalMinutes(s.variant);
-  if (app.MonthPlan.loadScaleFor(app.date(date)) === 1 && s.duration !== skeleton) add('minutes', '-', `day total ${s.duration} != skeleton ${skeleton} (${s.variant})`);
+  // A plan day can size its own blocks (Nov–Dec: day.blockMinutes); the
+  // day must then add up to those, with Main Focus capped at 60.
+  const bm = p && p.blockMinutes;
+  const skeleton = bm
+    ? Object.entries({ ...G._scaffoldBlockDurations(s.variant), ...bm })
+        .filter(([k]) => s.variant !== 'light' || k !== 'main-focus')
+        .reduce((a, [k, m]) => a + (k === 'main-focus' ? Math.min(m, 60) : m), 0)
+    : G._skeletonTotalMinutes(s.variant);
+  if (app.MonthPlan.loadScaleFor(app.date(date)) === 1 && s.duration !== skeleton) add('minutes', '-', `day total ${s.duration} != ${bm ? 'plan blockMinutes' : 'skeleton'} ${skeleton} (${s.variant})`);
+  if (bm && s.duration > 95) add('minutes', '-', `day total ${s.duration} over the Nov–Dec 75–90 min budget`);
   for (const b of s.blocks) {
     const est = estimateBlockMinutes(b);
     if (est > b.duration * TIME_TOLERANCE) add('time', b.key, `${b.key} est ${est.toFixed(1)} min > ${b.duration} min +${Math.round((TIME_TOLERANCE - 1) * 100)}%`);

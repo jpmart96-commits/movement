@@ -123,7 +123,7 @@ const MonthPlan = {
     const summary = this.summarize(src.mainFocusPlan);
     return {
       date: dateKey, dayType: src.dayType, theme: src.theme, variant: src.variant,
-      skillLine: src.skillLine, intervalSpec: src.intervalSpec,
+      skillLine: src.skillLine, skillFinisher: src.skillFinisher, intervalSpec: src.intervalSpec, blockMinutes: src.blockMinutes,
       // The day's own framing ("Block 2 opens…", "measure the pancake
       // today") belonged to that morning; the exercises and doses carry.
       mainFocusPlan: src.mainFocusPlan ? { ...src.mainFocusPlan, note: undefined } : src.mainFocusPlan,
@@ -171,6 +171,53 @@ const MonthPlan = {
       draftAdoptedAt: Date.now(), draftNotes: draft.notes || [] };
     this.save(next);
     return next;
+  },
+
+  // ── WEEKLY SKILL COUNT (Nov–Dec 2026) ──────────────────────────
+  // The week is on target when enough logged sessions carried each pushed
+  // skill, whatever order the days ran in (quarter.weeklySkillTargets).
+  // A session carried a skill if it had that skill's block, or a test
+  // block checking that skill, with at least one exercise not skipped.
+  SKILL_GOALS: { handstand: ['handstand'], 'pancake-hips': ['cap-pancake'], 'hang-project': ['cap-dead-hang'] },
+  SKILL_LABELS: { handstand: 'Handstand', 'pancake-hips': 'Pancake', 'hang-project': 'Hang' },
+
+  skillsIn(session) {
+    const out = new Set();
+    ((session && session.blocks) || []).forEach(b => {
+      const live = (b.exercises || []).some(e => !e.skipped);
+      if (!live) return;
+      if (b.recipeKind === 'skill' && b.recipeKey) out.add(b.recipeKey);
+      (b.alsoSkills || []).forEach(k => out.add(k));
+      if (b.recipeKind === 'test' && Array.isArray(b.tests)) {
+        Object.entries(this.SKILL_GOALS).forEach(([k, ids]) => { if (b.tests.some(t => ids.includes(t))) out.add(k); });
+      }
+    });
+    return out;
+  },
+
+  // Monday–Sunday around `date`. `sessions` are logged sessions (any order).
+  // Returns null when the plan sets no targets for that date.
+  weekSkills(date, sessions) {
+    const plan = this.load();
+    const tg = plan && plan.quarter && plan.quarter.weeklySkillTargets;
+    if (!tg) return null;
+    const d = this._parse(date);
+    const k = this._key(d);
+    if (tg.from && k < tg.from) return null;
+    if (plan.blockEnd && k > plan.blockEnd) return null;
+    const mon = new Date(d); mon.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const from = this._key(mon), to = this._key(sun);
+    const done = {};
+    (sessions || []).forEach(s => {
+      if (!s || !s.date || (s.status && s.status !== 'completed')) return;
+      const sk = this._key(this._parse(String(s.date).slice(0, 10)));
+      if (sk < from || sk > to) return;
+      this.skillsIn(s).forEach(x => { done[x] = (done[x] || 0) + 1; });
+    });
+    const rows = Object.keys(tg).filter(x => x !== 'from' && typeof tg[x] === 'number')
+      .map(x => ({ key: x, label: this.SKILL_LABELS[x] || x, done: done[x] || 0, target: tg[x] }));
+    return { from, to, rows, onTarget: rows.every(r => r.done >= r.target) };
   },
 
   _short(k) {

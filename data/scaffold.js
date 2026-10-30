@@ -175,8 +175,10 @@ const WEEK_SCAFFOLD = {
   monday:    { ...WEEK_SCAFFOLD_TYPES['strength-a'],  dayType: 'strength-a' },
   tuesday:   { ...WEEK_SCAFFOLD_TYPES['z2-bike'],     dayType: 'z2-bike' },
   wednesday: { ...WEEK_SCAFFOLD_TYPES['plyo-power'],  dayType: 'plyo-power' },
-  thursday:  { ...WEEK_SCAFFOLD_TYPES['z2-run'],      dayType: 'z2-run' },
-  friday:    { ...WEEK_SCAFFOLD_TYPES['strength-b'],  dayType: 'strength-b' },
+  // Nov–Dec 2026 default order: Strength B on Thursday, the second bike on
+  // Friday (long runs are monthly and take a bike's place).
+  thursday:  { ...WEEK_SCAFFOLD_TYPES['strength-b'],  dayType: 'strength-b' },
+  friday:    { ...WEEK_SCAFFOLD_TYPES['z2-bike'],     dayType: 'z2-bike' },
   saturday:  { ...WEEK_SCAFFOLD_TYPES['quality-run'], dayType: 'quality-run' },
   sunday:    { ...WEEK_SCAFFOLD_TYPES['light'],       dayType: 'light' },
   // Names older plan days and stored instances still use.

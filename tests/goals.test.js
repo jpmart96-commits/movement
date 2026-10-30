@@ -60,19 +60,24 @@ test('a test day borrowed for a theme swap does not bring its tests along', () =
   assert.ok(!s.blocks.some(b => b.tests), s.blocks.map(b => b.key).join());
 });
 
-test('results and targets: relative targets resolve against the 27–30 Sep baseline', () => {
+test('results and targets: relative targets resolve against the 27–30 Sep baseline, Nov–Dec ones against 2–8 Nov', () => {
   DB.remove(Goals.RESULTS_KEY);
   assert.equal(Goals.targets('cap-broad-jump')[0].value, null);         // no baseline yet
   Goals.record('cap-broad-jump', 210, 'first', '2026-09-30');
   const t = Goals.targets('cap-broad-jump');
-  assert.deepEqual(t.map(x => x.value), [216, 223, 227]);                // +3%, +6%, +8%
+  // Nothing measured from 2 Nov yet: the Nov–Dec targets fall back to it.
+  assert.deepEqual(t.map(x => x.value), [216, 216, 223]);                // +3%; then +3%, +6%
   assert.equal(Goals.nextTarget('cap-broad-jump', '2026-11-02').label, '29 Nov');
   Goals.record('cap-sprint-20', 3.62, '', '2026-09-30');
-  assert.deepEqual(Goals.targets('cap-sprint-20').map(x => x.value), [3.57, 3.52, 3.47]);   // lower is better
+  assert.deepEqual(Goals.targets('cap-sprint-20').map(x => x.value), [3.57, 3.57, 3.52]);   // lower is better
   Goals.record('cap-broad-jump', 219, '', '2026-10-31');
   assert.equal(Goals.latest('cap-broad-jump').value, 219);
   assert.equal(Goals.baseline('cap-broad-jump').value, 210);
-  assert.ok(Math.abs(Goals.progressOf('cap-broad-jump') - 9 / 17) < 1e-9);
+  assert.ok(Math.abs(Goals.progressOf('cap-broad-jump') - 9 / 13) < 1e-9);
+  // The 4 Nov baseline moves the Nov–Dec targets, not block 1's.
+  Goals.record('cap-broad-jump', 220, '', '2026-11-04');
+  assert.deepEqual(Goals.targets('cap-broad-jump').map(x => x.value), [216, 227, 233]);
+  DB.set(Goals.RESULTS_KEY, { ...DB.get(Goals.RESULTS_KEY), 'cap-broad-jump': Goals.results('cap-broad-jump').filter(r => r.date !== '2026-11-04') });
   // same date overwrites
   Goals.record('cap-broad-jump', 220, '', '2026-10-31');
   assert.equal(Goals.results('cap-broad-jump').length, 2);
@@ -115,13 +120,58 @@ test('migration: old rung positions move onto the rewritten ladders; the pistol 
 
 test('the plan: 27 Sep – 27 Dec, retest weeks end every block, Christmas is light', () => {
   const plan = MonthPlan.load();
-  assert.equal(plan.seedVersion, 7);
+  assert.equal(plan.seedVersion, 8);
   assert.equal(plan.quarter.from, '2026-09-27');
   assert.equal(plan.blockEnd, '2026-12-27');
   const testDays = plan.days.filter(d => d.tests).map(d => d.date);
-  ['2026-09-27', '2026-09-30', '2026-10-31', '2026-11-28', '2026-12-23', '2026-12-27'].forEach(k => assert.ok(testDays.includes(k), k));
+  ['2026-09-27', '2026-09-30', '2026-10-31', '2026-11-03', '2026-11-04', '2026-11-25', '2026-12-23', '2026-12-27'].forEach(k => assert.ok(testDays.includes(k), k));
   assert.equal(MonthPlan.dayFor('2026-12-25').dayType, 'light');
   assert.deepEqual(plan.quarter.blocks.map(b => b.to), ['2026-11-01', '2026-11-29', '2026-12-27']);
   // every goal in a block's focus exists
   plan.quarter.blocks.forEach(b => b.focus.forEach(id => assert.ok(Goals.get(id), id)));
+});
+
+test('Nov–Dec: 75–90 min days, one pushed skill per session, the week counted not the weekday', () => {
+  const plan = MonthPlan.load();
+  const nd = plan.days.filter(d => d.date >= '2026-11-02');
+  assert.equal(nd.length, 56);
+  // every day sized, none over 90 apart from the 10 km
+  nd.forEach(d => {
+    assert.ok(d.blockMinutes, d.date);
+    const m = Object.entries(d.blockMinutes).reduce((a, [k, v]) => a + (k === 'main-focus' ? Math.min(v, 60) : v), 0);
+    assert.ok(m <= 90, `${d.date} ${m}`);
+  });
+  const pushed = ['handstand', 'pancake-hips', 'hang-project'];
+  nd.forEach(d => assert.ok(pushed.includes(d.skillLine), `${d.date} ${d.skillLine}`));
+  // a normal week's default order carries handstand x3, pancake x3, hang x2
+  const wk = nd.filter(d => d.week === 8);
+  const n = k => wk.filter(d => d.skillLine === k || d.skillFinisher === k).length;
+  assert.deepEqual([n('handstand'), n('pancake-hips'), n('hang-project')], [3, 3, 2]);
+  // and the generated Sunday carries both, so the counter sees both
+  const sun = generateDay(app, '2026-11-15');
+  const acc = block(sun, 'accessory');
+  assert.deepEqual([acc.recipeKey, acc.alsoSkills], ['pancake-hips', ['handstand']]);
+  assert.deepEqual([...MonthPlan.skillsIn({ blocks: [acc] })].sort(), ['handstand', 'pancake-hips']);
+  assert.equal(acc.exercises[acc.exercises.length - 1].allocatedMinutes, 5);
+  // Strength A and B never on consecutive days
+  nd.forEach((d, i) => { const x = nd[i + 1]; if (x && /^strength/.test(d.dayType)) assert.ok(!/^strength/.test(x.dayType), d.date); });
+  assert.equal(MonthPlan.dayFor('2026-11-29').dayType, 'z2-run');
+  assert.equal(MonthPlan.dayFor('2026-12-22').dayType, 'z2-run');
+  assert.deepEqual(plan.quarter.weeklySkillTargets, { from: '2026-11-02', handstand: 3, 'pancake-hips': 3, 'hang-project': 2 });
+
+  // the counter: logged sessions in Mon–Sun, any order, skill or test blocks
+  const blk = (kind, key, tests) => ({ recipeKind: kind, recipeKey: key, tests, exercises: [{ id: 'x' }] });
+  const S = (date, ...blocks) => ({ date, status: 'completed', blocks });
+  const w = MonthPlan.weekSkills('2026-11-12', [
+    S('2026-11-09', blk('skill', 'hang-project')),
+    S('2026-11-10', blk('skill', 'handstand')),                 // swapped: handstand on the bike day
+    S('2026-11-11', blk('test', 'accessory', ['cap-pancake', 'cap-toe-touch'])),
+    S('2026-11-11', { recipeKind: 'skill', recipeKey: 'handstand', exercises: [{ id: 'y', skipped: true }] }),   // all skipped
+    S('2026-11-08', blk('skill', 'handstand')),                 // the week before
+    { ...S('2026-11-12', blk('skill', 'handstand')), status: 'in-progress' },
+  ]);
+  assert.deepEqual([w.from, w.to], ['2026-11-09', '2026-11-15']);
+  assert.deepEqual(w.rows.map(r => [r.key, r.done, r.target]), [['handstand', 1, 3], ['pancake-hips', 1, 3], ['hang-project', 1, 2]]);
+  assert.equal(w.onTarget, false);
+  assert.equal(MonthPlan.weekSkills('2026-10-20', []), null);   // before the Nov–Dec plan
 });

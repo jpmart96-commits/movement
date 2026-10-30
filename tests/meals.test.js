@@ -32,7 +32,7 @@ test('day effort comes from the training plan', () => {
   }
   // Past the written plan it follows the standing week split.
   const far = app.Meals.effortFor('2027-03-04');
-  assert.equal(far.src, 'week'); assert.equal(far.type, 'z2-run'); assert.equal(far.tier, 'hard');
+  assert.equal(far.src, 'week'); assert.equal(far.type, 'strength-b'); assert.equal(far.tier, 'moderate');   // Thu: Strength B in the Nov–Dec order
 });
 
 test('a day made lighter on Today steps down; an override in Food settings wins', () => {
